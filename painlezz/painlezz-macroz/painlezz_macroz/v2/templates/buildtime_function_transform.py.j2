@@ -1,0 +1,7 @@
+def {{ node.name.value }}(
+    {% for param in node.params.params %}
+        {{ param.name.value }}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+):
+    # Transformed function implementation
+    pass

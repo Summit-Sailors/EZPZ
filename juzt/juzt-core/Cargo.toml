@@ -1,0 +1,12 @@
+[package]
+authors = { workspace = true }
+description = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+name = "juzt-core"
+repository = { workspace = true }
+version = "0.0.1"
+
+[dependencies]
+log = { workspace = true }
+serde = { workspace = true }

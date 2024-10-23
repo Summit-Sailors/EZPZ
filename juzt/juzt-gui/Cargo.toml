@@ -1,0 +1,32 @@
+[package]
+authors = { workspace = true }
+description = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+name = "juzt-gui"
+repository = { workspace = true }
+version = "0.0.1"
+
+[dependencies]
+eframe = { workspace = true, features = ["persistence"] }
+egui = { workspace = true }
+egui_extras = { workspace = true }
+egui_node_graph2 = { workspace = true }
+egui_plot = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
+
+
+[package.metadata.docs.rs]
+all-features = true
+targets = ["wasm32-unknown-unknown", "x86_64-unknown-linux-gnu"]
+
+
+# native:
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = "0.11"
+
+# web:
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "0.4"
+web-sys = "0.3.70"           # to access the DOM (to hide the loading text)

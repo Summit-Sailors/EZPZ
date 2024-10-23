@@ -1,0 +1,6 @@
+def {{ macro.name }}[**P, R](func: Callable[P, R]) -> Callable[P, R]:
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        # Runtime macro implementation
+        return func(*args, **kwargs)
+    return wrapper

@@ -1,0 +1,33 @@
+[project]
+authors = [{ "name" = "Jeremy Meek" }]
+dependencies = [
+  "aiofiles==24.1.0",
+  "cached-property==1.5.2",
+  "jinja2==3.1.4",
+  "libcst==1.4.0",
+  "painlezz-basez",
+  "painlezz-macroz",
+  "pydantic==2.9.2",
+  "pywatchman==2.0.0",
+  "toml==0.10.2",
+  "typer==0.12.5",
+]
+description = "A tool that brings type safety and type checking enhancements to the Polars library."
+name = "ezpz_pluginz"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+version = "0.0.1"
+
+[tool.rye]
+dev-dependencies = ["painlezz-macroz"]
+
+[project.scripts]
+ezplugins = "ezpz_pluginz.__cli__:app"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+
+[tool.hatch.metadata]
+allow-direct-references = true

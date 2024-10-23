@@ -1,0 +1,4 @@
+[ezpz_pluginz]
+include = ["ezpz-guiz", "ezpz-pluginz"]
+name = "ezpz"
+site_customize = true

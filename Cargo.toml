@@ -1,0 +1,494 @@
+[workspace.package]
+authors = []
+description = ""
+edition = "2021"
+license = ""
+repository = ""
+
+[workspace]
+exclude = ["ezpz/ezpz-pluginz", "pysilo-rs/public"]
+members = ["ezpz/*", "imgflop/*", "juzt/*", "prompt-rs", "pysilo-rs/*", "ruzty-ai"]
+resolver = "2"
+
+[profile.dev.package."*"]
+codegen-units = 1
+debug = false
+incremental = false
+opt-level = "z"
+strip = true
+
+
+[profile.release]
+codegen-units = 1
+debug = false
+incremental = false
+lto = true
+opt-level = "z"
+panic = "abort"
+strip = true
+
+[workspace.dependencies]
+
+# To Remove
+chatgpt_rs = "1.2.3"
+
+# Misc
+# Datatypes
+base64 = { version = "0.22.1" }                          # encodes and decodes base64 as bytes or utf8
+chrono = { version = "0.4.38", features = ["serde"] }    # data and time lib
+ciborium = { version = "0.2.2" }                         # CBOR serialization and deserialization implementations for serde
+const_format = "0.2.33"                                  # Compile-time string formatting
+fluent-uri = { version = "0.3.1", features = ["serde"] } # A generic URI/IRI handling library compliant with RFC 3986/3987.
+rinja = "0.3.4"
+schemars = "0.8.21"                                      # Generate JSON Schemas from Rust code
+slab = "0.4.9"                                           # Pre-allocated storage for a uniform data type
+slotmap = { version = "1.0.7", features = ["serde"] }    # Slotmap data structure
+time = { version = "0.3.36", features = ["formatting"] } # Date and time library.
+uuid = { version = "1.10.0", features = ["serde"] }
+
+# Tools
+clap = { version = "4.5", features = ["derive"] }         # CLI Builder
+execute = "0.2.13"                                        # A library for extending `Command` in order to execute programs more easily.
+local-ip-address = "0.6.1"                                # Retrieve system's local IP address and Network Interfaces/Adapters
+lru = "0.12.5"                                            # A LRU cache implementation
+proc-macro2 = "1.0.87"                                    # A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case.
+proc-macro2-diagnostics = { version = "0.10.1" }          # Diagnostics for proc-macro2.
+ructe = { version = "0.17.2", features = ["mime03"] }     # Rust Compiled Templates, efficient type-safe web page templates.
+validator = { version = "0.18.1", features = ["derive"] } # Common validation functions (email, url, length, ...) and trait 
+web-sys = { version = "0.3.72", features = ["Storage"] }  # Bindings for all Web APIs, a procedurally generated crate from WebIDL 
+
+# Utils
+criterion = { version = "0.5.1" }                      # Statistics-driven micro-benchmarking library
+longest-increasing-subsequence = "0.1.0"               # Find a longest increasing subsequence of some input sequence
+once_cell = "1.20.2"                                   # Single assignment cells and lazy values.
+rand = { version = "0.8.5", features = ["small_rng"] } # Random number generators and other randomness functionality. 
+rustc-hash = "2.0.0"                                   # A speedy, non-cryptographic hashing algorithm used by rustc 
+rustversion = "1.0.18"                                 # Conditional compilation according to rustc compiler version
+sha2 = { version = "0.10.8" }                          # Pure Rust implementation of the SHA-2 hash function family
+syn = "2.0.79"                                         # Parser for Rust source code
+trybuild = "1.0.99"                                    # Test harness for ui tests of compiler diagnostics
+
+# Logging
+env_logger = "0.11.0"                 # A logging implementation for `log` which is configured via an environment variable. 
+log = "0.4.22"                        # A lightweight logging facade for Rust 
+simple_logger = { version = "5.0.0" } # A logger that prints all messages with a readable output format
+warnings = { version = "0.2.0" }      # A crate for defining debug only runtime warnings with a way to opt-out
+
+# Formatters
+convert_case = "0.6.0"    # Convert strings into any case
+pulldown-cmark = "0.12.2"
+quote = "1.0.37"          # Quasi-quoting macro quote!
+separator = "0.4.1"       # Formats numbers into strings with thousands separators for readability.
+
+
+# Serialization
+form_urlencoded = "1.2.1"                              # Parser and serializer for the application/x-www-form-urlencoded syntax, as used by HTML forms.
+quoted_printable = "0.5.1"                             # A simple encoder/decoder for quoted-printable data
+serde = { version = "1.0.210", features = ["derive"] } # A generic serialization/deserialization framework
+serde_json = "1.0.132"
+tiktoken-rs = { version = "0.6.0" }                    # Library for encoding and decoding with the tiktoken library in Rust
+
+# Config
+cargo-config2 = "0.1.29"            # Load and resolve Cargo configuration
+cargo_toml = { version = "0.20.5" } #`Cargo.toml` struct definitions for parsing with Serde
+config = "0.14.0"                   # reads ini, json, yaml, toml, ron, json5
+confy = "0.6.1"                     # Boilerplate-free configuration management
+dotenv = { version = "0.15.0" }     # A `dotenv` implementation for Rust
+pyproject-toml = "0.12.0"           # pyproject.toml parser in Rust
+toml = "0.8.19"                     # A native Rust encoder and decoder of TOML-formatted files and streams. 
+
+# Errors
+anyhow = "1.0.89"                                                      # Flexible concrete Error type built on std::error::Error
+thiserror = "1.0.64"                                                   # derive(Error)
+tracing = "0.1.40"                                                     # Application-level tracing for Rust. 
+tracing-futures = "0.2.5"                                              # Utilities for instrumenting `futures` with `tracing`. 
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] } # Utilities for implementing and composing `tracing` subscribers. 
+
+# html
+askama_escape = "0.10.3" # Optimized HTML escaping code, extracted from Askama
+html_parser = "0.7.0"    # A simple and general purpose html/xhtml parser
+
+# crates
+ezpz-stubz = { path = "ezpz/ezpz-stubz" }
+imgflop-common = { path = "imgflop/imgflop-common" }
+pysilo-db = { path = "pysilo-rs/pysilo-db" }
+pysilo-desktop = { path = "pysilo-rs/pysilo-desktop" }
+pysilo-frontend = { path = "pysilo-rs/pysilo-frontend" }
+pysilo-mobile = { path = "pysilo-rs/pysilo-mobile" }
+pysilo-server = { path = "pysilo-rs/pysilo-server" }
+pysilo-web = { path = "pysilo-rs/pysilo-web" }
+
+# Server
+aide = "0.13.4"
+arti-axum = "0.1.0"
+axum = { version = "0.7", features = ["multipart"] }                           # Web framework that focuses on ergonomics and modularity
+axum-analytics = "1.1.3"
+axum-auth = "0.7.0"
+axum-client-ip = "0.6.1"
+axum-dyn-error = "0.1"
+axum-embed = "0.1.0"
+axum-extra = { version = "0.9.4", features = ["form", "typed-routing"] }       # Extra utilities for axum
+axum-forwarded-header = "0.1.0"
+axum-helmet = "0.1.0"
+axum-jrpc = "0.7.1"
+axum-login = "0.16.0"
+axum-messages = "0.7.0"
+axum-otel-metrics = "0.8.1"
+axum-postcard = "0.2.0"
+axum-prometheus = "0.7.0"
+axum-range = "0.4.0"
+axum-response-cache = "0.1.1"
+axum-route-error = "5.0.1"
+axum-serde = { version = "0.6.1", features = ["full"] }
+axum-server = { vers0.7.7 = "0.7.1" }                                          # High level server designed to be used with axum framework.
+axum-server-timing = "1.0.1"
+axum-session-manager = "0.1.1"
+axum-signed-urls = "0.1.1"
+axum-streams = "0.19.0"
+axum-swagger-ui = "0.3.0"
+axum-tungstenite = "0.3.0"
+axum-tws = "0.4.0"
+axum-typed-routing = "0.2.1"
+axum-typed-websockets = "0.6.0"
+axum-ws-rooms = "0.6.0"
+axum_grants = "0.1.3"
+axum_guard = "0.1.0"
+axum_responses = "0.1.7"
+axum_serde_valid = "0.23.1"
+axum_session = { version = "*", features = ["key-store"] }                     # Session management layer for axum that supports HTTP and Rest.
+axum_session_auth = { version = "0.14.1", features = ["key-store"] }           # Library to Provide a User Authentication and privilege Token Checks. 
+axum_session_sqlx = { version = "0.3.0", features = ["sqlite", "tls-rustls"] }
+axum_static = "1.7.1"
+axum_typed_multipart_macros = "0.13.1"
+named_routes_axum = "0.1.13"
+oauth-axum = "0.1.3"
+password-worker = "0.4.0"
+protect-axum = "0.1.2"
+serde-querystring-axum = "0.2.0"
+tower-sessions-deadpool-sqlite-store = "0.1.1"
+turbocharger = "0.4.0"
+typed-session-axum = "0.3.0"
+
+# Game
+bevy = "0.14.2"                   # A refreshingly simple data-driven game engine and app framework
+bevy_egui = "0.30.0"              # A plugin for Egui integration into Bevy
+bevy_rapier2d = "0.27.0"          # 2-dimensional physics engine in Rust, official Bevy plugin.
+bevy_renet = "0.0.12"             # Server/Client network library for multiplayer games 
+leafwing-input-manager = "0.15.1" # A powerful, flexible and ergonomic way to manage action-input keybindings for Bevy
+
+# Clients
+lettre = { version = "0.11.9", features = ["builder", "rustls-tls", "smtp-transport"] }                  # Email client
+reqwest = { version = "0.12.8", features = ["json", "multipart", "rustls-tls", "rustls-tls", "stream"] } # higher level HTTP client library
+reqwest-eventsource = "0.6.0"                                                                            # Helper to build an Eventsource using reqwest
+thirtyfour = { version = "0.34.0" }                                                                      # Thirtyfour is a Selenium / WebDriver library for Rust, for automated website UI testing.
+
+# Platform
+core-foundation = "0.10.0"                             # Bindings to Core Foundation for macOS
+dirs = "5.0.1"                                         # A tiny low-level library that provides platform-specific standard locations of directories for config, 
+dunce = "1.0.5"                                        # Normalize Windows paths to the most compatible format, avoiding UNC where possible
+memory-stats = "1.2.0"                                 # A cross-platform memory profiler for Rust.
+objc = { version = "0.2.7", features = ["exception"] } # Objective-C Runtime bindings and wrapper for Rust.
+objc_id = "0.1.1"                                      # Rust smart pointers for Objective-C reference counting.
+webbrowser = "1.0.2"                                   # Open URLs in web browsers available on a platform
+
+# Markdown
+comrak = { version = "0.29.0" } # md -> html
+
+# Database
+barrel = { version = "0.7.0", features = ["pg"] }
+connectorx = "0.3.3"                                                         # Load data from databases to dataframes, the fastest way.
+cornucopia = "0.9.0"                                                         # Asynchronous client library for Cornucopia users.
+cornucopia_async = "0.6.0"
+deadpool-postgres = { version = "0.14.0", features = ["serde"] }             # Dead simple async pool for tokio-postgres
+eui48 = { version = "1.1.0" }
+pgvector = { version = "0.4.0", features = ["postgres"] }                    # pgvector support for Rust
+postgres = { version = "0.19.9" }
+postgres-types = { version = "0.2.8", features = ["derive"] }                # Conversions between Rust and Postgres values
+refinery = { version = "0.8.14", features = ["postgres", "tokio-postgres"] }
+rust_decimal = { version = "1.36.0", features = ["db-postgres"] }
+
+
+# UI
+daisy_rsx = "0.1" # Daisy UI components for the Dioxus Rust library.
+
+# Egui
+eframe = { version = "0.29.1", features = [
+  # "accesskit",     # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
+  "default_fonts", # Embed the default egui fonts.
+  "glow",          # Use the glow rendering backend. Alternative: "wgpu".
+  "persistence",   # Enable restoring app state when restarting the app.
+] }
+egui = "0.29.1" # An easy-to-use immediate mode GUI that runs on both web and native
+egui-notify = "0.17.0" # Simple notifications library for EGUI
+egui_extras = "0.29.1" # Extra functionality and widgets for the egui GUI library
+egui_node_graph2 = "0.6.0" # A helper library to create interactive node graphs using egui
+egui_plot = "0.29.0" # Immediate mode plotting for the egui GUI library
+
+
+# Desktop
+notify = { version = "6.1.1" } # Cross-platform filesystem notification library
+
+# Wasm
+gloo-timers = "0.3.0" # Convenience crate for working with JavaScript timers
+walrus = "0.22.0"     # A library for performing WebAssembly transformations 
+wasm-logger = "0.2.0" # A logger that sends a message with its Rust source's line and filename to the browser console
+web-time = "1.1.0"    # Drop-in replacement for std::time for Wasm in browsers
+
+# HTTP
+http = "1.1.0"
+hyper = "1.5.0"                                                                                                  # A fast and correct HTTP library.
+hyper-rustls = { version = "0.27.3", features = ["http1", "http2", "logging", "native-tokio", "ring", "tls12"] } # Rustls+hyper integration for pure rust HTTPS
+rustls = { version = "0.23.15", features = ["logging", "ring", "std", "tls12"] }                                 # Rustls is a modern TLS library written in Rust.
+url = "2.5.2"                                                                                                    # URL library for Rust, based on the WHATWG URL Standard
+urlencoding = "2.1.3"                                                                                            # A Rust library for doing URL percentage encoding.
+
+# polars
+hashbrown = { version = "0.14.5", features = ["raw"] }
+polars = { version = "0.42.0", features = [
+  "dataframe_arithmetic",
+  "describe",
+  "dtype-full",
+  "ipc",
+  "is_in",
+  "is_unique",
+  "json",
+  "lazy",
+  "parquet",
+  "performant",
+  "regex",
+  "strings",
+] } # DataFrame library based on Apache Arrow
+
+# PyO3
+pyo3 = { version = "0.22.4", features = ["extension-module"] }                    # Bindings to Python interpreter
+pyo3-polars = { version = "0.16.1", features = ["derive", "dtype-full", "lazy"] } # Expression plugins and PyO3 types for polars
+pyo3-stub-gen = { version = "0.6.0", default-features = false }                   # Stub file (*.pyi) generator for PyO3
+
+
+# Tokio
+futures = "0.3.31"
+tokio = { version = "1.40.0", features = ["full"] } # An event-driven, non-blocking I/O platform for writing asynchronous I/O backed applications. 
+tokio-postgres = { version = "0.7", features = [
+  "with-eui48-1",
+  "with-serde_json-1",
+  "with-time-0_3",
+  "with-uuid-1",
+] } # A native, asynchronous PostgreSQL client
+tokio-stream = "0.1" # Utilities to work with `Stream` and `tokio`. 
+tokio-tungstenite = { version = "0.24.0" } # Tokio binding for Tungstenite, the Lightweight stream-based WebSocket implementation
+tokio-util = { version = "0" } # Additional utilities for working with Tokio. 
+
+js-sys = { version = "0.3.72" }
+
+# Dioxus
+## Official
+dioxus = { version = "0.5.6" }
+dioxus-cli = { version = "0.5.6" }
+dioxus-fullstack = "0.5.6"
+dioxus-hot-reload = { version = "0.5.6", features = ["custom_file_watcher", "file_watcher"] }
+dioxus-ssr = "0.5.6"
+dioxus-web = "0.5.6"
+manganis = { version = "0.2.2", features = ["html", "macro"] }                                # Ergonomic, automatic, cross crate asset collection and optimization
+manganis-cli-support = { version = "0.2.4", features = ["html"] }
+
+# P2P
+dittolive-ditto = "4.8.2"
+
+## 3rd Party
+async-std = "1.13.0"
+async-trait = "0.1.83"
+dioxus-charts = "0.2.0"
+dioxus-class = "0.7.0"
+dioxus-daisyui = "0.7.0"
+dioxus-desktop = "0.5.6"
+dioxus-form = "0.1.2"
+dioxus-free-icons = { version = "0.8.6", features = ["font-awesome-brands", "font-awesome-solid"] }
+dioxus-html-macro = "0.3.0"
+dioxus-lazy = "0.2.0"
+dioxus-logger = "0.5.1"
+dioxus-material-icons = "2.0.0"
+dioxus-query = "0.5.1"
+dioxus-radio = "0.2.4"
+dioxus-resize-observer = "0.2.1"
+dioxus-sdk = { git = "https://github.com/DioxusLabs/sdk/", features = ["storage"] }                 # dioxus-sdk = { version = "0.5", features = ["storage"] }
+dioxus-slides = "0.1.2"
+dioxus-sortable = "0.1.2"
+dioxus-spring = "0.2.1"
+dioxus-table = "0.1.1"
+dioxus-tailwindcss = "0.7.0"
+dioxus-timer = "0.3.0"
+dioxus-toast = { version = "0.4.0", features = ["web"] }
+dioxus-use-computed = "0.1.0"
+dioxus-use-window = "0.7.0"
+dioxus-websocket-hooks = "0.0.2"
+dioxus_storage = "0.0.4"                                                                            # Global state management for Dioxus
+lookbook = "0.2.0-alpha.1"
+modx = "0.1.2"                                                                                      # A way to handle states with structs in Dioxus inspired by mobx
+plotters-dioxus = "0.2.2"                                                                           # A plotters-rs component for dioxus
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+elided_lifetimes_in_paths = "warn"
+rust_2021_idioms = "warn"
+rust_2021_prelude_collisions = "warn"
+semicolon_in_expressions_from_macros = "warn"
+trivial_numeric_casts = "warn"
+unsafe_op_in_unsafe_fn = "warn"               # `unsafe_op_in_unsafe_fn` may become the default in future Rust versions: https://github.com/rust-lang/rust/issues/71668
+unused_extern_crates = "warn"
+unused_import_braces = "warn"
+unused_lifetimes = "warn"
+
+trivial_casts = "allow"
+unused_qualifications = "allow"
+
+[workspace.lints.rustdoc]
+all = "warn"
+broken_intra_doc_links = "warn"
+missing_crate_level_docs = "warn"
+
+# See also clippy.toml
+[workspace.lints.clippy]
+as_ptr_cast_mut = "warn"
+await_holding_lock = "warn"
+bool_to_int_with_if = "warn"
+char_lit_as_u8 = "warn"
+checked_conversions = "warn"
+clear_with_drain = "warn"
+cloned_instead_of_copied = "warn"
+dbg_macro = "warn"
+debug_assert_with_mut_call = "warn"
+derive_partial_eq_without_eq = "warn"
+disallowed_macros = "warn"                  # See clippy.toml
+disallowed_methods = "warn"                 # See clippy.toml
+disallowed_names = "warn"                   # See clippy.toml
+disallowed_script_idents = "warn"           # See clippy.toml
+disallowed_types = "warn"                   # See clippy.toml
+doc_link_with_quotes = "warn"
+doc_markdown = "warn"
+empty_enum = "warn"
+enum_glob_use = "warn"
+equatable_if_let = "warn"
+exit = "warn"
+expl_impl_clone_on_copy = "warn"
+explicit_deref_methods = "warn"
+explicit_into_iter_loop = "warn"
+explicit_iter_loop = "warn"
+fallible_impl_from = "warn"
+filter_map_next = "warn"
+flat_map_option = "warn"
+float_cmp_const = "warn"
+fn_params_excessive_bools = "warn"
+fn_to_numeric_cast_any = "warn"
+from_iter_instead_of_collect = "warn"
+get_unwrap = "warn"
+if_let_mutex = "warn"
+implicit_clone = "warn"
+implied_bounds_in_impls = "warn"
+imprecise_flops = "warn"
+index_refutable_slice = "warn"
+inefficient_to_string = "warn"
+infinite_loop = "warn"
+into_iter_without_iter = "warn"
+invalid_upcast_comparisons = "warn"
+iter_not_returning_iterator = "warn"
+iter_on_empty_collections = "warn"
+iter_on_single_items = "warn"
+iter_without_into_iter = "warn"
+large_digit_groups = "warn"
+large_include_file = "warn"
+large_stack_arrays = "warn"
+large_stack_frames = "warn"
+large_types_passed_by_value = "warn"
+let_unit_value = "warn"
+linkedlist = "warn"
+lossy_float_literal = "warn"
+macro_use_imports = "warn"
+manual_assert = "warn"
+manual_clamp = "warn"
+manual_instant_elapsed = "warn"
+manual_let_else = "warn"
+manual_ok_or = "warn"
+manual_string_new = "warn"
+map_err_ignore = "warn"
+map_flatten = "warn"
+map_unwrap_or = "warn"
+match_bool = "warn"
+match_on_vec_items = "warn"
+match_same_arms = "warn"
+match_wild_err_arm = "warn"
+match_wildcard_for_single_variants = "warn"
+mem_forget = "warn"
+mismatched_target_os = "warn"
+mismatching_type_param_order = "warn"
+missing_enforced_import_renames = "warn"
+missing_errors_doc = "warn"
+missing_safety_doc = "warn"
+mut_mut = "warn"
+mutex_integer = "warn"
+needless_borrow = "warn"
+needless_continue = "warn"
+needless_for_each = "warn"
+needless_pass_by_ref_mut = "warn"
+needless_pass_by_value = "warn"
+negative_feature_names = "warn"
+nonstandard_macro_braces = "warn"
+option_option = "warn"
+path_buf_push_overwrite = "warn"
+print_stderr = "warn"
+ptr_as_ptr = "warn"
+ptr_cast_constness = "warn"
+pub_without_shorthand = "warn"
+rc_mutex = "warn"
+readonly_write_lock = "warn"
+redundant_type_annotations = "warn"
+ref_option_ref = "warn"
+ref_patterns = "warn"
+rest_pat_in_fully_bound_structs = "warn"
+same_functions_in_if_condition = "warn"
+semicolon_if_nothing_returned = "warn"
+single_match_else = "warn"
+str_to_string = "warn"
+string_add = "warn"
+string_add_assign = "warn"
+string_lit_as_bytes = "warn"
+string_lit_chars_any = "warn"
+string_to_string = "warn"
+suspicious_command_arg_space = "warn"
+suspicious_xor_used_as_pow = "warn"
+todo = "warn"
+trailing_empty_array = "warn"
+trait_duplication_in_bounds = "warn"
+tuple_array_conversions = "warn"
+unchecked_duration_subtraction = "warn"
+undocumented_unsafe_blocks = "warn"
+unimplemented = "warn"
+uninhabited_references = "warn"
+uninlined_format_args = "warn"
+unnecessary_box_returns = "warn"
+unnecessary_safety_doc = "warn"
+unnecessary_struct_initialization = "warn"
+unnecessary_wraps = "warn"
+unnested_or_patterns = "warn"
+unused_peekable = "warn"
+unused_rounding = "warn"
+unused_self = "warn"
+use_self = "warn"
+useless_transmute = "warn"
+verbose_file_reads = "warn"
+wildcard_dependencies = "warn"
+wildcard_imports = "warn"
+zero_sized_map_values = "warn"
+
+
+# TODO: enable more of these lints:
+iter_over_hash_type = "allow"
+let_underscore_untyped = "allow"
+missing_assert_message = "allow"
+should_panic_without_expect = "allow"
+too_many_lines = "allow"
+unwrap_used = "warn"                  # TODO: We really wanna warn on this one
+
+manual_range_contains = "allow"       # this one is just worse imho
+self_named_module_files = "allow"     # Disabled waiting on https://github.com/rust-lang/rust-clippy/issues/9602
+significant_drop_tightening = "allow" # Too many false positives
