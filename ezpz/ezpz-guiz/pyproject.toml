@@ -1,6 +1,6 @@
 [project]
 authors = [{ "name" = "Jeremy Meek" }]
-dependencies = ["painlezz-macroz", "polars==1.7.1", "pyarrow==17.0.0"]
+dependencies = ["painlezz-macroz", "polars==1.11.0", "pyarrow==17.0.0"]
 description = ""
 name = "ezpz_guiz"
 readme = "README.md"

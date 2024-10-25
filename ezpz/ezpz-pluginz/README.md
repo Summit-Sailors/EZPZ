@@ -1,6 +1,12 @@
-# Polar Patch
+# EZPZ-Pluginz
 
 This package provides type hinting and IDE support for plugins to the Polars package, enhancing the development experience.
+
+## Installation
+
+```bash
+pip install polar-patch
+```
 
 ## Problem It Solves
 
@@ -43,7 +49,7 @@ With this package, developers can:
 - ~~basic logging~~
 - inital functional hypothesis testing setup
 - basic exception handling
-- unpin 3.12.4 to ^3.12
+- ~~unpin 3.12.4 to ^3.12~~
 
 ## Stable Blockers
 
@@ -54,20 +60,6 @@ With this package, developers can:
 
 - automatic "hot reloading" since the type hint points directly to the implementation
 - loads plugins from site-packages and generates a lockfile
-
-## In development
-
-- vsc extension for toml support via jsonschema
-
-## Status
-
-This package is currently in alpha and ideas are welcome. ~~Only classes registered with the `@pl.api` decorator are currently supported. Lack of support for the callable form of `pl.api` is seen as a blocker for a beta release.~~ Also, many edge cases have not been addressed. This is another blocker for a beta release. There is bare minimum direct testing. Thorough testing is a blocker for a stable release. only python 3.12.4 is supported atm.
-
-## Installation
-
-```bash
-pip install polar-patch
-```
 
 ## Configuration
 

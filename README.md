@@ -1,10 +1,30 @@
-## Commands
+# EZPZ
 
-- `rye sync` - installs venv, deps
-- `just db-gen "migration script message/name"` - generate migrations (create table, etc)
-- `just db-bump` - run migrations
-- `just services` - runs postgres docker container
-- `just be` - run BE server
-- `just fe` - run FE server
-- `just gen-orval` - generate FE orval sdk
-- `just spider` - run python spider
+A collection of FOSS packages to make dev life more, well, EZPZ.
+
+## Grouping Folders
+
+- EazyPolarz ([readme](ezpz/README.md))
+- Juzt ([readme](juzt/README.md))
+- Painlezz ([readme](painlezz/README.md))
+
+### EazyPolarz
+
+- guiz ([readme](ezpz/README.md))
+- pluginz ([readme](ezpz/README.md))
+- stubz ([readme](ezpz/README.md))
+
+### Juzt
+
+- core ([readme](ezpz/README.md))
+- gui ([readme](ezpz/README.md))
+
+### Painlezz
+
+- async ([readme](ezpz/README.md))
+- basez ([readme](ezpz/README.md))
+- formatterz ([readme](ezpz/README.md))
+- infra ([readme](ezpz/README.md))
+- macroz ([readme](ezpz/README.md))
+- projectz ([readme](ezpz/README.md))
+- sqlmodelz ([readme](ezpz/README.md))

@@ -4,9 +4,9 @@ requires = ["hatchling"]
 
 [project]
 authors = []
-dependencies = ["pyinfra==3.1.1", "rich==13.8.1"]
+dependencies = ["pyinfra==3.1.1", "rich==13.9.3"]
 description = ''
-name = "painlezz_infraz"
+name = "juzt_infraz"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 version = "0.0.1"

@@ -4,7 +4,7 @@ requires = ["hatchling"]
 
 [project]
 authors = []
-dependencies = ["rich==13.8.1"]
+dependencies = ["rich==13.9.3"]
 description = ''
 name = "painlezz_formatterz"
 readme = "README.md"

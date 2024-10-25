@@ -4,7 +4,7 @@ requires = ["hatchling"]
 
 [project]
 authors = []
-dependencies = ["libcst==1.4.0", "toml==0.10.2"]
+dependencies = ["libcst==1.5.0", "toml==0.10.2"]
 description = ''
 name = "painlezz_projectz"
 readme = "README.md"

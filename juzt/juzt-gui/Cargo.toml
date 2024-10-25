@@ -13,7 +13,6 @@ egui = { workspace = true }
 egui_extras = { workspace = true }
 egui_node_graph2 = { workspace = true }
 egui_plot = { workspace = true }
-log = { workspace = true }
 serde = { workspace = true }
 
 

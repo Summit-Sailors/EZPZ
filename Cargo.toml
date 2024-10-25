@@ -6,8 +6,8 @@ license = ""
 repository = ""
 
 [workspace]
-exclude = ["ezpz/ezpz-pluginz", "pysilo-rs/public"]
-members = ["ezpz/*", "imgflop/*", "juzt/*", "prompt-rs", "pysilo-rs/*", "ruzty-ai"]
+exclude = ["ezpz/ezpz-pluginz"]
+members = ["ezpz/*", "juzt/*"]
 resolver = "2"
 
 [profile.dev.package."*"]
@@ -29,73 +29,44 @@ strip = true
 
 [workspace.dependencies]
 
-# To Remove
-chatgpt_rs = "1.2.3"
 
 # Misc
 # Datatypes
 base64 = { version = "0.22.1" }                          # encodes and decodes base64 as bytes or utf8
 chrono = { version = "0.4.38", features = ["serde"] }    # data and time lib
-ciborium = { version = "0.2.2" }                         # CBOR serialization and deserialization implementations for serde
-const_format = "0.2.33"                                  # Compile-time string formatting
-fluent-uri = { version = "0.3.1", features = ["serde"] } # A generic URI/IRI handling library compliant with RFC 3986/3987.
-rinja = "0.3.4"
-schemars = "0.8.21"                                      # Generate JSON Schemas from Rust code
-slab = "0.4.9"                                           # Pre-allocated storage for a uniform data type
-slotmap = { version = "1.0.7", features = ["serde"] }    # Slotmap data structure
 time = { version = "0.3.36", features = ["formatting"] } # Date and time library.
 uuid = { version = "1.10.0", features = ["serde"] }
 
+# Database
+connectorx = "0.3.3" # Load data from databases to dataframes, the fastest way.
+
 # Tools
 clap = { version = "4.5", features = ["derive"] }         # CLI Builder
-execute = "0.2.13"                                        # A library for extending `Command` in order to execute programs more easily.
-local-ip-address = "0.6.1"                                # Retrieve system's local IP address and Network Interfaces/Adapters
 lru = "0.12.5"                                            # A LRU cache implementation
 proc-macro2 = "1.0.87"                                    # A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case.
 proc-macro2-diagnostics = { version = "0.10.1" }          # Diagnostics for proc-macro2.
-ructe = { version = "0.17.2", features = ["mime03"] }     # Rust Compiled Templates, efficient type-safe web page templates.
 validator = { version = "0.18.1", features = ["derive"] } # Common validation functions (email, url, length, ...) and trait 
-web-sys = { version = "0.3.72", features = ["Storage"] }  # Bindings for all Web APIs, a procedurally generated crate from WebIDL 
 
-# Utils
-criterion = { version = "0.5.1" }                      # Statistics-driven micro-benchmarking library
-longest-increasing-subsequence = "0.1.0"               # Find a longest increasing subsequence of some input sequence
-once_cell = "1.20.2"                                   # Single assignment cells and lazy values.
-rand = { version = "0.8.5", features = ["small_rng"] } # Random number generators and other randomness functionality. 
-rustc-hash = "2.0.0"                                   # A speedy, non-cryptographic hashing algorithm used by rustc 
-rustversion = "1.0.18"                                 # Conditional compilation according to rustc compiler version
-sha2 = { version = "0.10.8" }                          # Pure Rust implementation of the SHA-2 hash function family
-syn = "2.0.79"                                         # Parser for Rust source code
-trybuild = "1.0.99"                                    # Test harness for ui tests of compiler diagnostics
 
 # Logging
-env_logger = "0.11.0"                 # A logging implementation for `log` which is configured via an environment variable. 
-log = "0.4.22"                        # A lightweight logging facade for Rust 
-simple_logger = { version = "5.0.0" } # A logger that prints all messages with a readable output format
-warnings = { version = "0.2.0" }      # A crate for defining debug only runtime warnings with a way to opt-out
+env_logger = "0.11.0" # A logging implementation for `log` which is configured via an environment variable. 
 
 # Formatters
 convert_case = "0.6.0"    # Convert strings into any case
 pulldown-cmark = "0.12.2"
-quote = "1.0.37"          # Quasi-quoting macro quote!
 separator = "0.4.1"       # Formats numbers into strings with thousands separators for readability.
 
 
 # Serialization
-form_urlencoded = "1.2.1"                              # Parser and serializer for the application/x-www-form-urlencoded syntax, as used by HTML forms.
-quoted_printable = "0.5.1"                             # A simple encoder/decoder for quoted-printable data
 serde = { version = "1.0.210", features = ["derive"] } # A generic serialization/deserialization framework
 serde_json = "1.0.132"
-tiktoken-rs = { version = "0.6.0" }                    # Library for encoding and decoding with the tiktoken library in Rust
 
 # Config
-cargo-config2 = "0.1.29"            # Load and resolve Cargo configuration
 cargo_toml = { version = "0.20.5" } #`Cargo.toml` struct definitions for parsing with Serde
 config = "0.14.0"                   # reads ini, json, yaml, toml, ron, json5
 confy = "0.6.1"                     # Boilerplate-free configuration management
 dotenv = { version = "0.15.0" }     # A `dotenv` implementation for Rust
 pyproject-toml = "0.12.0"           # pyproject.toml parser in Rust
-toml = "0.8.19"                     # A native Rust encoder and decoder of TOML-formatted files and streams. 
 
 # Errors
 anyhow = "1.0.89"                                                      # Flexible concrete Error type built on std::error::Error
@@ -104,19 +75,9 @@ tracing = "0.1.40"                                                     # Applica
 tracing-futures = "0.2.5"                                              # Utilities for instrumenting `futures` with `tracing`. 
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] } # Utilities for implementing and composing `tracing` subscribers. 
 
-# html
-askama_escape = "0.10.3" # Optimized HTML escaping code, extracted from Askama
-html_parser = "0.7.0"    # A simple and general purpose html/xhtml parser
-
 # crates
 ezpz-stubz = { path = "ezpz/ezpz-stubz" }
-imgflop-common = { path = "imgflop/imgflop-common" }
-pysilo-db = { path = "pysilo-rs/pysilo-db" }
-pysilo-desktop = { path = "pysilo-rs/pysilo-desktop" }
-pysilo-frontend = { path = "pysilo-rs/pysilo-frontend" }
-pysilo-mobile = { path = "pysilo-rs/pysilo-mobile" }
-pysilo-server = { path = "pysilo-rs/pysilo-server" }
-pysilo-web = { path = "pysilo-rs/pysilo-web" }
+
 
 # Server
 aide = "0.13.4"
@@ -176,37 +137,8 @@ bevy_rapier2d = "0.27.0"          # 2-dimensional physics engine in Rust, offici
 bevy_renet = "0.0.12"             # Server/Client network library for multiplayer games 
 leafwing-input-manager = "0.15.1" # A powerful, flexible and ergonomic way to manage action-input keybindings for Bevy
 
-# Clients
-lettre = { version = "0.11.9", features = ["builder", "rustls-tls", "smtp-transport"] }                  # Email client
-reqwest = { version = "0.12.8", features = ["json", "multipart", "rustls-tls", "rustls-tls", "stream"] } # higher level HTTP client library
-reqwest-eventsource = "0.6.0"                                                                            # Helper to build an Eventsource using reqwest
-thirtyfour = { version = "0.34.0" }                                                                      # Thirtyfour is a Selenium / WebDriver library for Rust, for automated website UI testing.
-
-# Platform
-core-foundation = "0.10.0"                             # Bindings to Core Foundation for macOS
-dirs = "5.0.1"                                         # A tiny low-level library that provides platform-specific standard locations of directories for config, 
-dunce = "1.0.5"                                        # Normalize Windows paths to the most compatible format, avoiding UNC where possible
-memory-stats = "1.2.0"                                 # A cross-platform memory profiler for Rust.
-objc = { version = "0.2.7", features = ["exception"] } # Objective-C Runtime bindings and wrapper for Rust.
-objc_id = "0.1.1"                                      # Rust smart pointers for Objective-C reference counting.
-webbrowser = "1.0.2"                                   # Open URLs in web browsers available on a platform
-
 # Markdown
 comrak = { version = "0.29.0" } # md -> html
-
-# Database
-barrel = { version = "0.7.0", features = ["pg"] }
-connectorx = "0.3.3"                                                         # Load data from databases to dataframes, the fastest way.
-cornucopia = "0.9.0"                                                         # Asynchronous client library for Cornucopia users.
-cornucopia_async = "0.6.0"
-deadpool-postgres = { version = "0.14.0", features = ["serde"] }             # Dead simple async pool for tokio-postgres
-eui48 = { version = "1.1.0" }
-pgvector = { version = "0.4.0", features = ["postgres"] }                    # pgvector support for Rust
-postgres = { version = "0.19.9" }
-postgres-types = { version = "0.2.8", features = ["derive"] }                # Conversions between Rust and Postgres values
-refinery = { version = "0.8.14", features = ["postgres", "tokio-postgres"] }
-rust_decimal = { version = "1.36.0", features = ["db-postgres"] }
-
 
 # UI
 daisy_rsx = "0.1" # Daisy UI components for the Dioxus Rust library.
@@ -227,20 +159,6 @@ egui_plot = "0.29.0" # Immediate mode plotting for the egui GUI library
 
 # Desktop
 notify = { version = "6.1.1" } # Cross-platform filesystem notification library
-
-# Wasm
-gloo-timers = "0.3.0" # Convenience crate for working with JavaScript timers
-walrus = "0.22.0"     # A library for performing WebAssembly transformations 
-wasm-logger = "0.2.0" # A logger that sends a message with its Rust source's line and filename to the browser console
-web-time = "1.1.0"    # Drop-in replacement for std::time for Wasm in browsers
-
-# HTTP
-http = "1.1.0"
-hyper = "1.5.0"                                                                                                  # A fast and correct HTTP library.
-hyper-rustls = { version = "0.27.3", features = ["http1", "http2", "logging", "native-tokio", "ring", "tls12"] } # Rustls+hyper integration for pure rust HTTPS
-rustls = { version = "0.23.15", features = ["logging", "ring", "std", "tls12"] }                                 # Rustls is a modern TLS library written in Rust.
-url = "2.5.2"                                                                                                    # URL library for Rust, based on the WHATWG URL Standard
-urlencoding = "2.1.3"                                                                                            # A Rust library for doing URL percentage encoding.
 
 # polars
 hashbrown = { version = "0.14.5", features = ["raw"] }
@@ -276,7 +194,7 @@ tokio-postgres = { version = "0.7", features = [
 ] } # A native, asynchronous PostgreSQL client
 tokio-stream = "0.1" # Utilities to work with `Stream` and `tokio`. 
 tokio-tungstenite = { version = "0.24.0" } # Tokio binding for Tungstenite, the Lightweight stream-based WebSocket implementation
-tokio-util = { version = "0" } # Additional utilities for working with Tokio. 
+tokio-util = { version = "0.7.12" } # Additional utilities for working with Tokio. 
 
 js-sys = { version = "0.3.72" }
 

@@ -12,7 +12,7 @@ requires-python = ">=3.12,<3.13"
 version = "0.0.1"
 
 [tool.rye.workspace]
-members = ["ezpz/ezpz-*", "painlezz/painlezz-*", "pysilo-py/pysilo-*"]
+members = ["ezpz/ezpz-*", "juzt/juzt-*", "painlezz/painlezz-*", "pysilo-py/pysilo-*"]
 
 [tool.rye]
 dev-dependencies = [
