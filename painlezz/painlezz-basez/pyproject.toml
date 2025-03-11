@@ -1,6 +1,6 @@
 [project]
 authors = [{ "name" = "Jeremy Meek" }]
-dependencies = ["pydantic==2.9.2"]
+dependencies = ["pydantic==2.10.6"]
 description = "A tool that brings type safety and type checking enhancements to the Polars library."
 name = "painlezz-basez"
 readme = "README.md"

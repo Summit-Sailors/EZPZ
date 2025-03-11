@@ -1,0 +1,8 @@
+[print_schema.postings]
+custom_type_derives = ["diesel::query_builder::QueryId"]
+file = "api/src/table_name_here/schema.rs"
+filter = { only_tables = ["table_name_here"] }
+
+
+[migrations_directory]
+dir = "migrations"

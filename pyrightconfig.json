@@ -2,8 +2,8 @@
   "pythonVersion": "3.12",
   "pythonPlatform": "Linux",
 
-  "exclude": ["**/node_modules", "**/__pycache__", "./site"],
-  "include": ["ezpz-*", "painlezz-*", "pysilo-*"],
+  "exclude": ["**/node_modules", "**/__pycache__", "crates"],
+  "include": ["ezpz-*", "painlezz-*"],
   "typeCheckingMode": "strict",
   "reportTypesImportCycles": "error",
   "verboseOutput": true,

@@ -1,0 +1,20 @@
+[package]
+authors = { workspace = true }
+description = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+name = "ezpz-stubz"
+repository = { workspace = true }
+version = "0.0.1"
+
+[dependencies]
+pyo3 = { workspace = true }
+pyo3-polars = { workspace = true }
+pyo3-stub-gen = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["extension-module"]
+extension-module = ["pyo3/extension-module"]

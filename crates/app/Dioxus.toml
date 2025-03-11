@@ -1,0 +1,36 @@
+#:schema https://raw.githubusercontent.com/umnovI/dioxus-config-schema/main/dioxus.schema.json
+
+[application]
+asset_dir = "./assets"
+default_platform = "desktop"
+name = "prompt-rs"
+out_dir = "dist"
+
+[web.app]
+title = "Upwork Jobs Navigator"
+
+[web.watcher]
+index_on_404 = true
+reload_html = true
+watch_path = ["."]
+
+[web.resource]
+script = []
+style = []
+
+[web.resource.dev]
+script = []
+
+# FIXME: Need to `cd assets` before running `dx bundle` due to https://github.com/DioxusLabs/dioxus/issues/1283
+[bundle]
+category = ""
+copyright = ""
+icon = []
+identifier = ""
+long_description = """
+"""
+name = "dioxus-desktop-template"
+osx_frameworks = []
+resources = ["public"]
+short_description = ""
+version = "0.0.1"

@@ -1,0 +1,64 @@
+[package]
+authors = { workspace = true }
+description = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+name = "app"
+repository = { workspace = true }
+
+
+[dependencies]
+
+maestro-hooks = { workspace = true }
+maestro-toast = { workspace = true }
+maestro-ui = { workspace = true }
+
+api = { workspace = true, features = ["dioxus"] }
+
+bon = { workspace = true }
+chrono = { workspace = true }
+dioxus = { workspace = true, features = ["fullstack", "router"] }
+dioxus-free-icons = { workspace = true }
+dioxus-logger = { workspace = true }
+dioxus-sdk = { workspace = true, features = ["timing"] }
+futures = { workspace = true }
+markdown-to-html = { workspace = true }
+plotters = { workspace = true }
+plotters-canvas = { workspace = true }
+tailwind_fuse = { workspace = true }
+tracing-wasm = { version = "0.2.1", optional = true }
+
+anyhow = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
+uuid = { workspace = true }
+
+diesel = { version = "2.2.8", features = ["chrono", "postgres", "serde_json", "uuid"], optional = true }
+diesel-async = { version = "0.5.2", features = ["postgres"], optional = true }
+tracing-subscriber = { version = "0.3.19", optional = true }
+
+maestro-anthropic = { workspace = true, features = ["dioxus"] }
+maestro-apalis = { workspace = true, features = ["create"], optional = true }
+maestro-diesel = { workspace = true, features = ["async", "dioxus"], optional = true }
+
+[build-dependencies]
+dotenvy = { git = "https://github.com/allan2/dotenvy.git", features = ["macros"] }
+
+[features]
+desktop = ["dioxus-sdk/clipboard", "dioxus-sdk/clipboard", "dioxus/desktop"]
+web = ["chrono/wasmbind", "dep:tracing-wasm", "dioxus/web", "uuid/js"]
+
+server = [
+  "api/dioxus-server",
+  "api/server",
+  "dep:diesel",
+  "dep:diesel-async",
+  "dep:maestro-apalis",
+  "dep:maestro-diesel",
+  "dep:tracing-subscriber",
+  "dioxus/server",
+  "maestro-anthropic/server",
+]

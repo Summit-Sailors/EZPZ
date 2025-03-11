@@ -1,13 +1,13 @@
 [workspace.package]
 authors = []
 description = ""
-edition = "2021"
+edition = "2024"
 license = ""
 repository = ""
 
+
 [workspace]
-exclude = ["ezpz/ezpz-pluginz"]
-members = ["ezpz/*", "juzt/*"]
+members = ["crates/*", "ezpz-guiz"]
 resolver = "2"
 
 [profile.dev.package."*"]
@@ -27,142 +27,38 @@ opt-level = "z"
 panic = "abort"
 strip = true
 
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"
+
 [workspace.dependencies]
+ezpz-stubz = { path = "crates/ezpz-stubz" }
 
 
-# Misc
-# Datatypes
-base64 = { version = "0.22.1" }                          # encodes and decodes base64 as bytes or utf8
-chrono = { version = "0.4.38", features = ["serde"] }    # data and time lib
-time = { version = "0.3.36", features = ["formatting"] } # Date and time library.
-uuid = { version = "1.10.0", features = ["serde"] }
+pyproject-toml = { version = "0.13.4" }
+serde-toml-merge = "0.3.8"
+serde_merge = "0.1.3"
+serde_yml = "0.0.12"
+toml = { version = "0.8.19" }
 
-# Database
-connectorx = "0.3.3" # Load data from databases to dataframes, the fastest way.
-
-# Tools
-clap = { version = "4.5", features = ["derive"] }         # CLI Builder
-lru = "0.12.5"                                            # A LRU cache implementation
-proc-macro2 = "1.0.87"                                    # A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case.
-proc-macro2-diagnostics = { version = "0.10.1" }          # Diagnostics for proc-macro2.
-validator = { version = "0.18.1", features = ["derive"] } # Common validation functions (email, url, length, ...) and trait 
+bigdecimal = { version = "0.4.7", features = ["serde"] }
 
 
-# Logging
-env_logger = "0.11.0" # A logging implementation for `log` which is configured via an environment variable. 
+clap = { version = "4.5.32", features = ["derive"] }
 
-# Formatters
-convert_case = "0.6.0"    # Convert strings into any case
-pulldown-cmark = "0.12.2"
-separator = "0.4.1"       # Formats numbers into strings with thousands separators for readability.
+lru = "0.13.0"
 
-
-# Serialization
-serde = { version = "1.0.210", features = ["derive"] } # A generic serialization/deserialization framework
-serde_json = "1.0.132"
-
-# Config
-cargo_toml = { version = "0.20.5" } #`Cargo.toml` struct definitions for parsing with Serde
-config = "0.14.0"                   # reads ini, json, yaml, toml, ron, json5
-confy = "0.6.1"                     # Boilerplate-free configuration management
-dotenv = { version = "0.15.0" }     # A `dotenv` implementation for Rust
-pyproject-toml = "0.12.0"           # pyproject.toml parser in Rust
-
-# Errors
-anyhow = "1.0.89"                                                      # Flexible concrete Error type built on std::error::Error
-thiserror = "1.0.64"                                                   # derive(Error)
-tracing = "0.1.40"                                                     # Application-level tracing for Rust. 
-tracing-futures = "0.2.5"                                              # Utilities for instrumenting `futures` with `tracing`. 
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] } # Utilities for implementing and composing `tracing` subscribers. 
-
-# crates
-ezpz-stubz = { path = "ezpz/ezpz-stubz" }
-
-
-# Server
-aide = "0.13.4"
-arti-axum = "0.1.0"
-axum = { version = "0.7", features = ["multipart"] }                           # Web framework that focuses on ergonomics and modularity
-axum-analytics = "1.1.3"
-axum-auth = "0.7.0"
-axum-client-ip = "0.6.1"
-axum-dyn-error = "0.1"
-axum-embed = "0.1.0"
-axum-extra = { version = "0.9.4", features = ["form", "typed-routing"] }       # Extra utilities for axum
-axum-forwarded-header = "0.1.0"
-axum-helmet = "0.1.0"
-axum-jrpc = "0.7.1"
-axum-login = "0.16.0"
-axum-messages = "0.7.0"
-axum-otel-metrics = "0.8.1"
-axum-postcard = "0.2.0"
-axum-prometheus = "0.7.0"
-axum-range = "0.4.0"
-axum-response-cache = "0.1.1"
-axum-route-error = "5.0.1"
-axum-serde = { version = "0.6.1", features = ["full"] }
-axum-server = { vers0.7.7 = "0.7.1" }                                          # High level server designed to be used with axum framework.
-axum-server-timing = "1.0.1"
-axum-session-manager = "0.1.1"
-axum-signed-urls = "0.1.1"
-axum-streams = "0.19.0"
-axum-swagger-ui = "0.3.0"
-axum-tungstenite = "0.3.0"
-axum-tws = "0.4.0"
-axum-typed-routing = "0.2.1"
-axum-typed-websockets = "0.6.0"
-axum-ws-rooms = "0.6.0"
-axum_grants = "0.1.3"
-axum_guard = "0.1.0"
-axum_responses = "0.1.7"
-axum_serde_valid = "0.23.1"
-axum_session = { version = "*", features = ["key-store"] }                     # Session management layer for axum that supports HTTP and Rest.
-axum_session_auth = { version = "0.14.1", features = ["key-store"] }           # Library to Provide a User Authentication and privilege Token Checks. 
-axum_session_sqlx = { version = "0.3.0", features = ["sqlite", "tls-rustls"] }
-axum_static = "1.7.1"
-axum_typed_multipart_macros = "0.13.1"
-named_routes_axum = "0.1.13"
-oauth-axum = "0.1.3"
-password-worker = "0.4.0"
-protect-axum = "0.1.2"
-serde-querystring-axum = "0.2.0"
-tower-sessions-deadpool-sqlite-store = "0.1.1"
-turbocharger = "0.4.0"
-typed-session-axum = "0.3.0"
-
-# Game
-bevy = "0.14.2"                   # A refreshingly simple data-driven game engine and app framework
-bevy_egui = "0.30.0"              # A plugin for Egui integration into Bevy
-bevy_rapier2d = "0.27.0"          # 2-dimensional physics engine in Rust, official Bevy plugin.
-bevy_renet = "0.0.12"             # Server/Client network library for multiplayer games 
-leafwing-input-manager = "0.15.1" # A powerful, flexible and ergonomic way to manage action-input keybindings for Bevy
-
-# Markdown
-comrak = { version = "0.29.0" } # md -> html
-
-# UI
-daisy_rsx = "0.1" # Daisy UI components for the Dioxus Rust library.
-
-# Egui
-eframe = { version = "0.29.1", features = [
-  # "accesskit",     # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
-  "default_fonts", # Embed the default egui fonts.
-  "glow",          # Use the glow rendering backend. Alternative: "wgpu".
-  "persistence",   # Enable restoring app state when restarting the app.
-] }
-egui = "0.29.1" # An easy-to-use immediate mode GUI that runs on both web and native
-egui-notify = "0.17.0" # Simple notifications library for EGUI
-egui_extras = "0.29.1" # Extra functionality and widgets for the egui GUI library
-egui_node_graph2 = "0.6.0" # A helper library to create interactive node graphs using egui
-egui_plot = "0.29.0" # Immediate mode plotting for the egui GUI library
-
-
-# Desktop
-notify = { version = "6.1.1" } # Cross-platform filesystem notification library
 
 # polars
-hashbrown = { version = "0.14.5", features = ["raw"] }
-polars = { version = "0.42.0", features = [
+connectorx = "0.4.2"
+hashbrown = { version = "0.15.2" }
+polars = { version = "0.46.0", features = [
   "dataframe_arithmetic",
   "describe",
   "dtype-full",
@@ -178,71 +74,92 @@ polars = { version = "0.42.0", features = [
 ] } # DataFrame library based on Apache Arrow
 
 # PyO3
-pyo3 = { version = "0.22.4", features = ["extension-module"] }                    # Bindings to Python interpreter
-pyo3-polars = { version = "0.16.1", features = ["derive", "dtype-full", "lazy"] } # Expression plugins and PyO3 types for polars
-pyo3-stub-gen = { version = "0.6.0", default-features = false }                   # Stub file (*.pyi) generator for PyO3
+pyo3 = { version = "*" }
+pyo3-polars = { version = "0.20.0", features = ["derive", "dtype-full", "lazy"] }
+pyo3-stub-gen = { version = "0.7.0", default-features = false }
 
 
-# Tokio
+api = { path = "crates/api" }
+
+
+maestro-anthropic = { path = "../dioxus-maestro/clients/maestro-anthropic" }
+maestro-apalis = { path = "../dioxus-maestro/clients/maestro-apalis" }
+maestro-diesel = { path = "../dioxus-maestro/clients/maestro-diesel" }
+
+maestro-forms = { path = "../dioxus-maestro/frontend/maestro-forms" }
+maestro-hooks = { path = "../dioxus-maestro/frontend/maestro-hooks", features = ["web"] }
+maestro-toast = { path = "../dioxus-maestro/frontend/maestro-toast", features = ["web"] }
+maestro-ui = { path = "../dioxus-maestro/frontend/maestro-ui" }
+
+anyhow = { version = "1.0.97" }
+bon = { version = "3.4.0", features = ["experimental-getter", "implied-bounds"] }
+itertools = { version = "0.14.0" }
+schemars = { git = "https://github.com/GREsau/schemars.git" }
+stilts = { version = "0.3.3" }
+strum = "0.27.1"
+strum_macros = "0.27.1"
+validator = { version = "0.20.0", features = ["derive"] }
+
 futures = "0.3.31"
-tokio = { version = "1.40.0", features = ["full"] } # An event-driven, non-blocking I/O platform for writing asynchronous I/O backed applications. 
-tokio-postgres = { version = "0.7", features = [
-  "with-eui48-1",
-  "with-serde_json-1",
-  "with-time-0_3",
-  "with-uuid-1",
-] } # A native, asynchronous PostgreSQL client
-tokio-stream = "0.1" # Utilities to work with `Stream` and `tokio`. 
-tokio-tungstenite = { version = "0.24.0" } # Tokio binding for Tungstenite, the Lightweight stream-based WebSocket implementation
-tokio-util = { version = "0.7.12" } # Additional utilities for working with Tokio. 
+lowdash = "0.5.3"
 
-js-sys = { version = "0.3.72" }
+chrono = { version = "0.4.40", features = ["serde"] }
+url = { version = "2.5.4", features = ["serde"] }
+uuid = { version = "1.15.1", features = ["serde", "v4"] }
 
-# Dioxus
-## Official
-dioxus = { version = "0.5.6" }
-dioxus-cli = { version = "0.5.6" }
-dioxus-fullstack = "0.5.6"
-dioxus-hot-reload = { version = "0.5.6", features = ["custom_file_watcher", "file_watcher"] }
-dioxus-ssr = "0.5.6"
-dioxus-web = "0.5.6"
-manganis = { version = "0.2.2", features = ["html", "macro"] }                                # Ergonomic, automatic, cross crate asset collection and optimization
-manganis-cli-support = { version = "0.2.4", features = ["html"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
 
-# P2P
-dittolive-ditto = "4.8.2"
+markdown-to-html = "0.1.3"
+plotters = { version = "0.3.7", default-features = false, features = [
+  "bitmap_backend",
+  "bitmap_encoder",
+  "bitmap_gif",
+  "chrono",
+  "svg_backend",
+  # "ttf",
+  "all_elements",
+  "all_series",
+  "colormaps",
+  "deprecated_items",
+  "full_palette",
+  "image",
+] }
+plotters-canvas = { version = "0.3.1" }
+tailwind_fuse = "0.3.2"
 
-## 3rd Party
-async-std = "1.13.0"
-async-trait = "0.1.83"
-dioxus-charts = "0.2.0"
-dioxus-class = "0.7.0"
-dioxus-daisyui = "0.7.0"
-dioxus-desktop = "0.5.6"
-dioxus-form = "0.1.2"
-dioxus-free-icons = { version = "0.8.6", features = ["font-awesome-brands", "font-awesome-solid"] }
-dioxus-html-macro = "0.3.0"
-dioxus-lazy = "0.2.0"
-dioxus-logger = "0.5.1"
-dioxus-material-icons = "2.0.0"
-dioxus-query = "0.5.1"
-dioxus-radio = "0.2.4"
-dioxus-resize-observer = "0.2.1"
-dioxus-sdk = { git = "https://github.com/DioxusLabs/sdk/", features = ["storage"] }                 # dioxus-sdk = { version = "0.5", features = ["storage"] }
-dioxus-slides = "0.1.2"
-dioxus-sortable = "0.1.2"
-dioxus-spring = "0.2.1"
-dioxus-table = "0.1.1"
-dioxus-tailwindcss = "0.7.0"
-dioxus-timer = "0.3.0"
-dioxus-toast = { version = "0.4.0", features = ["web"] }
-dioxus-use-computed = "0.1.0"
-dioxus-use-window = "0.7.0"
-dioxus-websocket-hooks = "0.0.2"
-dioxus_storage = "0.0.4"                                                                            # Global state management for Dioxus
-lookbook = "0.2.0-alpha.1"
-modx = "0.1.2"                                                                                      # A way to handle states with structs in Dioxus inspired by mobx
-plotters-dioxus = "0.2.2"                                                                           # A plotters-rs component for dioxus
+dioxus = { version = "0.6.3", default-features = false }
+dioxus-free-icons = { version = "0.9.0", features = [
+  "bootstrap",
+  "feather",
+  "font-awesome-brands",
+  "font-awesome-regular",
+  "font-awesome-solid",
+  "hero-icons-outline",
+  "hero-icons-solid",
+  "ionicons",
+  "lucide",
+  "material-design-icons-action",
+  "material-design-icons-alert",
+  "material-design-icons-av",
+  "material-design-icons-communication",
+  "material-design-icons-content",
+  "material-design-icons-device",
+  "material-design-icons-editor",
+  "material-design-icons-file",
+  "material-design-icons-hardware",
+  "material-design-icons-home",
+  "material-design-icons-image",
+  "material-design-icons-maps",
+  "material-design-icons-navigation",
+  "material-design-icons-notification",
+  "material-design-icons-places",
+  "material-design-icons-social",
+  "material-design-icons-toggle",
+  "octicons",
+] }
+dioxus-logger = "0.6.2"
+dioxus-sdk = { git = "https://github.com/DioxusLabs/sdk.git", features = ["timing"] }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
