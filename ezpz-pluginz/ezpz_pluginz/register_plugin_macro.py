@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Unpack, Callable, Sequence, ParamSpec, TypedDict, cast
+from typing import TYPE_CHECKING, Unpack, Callable, Sequence, TypedDict, cast
 
 import libcst as cst
 import libcst.matchers as m
@@ -10,7 +10,6 @@ from painlezz_macroz.visitorz.macro_metadata_collector import MacroMetadataColle
 
 from ezpz_pluginz.e_polars_namespace import EPolarsNS
 from ezpz_pluginz.polars_class_provider import PolarsClassProvider
-from ezpz_pluginz.has_type_checking_block import IfTypeCheckingProvider
 
 if TYPE_CHECKING:
   from ezpz_pluginz.register_plugin_macro import PolarsPluginMacroMetadataPD
@@ -21,9 +20,6 @@ class PolarsPluginMacroKwargs(TypedDict):
   type_hint: str
   attr_name: str
   polars_ns: str
-
-
-P = ParamSpec("P")
 
 
 def ezpz_plugin_collect[T](**kwargs: Unpack[PolarsPluginMacroKwargs]) -> Callable[[T], T]:
@@ -59,7 +55,7 @@ logger = logging.getLogger(__name__)
 
 
 class PluginPatcher(MatcherDecoratableTransformer):
-  METADATA_DEPENDENCIES = (PolarsClassProvider, IfTypeCheckingProvider)
+  METADATA_DEPENDENCIES = (PolarsClassProvider,)
 
   def __init__(self, polars_ns_to_plugins: dict[str, set["PolarsPluginMacroMetadataPD"]]) -> None:
     super().__init__()
@@ -70,9 +66,6 @@ class PluginPatcher(MatcherDecoratableTransformer):
       raise ValueError()
     self.polars_ns = polars_ns
     self.plugins = self.polars_ns_to_plugins[self.polars_ns]
-    if (has_type_checking_block := self.get_metadata(IfTypeCheckingProvider, node, None)) is None:
-      raise ValueError()
-    self.has_type_checking_block = has_type_checking_block
     self.has_added_imports = False
     self.imports = [cst.parse_module(plugin.import_).body[0] for plugin in self.plugins]
 
@@ -90,15 +83,6 @@ class PluginPatcher(MatcherDecoratableTransformer):
 
   @m.leave(m.If(test=m.Name("TYPE_CHECKING")))
   def add_imports_to_type_checking(self, original_node: cst.If, updated_node: cst.If) -> cst.If:
-    if not self.has_added_imports:
-      logger.info("Adding plugin imports...")
-      self.has_added_imports = True
-      return updated_node.with_changes(body=updated_node.body.with_changes(body=[*original_node.body.body, *self.imports]))
-    return updated_node
-
-  @m.leave(m.Module())
-  def add_imports_at_end(self, original_node: cst.Module, updated_node: cst.Module) -> cst.Module:
-    if not self.has_type_checking_block:
-      logger.info("Adding plugin imports...")
-      return updated_node.with_changes(body=[*original_node.body, cst.parse_module("from typing import TYPE_CHECKING").body, *self.imports])
-    return updated_node
+    logger.info("Adding plugin imports...")
+    self.has_added_imports = True
+    return updated_node.with_changes(body=updated_node.body.with_changes(body=[*original_node.body.body, *self.imports]))

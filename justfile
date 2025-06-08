@@ -20,15 +20,14 @@ mobile:
   set -euo pipefail
   dx serve --platform mobile -p app
 
-tailwind:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  cd ./crates/app/
-  npx tailwindcss -i ./input.css -o ./assets/tailwind.css --watch
-
 clear:
   #!/usr/bin/env bash
   set -euo pipefail
   cargo clean
-  rm *.lock .venv
+  rm *.lock
+  rm -rf .venv
 
+stub-gen:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cargo run -p ezpz-guiz stub_gen

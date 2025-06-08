@@ -19,26 +19,22 @@ bon = { workspace = true }
 chrono = { workspace = true }
 dioxus = { workspace = true, features = ["fullstack", "router"] }
 dioxus-free-icons = { workspace = true }
-dioxus-logger = { workspace = true }
-dioxus-sdk = { workspace = true, features = ["timing"] }
+dioxus-sdk = { workspace = true, features = ["time"] }
 futures = { workspace = true }
 markdown-to-html = { workspace = true }
 plotters = { workspace = true }
 plotters-canvas = { workspace = true }
 tailwind_fuse = { workspace = true }
-tracing-wasm = { version = "0.2.1", optional = true }
 
 anyhow = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
 strum = { workspace = true }
-strum_macros = { workspace = true }
 uuid = { workspace = true }
 
-diesel = { version = "2.2.8", features = ["chrono", "postgres", "serde_json", "uuid"], optional = true }
+diesel = { version = "2.2.10", features = ["chrono", "postgres", "serde_json", "uuid"], optional = true }
 diesel-async = { version = "0.5.2", features = ["postgres"], optional = true }
-tracing-subscriber = { version = "0.3.19", optional = true }
 
 maestro-anthropic = { workspace = true, features = ["dioxus"] }
 maestro-apalis = { workspace = true, features = ["create"], optional = true }
@@ -48,8 +44,8 @@ maestro-diesel = { workspace = true, features = ["async", "dioxus"], optional = 
 dotenvy = { git = "https://github.com/allan2/dotenvy.git", features = ["macros"] }
 
 [features]
-desktop = ["dioxus-sdk/clipboard", "dioxus-sdk/clipboard", "dioxus/desktop"]
-web = ["chrono/wasmbind", "dep:tracing-wasm", "dioxus/web", "uuid/js"]
+desktop = ["dioxus/desktop"]
+web = ["chrono/wasmbind", "dioxus/web", "uuid/js"]
 
 server = [
   "api/dioxus-server",
@@ -58,7 +54,6 @@ server = [
   "dep:diesel-async",
   "dep:maestro-apalis",
   "dep:maestro-diesel",
-  "dep:tracing-subscriber",
   "dioxus/server",
   "maestro-anthropic/server",
 ]

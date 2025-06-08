@@ -1,10 +1,10 @@
 [project]
 authors = [{ "name" = "Jeremy Meek" }]
-dependencies = ["aiofiles==24.1.0", "libcst==1.6.0", "networkx==3.4.2", "toml==0.10.2", "typer==0.15.2"]
+dependencies = ["aiofiles==24.1.0", "libcst==1.8.0", "toml==0.10.2", "typer==0.16.0"]
 description = "A tool that brings type safety and type checking enhancements to the Polars library."
 name = "painlezz-macroz"
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.13,<3.14"
 version = "0.0.1"
 
 

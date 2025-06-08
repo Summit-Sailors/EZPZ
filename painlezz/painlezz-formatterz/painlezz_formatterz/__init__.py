@@ -4,13 +4,13 @@ from typing import Iterable
 from pathlib import Path
 from dataclasses import dataclass
 
-from rich import print
+import rich
 
 __all__ = ["Formatter"]
 
 ROOT_DIR_PATH = Path(__file__).parent.parent.parent
 
-RUSTFMT_CFG = ROOT_DIR_PATH.joinpath("crates/.rustfmt.toml")
+RUSTFMT_CFG = ROOT_DIR_PATH.joinpath(".rustfmt.toml")
 PRETTIER_CFG = ROOT_DIR_PATH.joinpath(".prettierrc.yml")
 RUFF_CFG = ROOT_DIR_PATH.joinpath("pyproject.toml")
 TAPLO_CFG = ROOT_DIR_PATH.joinpath("taplo.toml")
@@ -68,8 +68,8 @@ class Formatter:
       if formatter.cfg and formatter.cfg.exists():
         cmd += f" --config {formatter.cfg}"
       p = subprocess.run(cmd, shell=True, check=False, capture_output=True)
-      print(p.stdout)
-      print(p.stderr)
+      rich.print(p.stdout)
+      rich.print(p.stderr)
 
   @classmethod
   def format_paths(cls, paths: "Iterable[Path]") -> None:

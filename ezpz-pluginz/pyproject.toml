@@ -4,18 +4,18 @@ dependencies = [
   "aiofiles==24.1.0",
   "cached-property==2.0.1",
   "jinja2==3.1.6",
-  "libcst==1.6.0",
+  "libcst==1.8.0",
   "painlezz-basez",
   "painlezz-macroz",
-  "pydantic==2.10.6",
-  "pywatchman==2.0.0",
+  "pydantic==2.11.5",
+  "pywatchman==3.0.0",
   "toml==0.10.2",
-  "typer==0.15.2",
+  "typer==0.16.0",
 ]
 description = "A tool that brings type safety and type checking enhancements to the Polars library."
 name = "ezpz_pluginz"
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.13,<3.14"
 version = "0.0.1"
 
 [tool.rye]

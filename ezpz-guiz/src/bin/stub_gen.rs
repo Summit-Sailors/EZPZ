@@ -1,8 +1,6 @@
-use ezpz_guiz::stub_info;
-use pyo3_stub_gen::Result;
+use {ezpz_guiz::stub_info, pyo3_stub_gen::Result};
 
 fn main() -> Result<()> {
-  let stub = stub_info()?;
-  stub.generate()?;
-  Ok(())
+	stub_info()?.generate()?;
+	Ok(())
 }

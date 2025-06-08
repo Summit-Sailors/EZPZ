@@ -7,7 +7,7 @@ repository = ""
 
 
 [workspace]
-members = ["crates/*", "ezpz-guiz"]
+members = ["api", "app", "ezpz-guiz", "ezpz-stubz", "formatterz"]
 resolver = "2"
 
 [profile.dev.package."*"]
@@ -38,27 +38,27 @@ inherits = "dev"
 inherits = "dev"
 
 [workspace.dependencies]
-ezpz-stubz = { path = "crates/ezpz-stubz" }
+ezpz-stubz = { path = "ezpz-stubz" }
 
 
 pyproject-toml = { version = "0.13.4" }
-serde-toml-merge = "0.3.8"
+serde-toml-merge = "0.3.9"
 serde_merge = "0.1.3"
 serde_yml = "0.0.12"
-toml = { version = "0.8.19" }
+toml = { version = "0.8.23" }
 
-bigdecimal = { version = "0.4.7", features = ["serde"] }
+bigdecimal = { version = "0.4.8", features = ["serde"] }
 
 
-clap = { version = "4.5.32", features = ["derive"] }
+clap = { version = "4.5.39", features = ["derive"] }
 
-lru = "0.13.0"
+lru = "0.14.0"
 
 
 # polars
-connectorx = "0.4.2"
-hashbrown = { version = "0.15.2" }
-polars = { version = "0.46.0", features = [
+connectorx = "0.4.3"
+hashbrown = { version = "0.15.4" }
+polars = { version = "0.48.1", features = [
   "dataframe_arithmetic",
   "describe",
   "dtype-full",
@@ -75,11 +75,11 @@ polars = { version = "0.46.0", features = [
 
 # PyO3
 pyo3 = { version = "*" }
-pyo3-polars = { version = "0.20.0", features = ["derive", "dtype-full", "lazy"] }
-pyo3-stub-gen = { version = "0.7.0", default-features = false }
+pyo3-polars = { version = "0.21.0", features = ["derive", "dtype-full", "lazy"] }
+pyo3-stub-gen = { version = "0.9.1", default-features = false }
 
 
-api = { path = "crates/api" }
+api = { path = "api" }
 
 
 maestro-anthropic = { path = "../dioxus-maestro/clients/maestro-anthropic" }
@@ -91,24 +91,34 @@ maestro-hooks = { path = "../dioxus-maestro/frontend/maestro-hooks", features = 
 maestro-toast = { path = "../dioxus-maestro/frontend/maestro-toast", features = ["web"] }
 maestro-ui = { path = "../dioxus-maestro/frontend/maestro-ui" }
 
-anyhow = { version = "1.0.97" }
-bon = { version = "3.4.0", features = ["experimental-getter", "implied-bounds"] }
-itertools = { version = "0.14.0" }
-schemars = { git = "https://github.com/GREsau/schemars.git" }
-stilts = { version = "0.3.3" }
-strum = "0.27.1"
-strum_macros = "0.27.1"
-validator = { version = "0.20.0", features = ["derive"] }
-
+anyhow = "1.0.98"
+chrono = { version = "0.4.41", features = ["serde"] }
+dashmap = { version = "6.1.0", features = ["rayon", "serde"] }
+derive-new = { version = "0.7.0" }
+derive_more = { version = "2.0.1" }
+enum-map = { version = "2.7.3" }
 futures = "0.3.31"
-lowdash = "0.5.3"
-
-chrono = { version = "0.4.40", features = ["serde"] }
-url = { version = "2.5.4", features = ["serde"] }
-uuid = { version = "1.15.1", features = ["serde", "v4"] }
-
+futures-util = "0.3.31"
+itertools = "0.14.0"
+num-traits = { version = "0.2.19" }
+parking_lot = { version = "0.12.4" }
+rand = { version = "0.9.1", features = ["small_rng"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
+shrinkwraprs = { version = "0.3.0" }
+strum = { version = "0.27.1", features = ["derive"] }
+tap = { version = "1.0.1" }
+uuid = { version = "1.17.0", features = ["serde", "v4"] }
+
+leafwing-input-manager = "0.17.0"
+leafwing_abilities = "0.11.0"
+
+bon = { version = "3.6.3" }
+lowdash = "0.5.3"
+schemars = { git = "https://github.com/GREsau/schemars.git" }
+stilts = { version = "0.3.3" }
+url = { version = "2.5.4", features = ["serde"] }
+validator = { version = "0.20.0", features = ["derive"] }
 
 markdown-to-html = "0.1.3"
 plotters = { version = "0.3.7", default-features = false, features = [
@@ -128,8 +138,8 @@ plotters = { version = "0.3.7", default-features = false, features = [
 plotters-canvas = { version = "0.3.1" }
 tailwind_fuse = "0.3.2"
 
-dioxus = { version = "0.6.3", default-features = false }
-dioxus-free-icons = { version = "0.9.0", features = [
+dioxus = { version = "0.7.0-alpha.1", default-features = false }
+dioxus-free-icons = { git = "https://github.com/dioxus-community/dioxus-free-icons.git", features = [
   "bootstrap",
   "feather",
   "font-awesome-brands",
@@ -158,8 +168,10 @@ dioxus-free-icons = { version = "0.9.0", features = [
   "material-design-icons-toggle",
   "octicons",
 ] }
-dioxus-logger = "0.6.2"
-dioxus-sdk = { git = "https://github.com/DioxusLabs/sdk.git", features = ["timing"] }
+dioxus-sdk = { git = "https://github.com/DioxusLabs/sdk.git", features = ["time"] }
+
+tokio = { version = "1.45.1", default-features = false }
+tokio-tungstenite = { version = "0.26.2", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

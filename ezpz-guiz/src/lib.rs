@@ -1,19 +1,18 @@
-// use lazy::LazyFrameViewer;
-use pyo3::prelude::*;
-use pyo3_stub_gen::define_stub_info_gatherer;
+use {pyo3::prelude::*, pyo3_stub_gen::define_stub_info_gatherer};
 
-// mod frame;
+mod frame;
 
-// use frame::DataFrameViewer;
+use frame::DataFrameViewer;
 
-// mod lazy;
-// mod shell;
+mod lazy;
+
+use lazy::LazyFrameViewer;
 
 #[pymodule]
 #[pyo3(name = "_ezpz_guiz")]
 fn _ezpz_guiz(m: &Bound<'_, PyModule>) -> PyResult<()> {
-	// m.add_class::<DataFrameViewer>()?;
-	// m.add_class::<LazyFrameViewer>()?;
+	m.add_class::<DataFrameViewer>()?;
+	m.add_class::<LazyFrameViewer>()?;
 	Ok(())
 }
 

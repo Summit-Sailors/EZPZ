@@ -1,9 +1,9 @@
 {
-  "pythonVersion": "3.12",
+  "pythonVersion": "3.13",
   "pythonPlatform": "Linux",
 
-  "exclude": ["**/node_modules", "**/__pycache__", "crates"],
-  "include": ["ezpz-*", "painlezz-*"],
+  "exclude": ["**/node_modules", "**/__pycache__"],
+  "include": ["ezpz-guiz", "painlezz-*", "ezpz-pluginz", "formatterz"],
   "typeCheckingMode": "strict",
   "reportTypesImportCycles": "error",
   "verboseOutput": true,

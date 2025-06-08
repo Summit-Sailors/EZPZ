@@ -1,7 +1,7 @@
 use {
 	crate::{layout::Layout, pages::home::Home},
 	dioxus::prelude::*,
-	strum_macros::EnumIter,
+	strum::EnumIter,
 };
 
 #[derive(Clone, PartialEq, EnumIter, Routable)]

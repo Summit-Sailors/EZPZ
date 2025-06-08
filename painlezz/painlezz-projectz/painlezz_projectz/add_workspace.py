@@ -32,7 +32,7 @@ toml_data = {
     "description": "",
     "name": workspace_name,
     "readme": "README.md",
-    "requires-python": ">=3.12,<3.13",
+    "requires-python": ">=3.13,<3.14",
     "version": "0.0.1",
   },
 }
