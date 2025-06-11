@@ -79,7 +79,7 @@ class PluginPatcher(MatcherDecoratableTransformer):
       plugin_nodes.append(cst.AnnAssign(target=cst.Name(plugin.attr_name), annotation=cst.Annotation(cst.parse_expression(plugin.type_hint)), value=None))
     new_body = list(updated_node.body.body)
     new_body = new_body[:1] + [cst.SimpleStatementLine(body=plugin_nodes)] + new_body[1:]
-    return updated_node.with_changes(body=cst.IndentedBlock(body=cast(Sequence[cst.BaseStatement], new_body)))
+    return updated_node.with_changes(body=cst.IndentedBlock(body=cast("Sequence[cst.BaseStatement]", new_body)))
 
   @m.leave(m.If(test=m.Name("TYPE_CHECKING")))
   def add_imports_to_type_checking(self, original_node: cst.If, updated_node: cst.If) -> cst.If:

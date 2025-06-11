@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import libcst.matchers as m
 from libcst.metadata import BatchableMetadataProvider
 
-from ezpz_pluginz.polars_class_provider import EPolarsNS
+from ezpz_pluginz.e_polars_namespace import EPolarsNS
 
 if TYPE_CHECKING:
   import libcst as cst

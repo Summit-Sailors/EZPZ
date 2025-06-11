@@ -1,3 +1,8 @@
+[tool.ezpz_pluginz]
+includes = ["ezpz-guiz", "ezpz-pluginz"]
+name = "ezpz"
+site_customize = true
+
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
@@ -12,7 +17,7 @@ requires-python = ">=3.13,<3.14"
 version = "0.0.1"
 
 [tool.rye.workspace]
-members = ["ezpz-guiz", "ezpz-pluginz", "formatterz", "painlezz/*"]
+members = ["guiz", "macroz", "pluginz"]
 
 [tool.rye]
 dev-dependencies = [

@@ -2,8 +2,6 @@ import sys
 import inspect
 import logging
 import importlib
-import importlib.util
-import importlib.metadata
 from pathlib import Path
 from itertools import chain
 

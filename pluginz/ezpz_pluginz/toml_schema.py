@@ -2,7 +2,6 @@ import logging
 from typing import TYPE_CHECKING, Any, Iterable, Generator
 from pathlib import Path
 from operator import attrgetter
-from functools import cache
 from itertools import chain, groupby
 
 import toml
@@ -58,7 +57,6 @@ class EzpzPluginConfig(BaseModel):
   site_customize: bool | None = Field(default=None)
 
   @staticmethod
-  @cache
   def from_toml_path(path: Path) -> "EzpzPluginConfig":
     return EzpzPluginToml(**toml.loads(path.read_text())).ezpz_pluginz
 

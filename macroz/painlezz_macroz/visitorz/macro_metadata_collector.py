@@ -31,7 +31,7 @@ class MacroMetadataCollector[T: BaseModel, TMacroKwargs: Any](m.MatcherDecoratab
     match node.decorator:
       case cst.Call(func=cst.Name(decorator_name), args=decorator_args) if decorator_name == self.macro_name:
         args: list[JSONSerializable] = []
-        kwargs = cast(TMacroKwargs, {})
+        kwargs = cast("TMacroKwargs", {})
         for arg in decorator_args:
           evaled = ast.literal_eval(dump(node))
           if arg.keyword is None:

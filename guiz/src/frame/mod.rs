@@ -26,8 +26,7 @@ impl DataFrameViewer {
 	}
 
 	fn view(&self) -> Self {
-		let _ = self.df.clone();
-		self.clone()
+		Self { df: self.df.clone() }
 	}
 }
 
