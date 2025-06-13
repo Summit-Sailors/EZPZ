@@ -30,4 +30,4 @@ clear:
 stub-gen:
   #!/usr/bin/env bash
   set -euo pipefail
-  cargo run -p ezpz-guiz stub_gen
+  cargo run -p ezpz-rust-ti stub_gen
