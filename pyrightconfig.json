@@ -3,7 +3,7 @@
   "pythonPlatform": "Linux",
 
   "exclude": ["**/node_modules", "**/__pycache__"],
-  "include": ["ezpz-guiz", "ezpz-pluginz"],
+  "include": ["ezpz-rust-ti", "ezpz-pluginz"],
   "typeCheckingMode": "strict",
   "reportTypesImportCycles": "error",
   "verboseOutput": true,
