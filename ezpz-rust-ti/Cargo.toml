@@ -25,6 +25,3 @@ default = ["pyo3/extension-module"]
 [[bin]]
 doc = false
 name = "stub_gen"
-
-[build-dependencies]
-pyo3-build-config = "0.25.1"

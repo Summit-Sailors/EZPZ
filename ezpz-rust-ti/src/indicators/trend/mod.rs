@@ -1,6 +1,6 @@
 use {
-	crate::utils::parse_constant_model_type,
-	ezpz_stubz::series::PySeriesStubbed,
+	crate::utils::{create_triple_df, extract_f64_values, parse_constant_model_type},
+	ezpz_stubz::{frame::PyDfStubbed, series::PySeriesStubbed},
 	polars::prelude::*,
 	pyo3::prelude::*,
 	pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods},
@@ -18,14 +18,7 @@ impl TrendTI {
 
 	#[staticmethod]
 	fn aroon_up_single(highs: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = highs.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(highs)?;
 
 		if values.is_empty() {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Highs cannot be empty"));
@@ -37,14 +30,7 @@ impl TrendTI {
 
 	#[staticmethod]
 	fn aroon_down_single(lows: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = lows.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(lows)?;
 
 		if values.is_empty() {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Lows cannot be empty"));
@@ -62,23 +48,8 @@ impl TrendTI {
 
 	#[staticmethod]
 	fn aroon_indicator_single(highs: PySeriesStubbed, lows: PySeriesStubbed) -> PyResult<(f64, f64, f64)> {
-		let highs_series: Series = highs.0.into();
-		let highs_values: Vec<f64> = highs_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let lows_series: Series = lows.0.into();
-		let lows_values: Vec<f64> = lows_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let highs_values: Vec<f64> = extract_f64_values(highs)?;
+		let lows_values = extract_f64_values(lows)?;
 
 		if highs_values.len() != lows_values.len() {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
@@ -112,14 +83,7 @@ impl TrendTI {
 
 	#[staticmethod]
 	fn true_strength_index_single(prices: PySeriesStubbed, first_constant_model: &str, first_period: usize, second_constant_model: &str) -> PyResult<f64> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.is_empty() {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Prices cannot be empty"));
@@ -127,7 +91,6 @@ impl TrendTI {
 
 		// Convert string to ConstantModelType
 		let first_model = parse_constant_model_type(first_constant_model)?;
-
 		let second_model = parse_constant_model_type(second_constant_model)?;
 
 		let result = rust_ti::trend_indicators::single::true_strength_index(&values, &first_model, &first_period, &second_model);
@@ -137,14 +100,7 @@ impl TrendTI {
 	// Aroon Up bulk function
 	#[staticmethod]
 	fn aroon_up_bulk(highs: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let highs_series: Series = highs.0.into();
-		let highs_values: Vec<f64> = highs_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let highs_values: Vec<f64> = extract_f64_values(highs)?;
 
 		let result = rust_ti::trend_indicators::bulk::aroon_up(&highs_values, &period);
 		let result_series = Series::new("aroon_up".into(), result);
@@ -154,14 +110,7 @@ impl TrendTI {
 	/// Calculate Aroon Down indicator
 	#[staticmethod]
 	fn aroon_down_bulk(lows: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let lows_series: Series = lows.0.into();
-		let lows_values: Vec<f64> = lows_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let lows_values: Vec<f64> = extract_f64_values(lows)?;
 
 		let result = rust_ti::trend_indicators::bulk::aroon_down(&lows_values, &period);
 		let result_series = Series::new("aroon_down".into(), result);
@@ -171,24 +120,8 @@ impl TrendTI {
 	/// Calculate Aroon Oscillator
 	#[staticmethod]
 	fn aroon_oscillator_bulk(aroon_up: PySeriesStubbed, aroon_down: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
-		let aroon_up_series: Series = aroon_up.0.into();
-		let aroon_down_series: Series = aroon_down.0.into();
-
-		let aroon_up_values: Vec<f64> = aroon_up_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let aroon_down_values: Vec<f64> = aroon_down_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let aroon_up_values: Vec<f64> = extract_f64_values(aroon_up)?;
+		let aroon_down_values: Vec<f64> = extract_f64_values(aroon_down)?;
 
 		let result = rust_ti::trend_indicators::bulk::aroon_oscillator(&aroon_up_values, &aroon_down_values);
 		let result_series = Series::new("aroon_oscillator".into(), result);
@@ -196,26 +129,12 @@ impl TrendTI {
 	}
 
 	/// Calculate Aroon Indicator (returns Aroon Up, Aroon Down, and Aroon Oscillator)
+	///
+	/// Returns a DataFrame with Columns ("aroon_up", "aroon_down", "aroon_oscillator")
 	#[staticmethod]
-	fn aroon_indicator_bulk(highs: PySeriesStubbed, lows: PySeriesStubbed, period: usize) -> PyResult<Vec<PySeriesStubbed>> {
-		let highs_series: Series = highs.0.into();
-		let lows_series: Series = lows.0.into();
-
-		let highs_values: Vec<f64> = highs_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let lows_values: Vec<f64> = lows_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+	fn aroon_indicator_bulk(highs: PySeriesStubbed, lows: PySeriesStubbed, period: usize) -> PyResult<PyDfStubbed> {
+		let highs_values: Vec<f64> = extract_f64_values(highs)?;
+		let lows_values: Vec<f64> = extract_f64_values(lows)?;
 
 		let aroon_result = rust_ti::trend_indicators::bulk::aroon_indicator(&highs_values, &lows_values, &period);
 
@@ -232,16 +151,7 @@ impl TrendTI {
 			(up, down, oscillator)
 		};
 
-		// Convert back to Polars Series
-		let aroon_up_series = Series::new("aroon_up".into(), aroon_up);
-		let aroon_down_series = Series::new("aroon_down".into(), aroon_down);
-		let aroon_oscillator_series = Series::new("aroon_oscillator".into(), aroon_oscillator);
-
-		Ok(vec![
-			PySeriesStubbed(pyo3_polars::PySeries(aroon_up_series)),
-			PySeriesStubbed(pyo3_polars::PySeries(aroon_down_series)),
-			PySeriesStubbed(pyo3_polars::PySeries(aroon_oscillator_series)),
-		])
+		create_triple_df(aroon_up, aroon_down, aroon_oscillator, "aroon_up", "aroon_down", "aroon_oscillator")
 	}
 
 	/// Calculate Parabolic Time Price System (SAR)
@@ -255,24 +165,8 @@ impl TrendTI {
 		start_position: &str, // "Long" or "Short"
 		previous_sar: f64,
 	) -> PyResult<PySeriesStubbed> {
-		let highs_series: Series = highs.0.into();
-		let lows_series: Series = lows.0.into();
-
-		let highs_values: Vec<f64> = highs_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let lows_values: Vec<f64> = lows_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let highs_values: Vec<f64> = extract_f64_values(highs)?;
+		let lows_values: Vec<f64> = extract_f64_values(lows)?;
 
 		let position = match start_position {
 			"Long" => rust_ti::Position::Long,
@@ -295,6 +189,8 @@ impl TrendTI {
 	}
 
 	/// Calculate Directional Movement System (returns +DI, -DI, ADX, ADXR)
+	///
+	/// Returns a DataFrame with columns: (positive_di, negative_di, adx, adxr)
 	#[staticmethod]
 	fn directional_movement_system_bulk(
 		highs: PySeriesStubbed,
@@ -302,34 +198,10 @@ impl TrendTI {
 		closes: PySeriesStubbed,
 		period: usize,
 		constant_model_type: &str, // "SimpleMovingAverage", "SmoothedMovingAverage", "ExponentialMovingAverage", etc.
-	) -> PyResult<Vec<PySeriesStubbed>> {
-		let highs_series: Series = highs.0.into();
-		let lows_series: Series = lows.0.into();
-		let closes_series: Series = closes.0.into();
-
-		let highs_values: Vec<f64> = highs_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let lows_values: Vec<f64> = lows_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let closes_values: Vec<f64> = closes_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+	) -> PyResult<PyDfStubbed> {
+		let highs_values: Vec<f64> = extract_f64_values(highs)?;
+		let lows_values: Vec<f64> = extract_f64_values(lows)?;
+		let closes_values: Vec<f64> = extract_f64_values(closes)?;
 
 		let constant_model = parse_constant_model_type(constant_model_type)?;
 
@@ -350,41 +222,22 @@ impl TrendTI {
 			(pos_di, neg_di, adx_vals, adxr_vals)
 		};
 
-		// Convert back to Polars Series
-		let positive_di_series = Series::new("positive_di".into(), positive_di);
-		let negative_di_series = Series::new("negative_di".into(), negative_di);
-		let adx_series = Series::new("adx".into(), adx);
-		let adxr_series = Series::new("adxr".into(), adxr);
+		let df = df! {
+			"positive_di" => positive_di,
+			"negative_di" => negative_di,
+			"adx" => adx,
+			"adxr" => adxr,
+		}
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
 
-		Ok(vec![
-			PySeriesStubbed(pyo3_polars::PySeries(positive_di_series)),
-			PySeriesStubbed(pyo3_polars::PySeries(negative_di_series)),
-			PySeriesStubbed(pyo3_polars::PySeries(adx_series)),
-			PySeriesStubbed(pyo3_polars::PySeries(adxr_series)),
-		])
+		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}
 
 	/// Calculate Volume Price Trend
 	#[staticmethod]
 	fn volume_price_trend_bulk(prices: PySeriesStubbed, volumes: PySeriesStubbed, previous_volume_price_trend: f64) -> PyResult<PySeriesStubbed> {
-		let prices_series: Series = prices.0.into();
-		let volumes_series: Series = volumes.0.into();
-
-		let prices_values: Vec<f64> = prices_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let volumes_values: Vec<f64> = volumes_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let prices_values: Vec<f64> = extract_f64_values(prices)?;
+		let volumes_values: Vec<f64> = extract_f64_values(volumes)?;
 
 		let result = rust_ti::trend_indicators::bulk::volume_price_trend(&prices_values, &volumes_values, &previous_volume_price_trend);
 
@@ -401,17 +254,9 @@ impl TrendTI {
 		second_constant_model: &str,
 		second_period: usize,
 	) -> PyResult<PySeriesStubbed> {
-		let prices_series: Series = prices.0.into();
-		let prices_values: Vec<f64> = prices_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let prices_values: Vec<f64> = extract_f64_values(prices)?;
 
 		let first_model = parse_constant_model_type(first_constant_model)?;
-
 		let second_model = parse_constant_model_type(second_constant_model)?;
 
 		let result = rust_ti::trend_indicators::bulk::true_strength_index(&prices_values, &first_model, &first_period, &second_model, &second_period);

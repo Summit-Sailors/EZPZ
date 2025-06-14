@@ -1,5 +1,5 @@
 use {
-	crate::utils::{parse_constant_model_type, parse_deviation_model},
+	crate::utils::{extract_f64_values, parse_constant_model_type, parse_deviation_model},
 	ezpz_stubz::series::PySeriesStubbed,
 	polars::prelude::*,
 	pyo3::prelude::*,
@@ -24,24 +24,8 @@ impl CorrelationTI {
 		constant_model_type: &str,
 		deviation_model: &str,
 	) -> PyResult<f64> {
-		let polars_series_a: Series = prices_asset_a.0.into();
-		let polars_series_b: Series = prices_asset_b.0.into();
-
-		let values_a: Vec<f64> = polars_series_a
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let values_b: Vec<f64> = polars_series_b
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values_a: Vec<f64> = extract_f64_values(prices_asset_a)?;
+		let values_b: Vec<f64> = extract_f64_values(prices_asset_b)?;
 
 		let constant_type = parse_constant_model_type(constant_model_type)?;
 		let deviation_type = parse_deviation_model(deviation_model)?;
@@ -62,24 +46,8 @@ impl CorrelationTI {
 		deviation_model: &str,
 		period: usize,
 	) -> PyResult<PySeriesStubbed> {
-		let polars_series_a: Series = prices_asset_a.0.into();
-		let polars_series_b: Series = prices_asset_b.0.into();
-
-		let values_a: Vec<f64> = polars_series_a
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let values_b: Vec<f64> = polars_series_b
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values_a: Vec<f64> = extract_f64_values(prices_asset_a)?;
+		let values_b: Vec<f64> = extract_f64_values(prices_asset_b)?;
 
 		let constant_type = parse_constant_model_type(constant_model_type)?;
 		let deviation_type = parse_deviation_model(deviation_model)?;

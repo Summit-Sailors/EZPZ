@@ -1,6 +1,6 @@
 use {
-	crate::utils::{parse_constant_model_type, parse_deviation_model},
-	ezpz_stubz::series::PySeriesStubbed,
+	crate::utils::{create_triple_df, extract_f64_values, parse_constant_model_type, parse_deviation_model},
+	ezpz_stubz::{frame::PyDfStubbed, series::PySeriesStubbed},
 	polars::prelude::*,
 	pyo3::prelude::*,
 	pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods},
@@ -17,14 +17,7 @@ impl MomentumTI {
 	/// Aroon Up indicator
 	#[staticmethod]
 	fn aroon_up_single(highs: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = highs.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(highs)?;
 
 		let result = rust_ti::trend_indicators::single::aroon_up(&values);
 		Ok(result)
@@ -33,14 +26,7 @@ impl MomentumTI {
 	/// Aroon Down indicator
 	#[staticmethod]
 	fn aroon_down_single(lows: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = lows.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(lows)?;
 
 		let result = rust_ti::trend_indicators::single::aroon_down(&values);
 		Ok(result)
@@ -56,23 +42,8 @@ impl MomentumTI {
 	/// Aroon Indicator (returns tuple of aroon_up, aroon_down, aroon_oscillator)
 	#[staticmethod]
 	fn aroon_indicator_single(highs: PySeriesStubbed, lows: PySeriesStubbed) -> PyResult<(f64, f64, f64)> {
-		let highs_series: Series = highs.0.into();
-		let highs_values: Vec<f64> = highs_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let lows_series: Series = lows.0.into();
-		let lows_values: Vec<f64> = lows_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let highs_values: Vec<f64> = extract_f64_values(highs)?;
+		let lows_values: Vec<f64> = extract_f64_values(lows)?;
 
 		let result = rust_ti::trend_indicators::single::aroon_indicator(&highs_values, &lows_values);
 		Ok(result)
@@ -102,14 +73,7 @@ impl MomentumTI {
 	/// True Strength Index
 	#[staticmethod]
 	fn true_strength_index_single(prices: PySeriesStubbed, first_constant_model: &str, first_period: usize, second_constant_model: &str) -> PyResult<f64> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		// Convert string parameters to ConstantModelType enums
 		let first_model = parse_constant_model_type(first_constant_model)?;
@@ -124,14 +88,7 @@ impl MomentumTI {
 	/// Relative Strength Index (RSI) - bulk calculation
 	#[staticmethod]
 	fn relative_strength_index_bulk(prices: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let model_type = parse_constant_model_type(constant_model_type)?;
 
@@ -143,14 +100,7 @@ impl MomentumTI {
 	/// Stochastic Oscillator - bulk calculation
 	#[staticmethod]
 	fn stochastic_oscillator_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let result = rust_ti::momentum_indicators::bulk::stochastic_oscillator(&values, &period);
 		let series = Series::new("stochastic".into(), result);
@@ -160,14 +110,7 @@ impl MomentumTI {
 	/// Slow Stochastic - bulk calculation
 	#[staticmethod]
 	fn slow_stochastic_bulk(stochastics: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = stochastics.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(stochastics)?;
 
 		let model_type = parse_constant_model_type(constant_model_type)?;
 
@@ -179,14 +122,7 @@ impl MomentumTI {
 	/// Slowest Stochastic - bulk calculation
 	#[staticmethod]
 	fn slowest_stochastic_bulk(slow_stochastics: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = slow_stochastics.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(slow_stochastics)?;
 
 		let model_type = parse_constant_model_type(constant_model_type)?;
 
@@ -198,33 +134,9 @@ impl MomentumTI {
 	/// Williams %R - bulk calculation
 	#[staticmethod]
 	fn williams_percent_r_bulk(high: PySeriesStubbed, low: PySeriesStubbed, close: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let high_series: Series = high.0.into();
-		let low_series: Series = low.0.into();
-		let close_series: Series = close.0.into();
-
-		let high_values: Vec<f64> = high_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let low_values: Vec<f64> = low_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let close_values: Vec<f64> = close_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let high_values: Vec<f64> = extract_f64_values(high)?;
+		let low_values: Vec<f64> = extract_f64_values(low)?;
+		let close_values: Vec<f64> = extract_f64_values(close)?;
 
 		let result = rust_ti::momentum_indicators::bulk::williams_percent_r(&high_values, &low_values, &close_values, &period);
 		let series = Series::new("williams_r".into(), result);
@@ -234,24 +146,8 @@ impl MomentumTI {
 	/// Money Flow Index - bulk calculation
 	#[staticmethod]
 	fn money_flow_index_bulk(prices: PySeriesStubbed, volume: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let price_series: Series = prices.0.into();
-		let volume_series: Series = volume.0.into();
-
-		let price_values: Vec<f64> = price_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let volume_values: Vec<f64> = volume_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let price_values: Vec<f64> = extract_f64_values(prices)?;
+		let volume_values: Vec<f64> = extract_f64_values(volume)?;
 
 		let result = rust_ti::momentum_indicators::bulk::money_flow_index(&price_values, &volume_values, &period);
 		let series = Series::new("mfi".into(), result);
@@ -261,14 +157,7 @@ impl MomentumTI {
 	/// Rate of Change - bulk calculation
 	#[staticmethod]
 	fn rate_of_change_bulk(prices: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let result = rust_ti::momentum_indicators::bulk::rate_of_change(&values);
 		let series = Series::new("roc".into(), result);
@@ -278,24 +167,8 @@ impl MomentumTI {
 	/// On Balance Volume - bulk calculation
 	#[staticmethod]
 	fn on_balance_volume_bulk(prices: PySeriesStubbed, volume: PySeriesStubbed, previous_obv: f64) -> PyResult<PySeriesStubbed> {
-		let price_series: Series = prices.0.into();
-		let volume_series: Series = volume.0.into();
-
-		let price_values: Vec<f64> = price_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let volume_values: Vec<f64> = volume_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let price_values: Vec<f64> = extract_f64_values(prices)?;
+		let volume_values: Vec<f64> = extract_f64_values(volume)?;
 
 		let result = rust_ti::momentum_indicators::bulk::on_balance_volume(&price_values, &volume_values, &previous_obv);
 		let series = Series::new("obv".into(), result);
@@ -311,14 +184,7 @@ impl MomentumTI {
 		constant_multiplier: f64,
 		period: usize,
 	) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let model_type = parse_constant_model_type(constant_model_type)?;
 
@@ -339,14 +205,7 @@ impl MomentumTI {
 		constant_multiplier: f64,
 		period: usize,
 	) -> PyResult<(PySeriesStubbed, PySeriesStubbed)> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let dev_model = parse_deviation_model(deviation_model)?;
 
@@ -375,17 +234,9 @@ impl MomentumTI {
 		long_period: usize,
 		long_period_model: &str,
 	) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let short_model = parse_constant_model_type(short_period_model)?;
-
 		let long_model = parse_constant_model_type(long_period_model)?;
 
 		let result = rust_ti::momentum_indicators::bulk::macd_line(&values, &short_period, &short_model, &long_period, &long_model);
@@ -396,14 +247,7 @@ impl MomentumTI {
 	/// Signal Line - bulk calculation
 	#[staticmethod]
 	fn signal_line_bulk(macds: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = macds.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(macds)?;
 
 		let model_type = parse_constant_model_type(constant_model_type)?;
 
@@ -413,7 +257,8 @@ impl MomentumTI {
 	}
 
 	/// McGinley Dynamic MACD Line - bulk calculation
-	/// Returns a tuple with (MACD, Short McGinley Dynamic, Long McGinley Dynamic)
+	///
+	/// Returns a Dataframe with (MACD, Short McGinley Dynamic, Long McGinley Dynamic)
 	#[staticmethod]
 	fn mcginley_dynamic_macd_line_bulk(
 		prices: PySeriesStubbed,
@@ -421,15 +266,8 @@ impl MomentumTI {
 		previous_short_mcginley: f64,
 		long_period: usize,
 		previous_long_mcginley: f64,
-	) -> PyResult<(PySeriesStubbed, PySeriesStubbed, PySeriesStubbed)> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+	) -> PyResult<PyDfStubbed> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let result =
 			rust_ti::momentum_indicators::bulk::mcginley_dynamic_macd_line(&values, &short_period, &previous_short_mcginley, &long_period, &previous_long_mcginley);
@@ -442,15 +280,7 @@ impl MomentumTI {
 				acc
 			});
 
-		let macd_series = Series::new("macd".into(), macd_values);
-		let short_mcginley_series = Series::new("short_mcginley".into(), short_mcginley_values);
-		let long_mcginley_series = Series::new("long_mcginley".into(), long_mcginley_values);
-
-		Ok((
-			PySeriesStubbed(pyo3_polars::PySeries(macd_series)),
-			PySeriesStubbed(pyo3_polars::PySeries(short_mcginley_series)),
-			PySeriesStubbed(pyo3_polars::PySeries(long_mcginley_series)),
-		))
+		create_triple_df(macd_values, short_mcginley_values, long_mcginley_values, "macd", "short_mcginley", "long_mcginley")
 	}
 
 	/// Chaikin Oscillator - bulk calculation
@@ -467,42 +297,10 @@ impl MomentumTI {
 		short_period_model: &str,
 		long_period_model: &str,
 	) -> PyResult<(PySeriesStubbed, PySeriesStubbed)> {
-		let high_series: Series = highs.0.into();
-		let low_series: Series = lows.0.into();
-		let close_series: Series = close.0.into();
-		let volume_series: Series = volume.0.into();
-
-		let high_values: Vec<f64> = high_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let low_values: Vec<f64> = low_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let close_values: Vec<f64> = close_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let volume_values: Vec<f64> = volume_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let high_values: Vec<f64> = extract_f64_values(highs)?;
+		let low_values: Vec<f64> = extract_f64_values(lows)?;
+		let close_values: Vec<f64> = extract_f64_values(close)?;
+		let volume_values: Vec<f64> = extract_f64_values(volume)?;
 
 		let short_model = parse_constant_model_type(short_period_model)?;
 
@@ -536,14 +334,7 @@ impl MomentumTI {
 		long_period: usize,
 		constant_model_type: &str,
 	) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let model_type = parse_constant_model_type(constant_model_type)?;
 
@@ -555,14 +346,7 @@ impl MomentumTI {
 	/// Chande Momentum Oscillator - bulk calculation
 	#[staticmethod]
 	fn chande_momentum_oscillator_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let result = rust_ti::momentum_indicators::bulk::chande_momentum_oscillator(&values, &period);
 		let series = Series::new("chande_momentum_oscillator".into(), result);

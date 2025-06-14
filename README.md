@@ -28,3 +28,7 @@ A collection of utilities to juzt get it done.
 - formatterz - dead simple api to apply code formaters from various languages ([readme](ezpz/README.md))
 - macroz - marcos for python with AST validation inspired by rust ([readme](ezpz/README.md))
 - projectz - utilities for easier monorepo management ([readme](ezpz/README.md))
+
+```rust
+let moneyTree = 234;
+```

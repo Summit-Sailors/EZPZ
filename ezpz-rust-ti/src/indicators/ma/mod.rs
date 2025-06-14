@@ -1,4 +1,5 @@
 use {
+	crate::utils::extract_f64_values,
 	ezpz_stubz::series::PySeriesStubbed,
 	polars::prelude::*,
 	pyo3::prelude::*,
@@ -33,14 +34,7 @@ impl MATI {
 	/// Single moving average value as a Series
 	#[staticmethod]
 	fn moving_average_single(prices: PySeriesStubbed, moving_average_type: &str) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let ma_type = parse_moving_average_type(moving_average_type)?;
 		let result = rust_ti::moving_average::single::moving_average(&values, &ma_type);
@@ -60,14 +54,7 @@ impl MATI {
 	/// Series of moving average values
 	#[staticmethod]
 	fn moving_average_bulk(prices: PySeriesStubbed, moving_average_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let ma_type = parse_moving_average_type(moving_average_type)?;
 		let result = rust_ti::moving_average::bulk::moving_average(&values, &ma_type, &period);
@@ -104,14 +91,7 @@ impl MATI {
 	/// Series of McGinley Dynamic values
 	#[staticmethod]
 	fn mcginley_dynamic_bulk(prices: PySeriesStubbed, previous_mcginley_dynamic: f64, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let result = rust_ti::moving_average::bulk::mcginley_dynamic(&values, &previous_mcginley_dynamic, &period);
 
@@ -130,14 +110,7 @@ impl MATI {
 	/// Single personalised moving average value as a Series
 	#[staticmethod]
 	fn personalised_moving_average_single(prices: PySeriesStubbed, alpha_nominator: f64, alpha_denominator: f64) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let ma_type = rust_ti::MovingAverageType::Personalised(&alpha_nominator, &alpha_denominator);
 		let result = rust_ti::moving_average::single::moving_average(&values, &ma_type);
@@ -158,14 +131,7 @@ impl MATI {
 	/// Series of personalised moving average values
 	#[staticmethod]
 	fn personalised_moving_average_bulk(prices: PySeriesStubbed, alpha_nominator: f64, alpha_denominator: f64, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = prices.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		let ma_type = rust_ti::MovingAverageType::Personalised(&alpha_nominator, &alpha_denominator);
 		let result = rust_ti::moving_average::bulk::moving_average(&values, &ma_type, &period);

@@ -1,5 +1,5 @@
 use {
-	crate::utils::parse_constant_model_type,
+	crate::utils::{extract_f64_values, parse_constant_model_type},
 	ezpz_stubz::series::PySeriesStubbed,
 	polars::prelude::*,
 	pyo3::prelude::*,
@@ -23,42 +23,10 @@ impl StrengthTI {
 		volume: PySeriesStubbed,
 		previous_ad: Option<f64>,
 	) -> PyResult<PySeriesStubbed> {
-		let high_series: Series = high.0.into();
-		let low_series: Series = low.0.into();
-		let close_series: Series = close.0.into();
-		let volume_series: Series = volume.0.into();
-
-		let high_values: Vec<f64> = high_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let low_values: Vec<f64> = low_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let close_values: Vec<f64> = close_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let volume_values: Vec<f64> = volume_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let high_values: Vec<f64> = extract_f64_values(high)?;
+		let low_values: Vec<f64> = extract_f64_values(low)?;
+		let close_values: Vec<f64> = extract_f64_values(close)?;
+		let volume_values: Vec<f64> = extract_f64_values(volume)?;
 
 		let previous = previous_ad.unwrap_or(0.0);
 		let result = rust_ti::strength_indicators::bulk::accumulation_distribution(&high_values, &low_values, &close_values, &volume_values, &previous);
@@ -70,24 +38,8 @@ impl StrengthTI {
 	/// Positive Volume Index - Measures volume trend strength when volume increases
 	#[staticmethod]
 	fn positive_volume_index(close: PySeriesStubbed, volume: PySeriesStubbed, previous_pvi: Option<f64>) -> PyResult<PySeriesStubbed> {
-		let close_series: Series = close.0.into();
-		let volume_series: Series = volume.0.into();
-
-		let close_values: Vec<f64> = close_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let volume_values: Vec<f64> = volume_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let close_values: Vec<f64> = extract_f64_values(close)?;
+		let volume_values: Vec<f64> = extract_f64_values(volume)?;
 
 		let previous = previous_pvi.unwrap_or(0.0);
 		let result = rust_ti::strength_indicators::bulk::positive_volume_index(&close_values, &volume_values, &previous);
@@ -99,24 +51,8 @@ impl StrengthTI {
 	/// Negative Volume Index - Measures volume trend strength when volume decreases
 	#[staticmethod]
 	fn negative_volume_index(close: PySeriesStubbed, volume: PySeriesStubbed, previous_nvi: Option<f64>) -> PyResult<PySeriesStubbed> {
-		let close_series: Series = close.0.into();
-		let volume_series: Series = volume.0.into();
-
-		let close_values: Vec<f64> = close_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let volume_values: Vec<f64> = volume_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let close_values: Vec<f64> = extract_f64_values(close)?;
+		let volume_values: Vec<f64> = extract_f64_values(volume)?;
 
 		let previous = previous_nvi.unwrap_or(0.0);
 		let result = rust_ti::strength_indicators::bulk::negative_volume_index(&close_values, &volume_values, &previous);
@@ -135,42 +71,10 @@ impl StrengthTI {
 		constant_model_type: &str,
 		period: usize,
 	) -> PyResult<PySeriesStubbed> {
-		let open_series: Series = open.0.into();
-		let high_series: Series = high.0.into();
-		let low_series: Series = low.0.into();
-		let close_series: Series = close.0.into();
-
-		let open_values: Vec<f64> = open_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let high_values: Vec<f64> = high_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let low_values: Vec<f64> = low_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let close_values: Vec<f64> = close_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let open_values: Vec<f64> = extract_f64_values(open)?;
+		let high_values: Vec<f64> = extract_f64_values(high)?;
+		let low_values: Vec<f64> = extract_f64_values(low)?;
+		let close_values: Vec<f64> = extract_f64_values(close)?;
 
 		let constant_type = parse_constant_model_type(constant_model_type)?;
 		let result = rust_ti::strength_indicators::bulk::relative_vigor_index(&open_values, &high_values, &low_values, &close_values, &constant_type, &period);
@@ -204,42 +108,10 @@ impl StrengthTI {
 		close: PySeriesStubbed,
 		constant_model_type: &str,
 	) -> PyResult<f64> {
-		let open_series: Series = open.0.into();
-		let high_series: Series = high.0.into();
-		let low_series: Series = low.0.into();
-		let close_series: Series = close.0.into();
-
-		let open_values: Vec<f64> = open_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let high_values: Vec<f64> = high_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let low_values: Vec<f64> = low_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let close_values: Vec<f64> = close_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let open_values: Vec<f64> = extract_f64_values(open)?;
+		let high_values: Vec<f64> = extract_f64_values(high)?;
+		let low_values: Vec<f64> = extract_f64_values(low)?;
+		let close_values: Vec<f64> = extract_f64_values(close)?;
 
 		let constant_type = parse_constant_model_type(constant_model_type)?;
 		let result = rust_ti::strength_indicators::single::relative_vigor_index(&open_values, &high_values, &low_values, &close_values, &constant_type);

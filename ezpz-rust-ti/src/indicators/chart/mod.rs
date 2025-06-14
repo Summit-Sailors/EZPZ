@@ -1,6 +1,6 @@
 use {
+	crate::utils::extract_f64_values,
 	ezpz_stubz::series::PySeriesStubbed,
-	polars::prelude::*,
 	pyo3::prelude::*,
 	pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods},
 };
@@ -17,14 +17,7 @@ impl ChartTrendsTI {
 	/// Returns a list of tuples (peak_value, peak_index)
 	#[staticmethod]
 	fn peaks(series: PySeriesStubbed, period: usize, closest_neighbor: usize) -> PyResult<Vec<(f64, usize)>> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(series)?;
 
 		let result = rust_ti::chart_trends::peaks(&values, &period, &closest_neighbor);
 		Ok(result)
@@ -34,14 +27,7 @@ impl ChartTrendsTI {
 	/// Returns a list of tuples (valley_value, valley_index)
 	#[staticmethod]
 	fn valleys(series: PySeriesStubbed, period: usize, closest_neighbor: usize) -> PyResult<Vec<(f64, usize)>> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(series)?;
 
 		let result = rust_ti::chart_trends::valleys(&values, &period, &closest_neighbor);
 		Ok(result)
@@ -51,14 +37,7 @@ impl ChartTrendsTI {
 	/// Returns a tuple (slope, intercept)
 	#[staticmethod]
 	fn peak_trend(series: PySeriesStubbed, period: usize) -> PyResult<(f64, f64)> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(series)?;
 
 		let result = rust_ti::chart_trends::peak_trend(&values, &period);
 		Ok(result)
@@ -68,14 +47,7 @@ impl ChartTrendsTI {
 	/// Returns a tuple (slope, intercept)
 	#[staticmethod]
 	fn valley_trend(series: PySeriesStubbed, period: usize) -> PyResult<(f64, f64)> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(series)?;
 
 		let result = rust_ti::chart_trends::valley_trend(&values, &period);
 		Ok(result)
@@ -85,14 +57,7 @@ impl ChartTrendsTI {
 	/// Returns a tuple (slope, intercept)
 	#[staticmethod]
 	fn overall_trend(series: PySeriesStubbed) -> PyResult<(f64, f64)> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(series)?;
 
 		let result = rust_ti::chart_trends::overall_trend(&values);
 		Ok(result)
@@ -114,14 +79,7 @@ impl ChartTrendsTI {
 		soft_reduced_chi_squared_multiplier: f64,
 		hard_reduced_chi_squared_multiplier: f64,
 	) -> PyResult<Vec<(usize, usize, f64, f64)>> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values: Vec<f64> = extract_f64_values(series)?;
 
 		let result = rust_ti::chart_trends::break_down_trends(
 			&values,

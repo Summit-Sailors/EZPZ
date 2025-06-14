@@ -1,6 +1,6 @@
 use {
+	crate::utils::{create_result_series, extract_f64_values, parse_central_point},
 	ezpz_stubz::series::PySeriesStubbed,
-	polars::prelude::*,
 	pyo3::prelude::*,
 	pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods},
 };
@@ -17,257 +17,114 @@ impl BasicTI {
 
 	#[staticmethod]
 	fn mean_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-		let result = rust_ti::basic_indicators::single::mean(&values);
-		Ok(result)
+		let values = extract_f64_values(series)?;
+		Ok(rust_ti::basic_indicators::single::mean(&values))
 	}
 
 	#[staticmethod]
 	fn median_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-		let result = rust_ti::basic_indicators::single::median(&values);
-		Ok(result)
+		let values = extract_f64_values(series)?;
+		Ok(rust_ti::basic_indicators::single::median(&values))
 	}
 
 	#[staticmethod]
 	fn mode_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-		let result = rust_ti::basic_indicators::single::mode(&values);
-		Ok(result)
+		let values = extract_f64_values(series)?;
+		Ok(rust_ti::basic_indicators::single::mode(&values))
 	}
 
 	#[staticmethod]
 	fn variance_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-		let result = rust_ti::basic_indicators::single::variance(&values);
-		Ok(result)
+		let values = extract_f64_values(series)?;
+		Ok(rust_ti::basic_indicators::single::variance(&values))
 	}
 
 	#[staticmethod]
 	fn standard_deviation_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-		let result = rust_ti::basic_indicators::single::standard_deviation(&values);
-		Ok(result)
+		let values = extract_f64_values(series)?;
+		Ok(rust_ti::basic_indicators::single::standard_deviation(&values))
 	}
 
 	#[staticmethod]
 	fn max_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-		let result = rust_ti::basic_indicators::single::max(&values);
-		Ok(result)
+		let values = extract_f64_values(series)?;
+		Ok(rust_ti::basic_indicators::single::max(&values))
 	}
 
 	#[staticmethod]
 	fn min_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-		let result = rust_ti::basic_indicators::single::min(&values);
-		Ok(result)
+		let values = extract_f64_values(series)?;
+		Ok(rust_ti::basic_indicators::single::min(&values))
 	}
 
 	#[staticmethod]
 	fn absolute_deviation_single(series: PySeriesStubbed, central_point: &str) -> PyResult<f64> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let cp = match central_point.to_lowercase().as_str() {
-			"mean" => rust_ti::CentralPoint::Mean,
-			"median" => rust_ti::CentralPoint::Median,
-			"mode" => rust_ti::CentralPoint::Mode,
-			_ => return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("central_point must be 'mean', 'median', or 'mode'")),
-		};
-
-		let result = rust_ti::basic_indicators::single::absolute_deviation(&values, &cp);
-		Ok(result)
+		let values = extract_f64_values(series)?;
+		let cp = parse_central_point(central_point)?;
+		Ok(rust_ti::basic_indicators::single::absolute_deviation(&values, &cp))
 	}
 
 	#[staticmethod]
 	fn log_difference_single(price_t: f64, price_t_1: f64) -> PyResult<f64> {
-		let result = rust_ti::basic_indicators::single::log_difference(&price_t, &price_t_1);
-		Ok(result)
+		Ok(rust_ti::basic_indicators::single::log_difference(&price_t, &price_t_1))
 	}
 
 	// Bulk functions (return series with rolling calculations)
 
 	#[staticmethod]
 	fn mean_bulk(series: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values = extract_f64_values(series)?;
 		let result = rust_ti::basic_indicators::bulk::mean(&values, &period);
-		let result_series = Series::new("mean".into(), result);
-		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
+		Ok(create_result_series("mean", result))
 	}
 
 	#[staticmethod]
 	fn median_bulk(series: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values = extract_f64_values(series)?;
 		let result = rust_ti::basic_indicators::bulk::median(&values, &period);
-		let result_series = Series::new("median".into(), result);
-		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
+		Ok(create_result_series("median", result))
 	}
 
 	#[staticmethod]
 	fn mode_bulk(series: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values = extract_f64_values(series)?;
 		let result = rust_ti::basic_indicators::bulk::mode(&values, &period);
-		let result_series = Series::new("mode".into(), result);
-		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
+		Ok(create_result_series("mode", result))
 	}
 
 	#[staticmethod]
 	fn variance_bulk(series: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values = extract_f64_values(series)?;
 		let result = rust_ti::basic_indicators::bulk::variance(&values, &period);
-		let result_series = Series::new("variance".into(), result);
-		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
+		Ok(create_result_series("variance", result))
 	}
 
 	#[staticmethod]
 	fn standard_deviation_bulk(series: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values = extract_f64_values(series)?;
 		let result = rust_ti::basic_indicators::bulk::standard_deviation(&values, &period);
-		let result_series = Series::new("standard_deviation".into(), result);
-		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
+		Ok(create_result_series("standard_deviation", result))
 	}
 
 	#[staticmethod]
 	fn absolute_deviation_bulk(series: PySeriesStubbed, period: usize, central_point: &str) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
-
-		let cp = match central_point.to_lowercase().as_str() {
-			"mean" => rust_ti::CentralPoint::Mean,
-			"median" => rust_ti::CentralPoint::Median,
-			"mode" => rust_ti::CentralPoint::Mode,
-			_ => return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("central_point must be 'mean', 'median', or 'mode'")),
-		};
-
+		let values = extract_f64_values(series)?;
+		let cp = parse_central_point(central_point)?;
 		let result = rust_ti::basic_indicators::bulk::absolute_deviation(&values, &period, &cp);
-		let result_series = Series::new("absolute_deviation".into(), result);
-		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
+		Ok(create_result_series("absolute_deviation", result))
 	}
 
 	#[staticmethod]
 	fn log_bulk(series: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values = extract_f64_values(series)?;
 		let result = rust_ti::basic_indicators::bulk::log(&values);
-		let result_series = Series::new("log".into(), result);
-		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
+		Ok(create_result_series("log", result))
 	}
 
 	#[staticmethod]
 	fn log_difference_bulk(series: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
-		let polars_series: Series = series.0.into();
-		let values: Vec<f64> = polars_series
-			.cast(&DataType::Float64)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.f64()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?
-			.into_no_null_iter()
-			.collect();
+		let values = extract_f64_values(series)?;
 		let result = rust_ti::basic_indicators::bulk::log_difference(&values);
-		let result_series = Series::new("log_difference".into(), result);
-		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
+		Ok(create_result_series("log_difference", result))
 	}
 }
