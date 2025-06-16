@@ -17,8 +17,8 @@ pub struct StandardTI;
 impl StandardTI {
 	/// Simple Moving Average - calculates the mean over a rolling window
 	#[staticmethod]
-	fn sma_bulk(series: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn sma_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < period {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least period ({})", values.len(), period)));
@@ -31,8 +31,8 @@ impl StandardTI {
 
 	/// Smoothed Moving Average - puts more weight on recent prices
 	#[staticmethod]
-	fn smma_bulk(series: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn smma_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < period {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least period ({})", values.len(), period)));
@@ -45,8 +45,8 @@ impl StandardTI {
 
 	/// Exponential Moving Average - puts exponentially more weight on recent prices
 	#[staticmethod]
-	fn ema_bulk(series: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn ema_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < period {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least period ({})", values.len(), period)));
@@ -60,8 +60,8 @@ impl StandardTI {
 	/// Bollinger Bands - returns three series: lower band, middle (SMA), upper band
 	/// Standard period is 20 with 2 standard deviations
 	#[staticmethod]
-	fn bollinger_bands_bulk(series: PySeriesStubbed) -> PyResult<PyDfStubbed> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn bollinger_bands_bulk(prices: PySeriesStubbed) -> PyResult<PyDfStubbed> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < 20 {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least 20 for Bollinger Bands", values.len())));
@@ -80,8 +80,8 @@ impl StandardTI {
 	/// Returns three series: MACD line, Signal line, Histogram
 	/// Standard periods: 12, 26, 9
 	#[staticmethod]
-	fn macd_bulk(series: PySeriesStubbed) -> PyResult<PyDfStubbed> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn macd_bulk(prices: PySeriesStubbed) -> PyResult<PyDfStubbed> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < 34 {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least 34 for MACD", values.len())));
@@ -99,8 +99,8 @@ impl StandardTI {
 	/// RSI - Relative Strength Index
 	/// Standard period is 14 using smoothed moving average
 	#[staticmethod]
-	fn rsi_bulk(series: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn rsi_bulk(prices: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < 14 {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least 14 for RSI", values.len())));
@@ -115,8 +115,8 @@ impl StandardTI {
 
 	/// Simple Moving Average - single value calculation
 	#[staticmethod]
-	fn sma_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn sma_single(prices: PySeriesStubbed) -> PyResult<f64> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.is_empty() {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series cannot be empty"));
@@ -128,8 +128,8 @@ impl StandardTI {
 
 	/// Smoothed Moving Average - single value calculation
 	#[staticmethod]
-	fn smma_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn smma_single(prices: PySeriesStubbed) -> PyResult<f64> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.is_empty() {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series cannot be empty"));
@@ -141,8 +141,8 @@ impl StandardTI {
 
 	/// Exponential Moving Average - single value calculation
 	#[staticmethod]
-	fn ema_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn ema_single(prices: PySeriesStubbed) -> PyResult<f64> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.is_empty() {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series cannot be empty"));
@@ -154,8 +154,8 @@ impl StandardTI {
 
 	/// Bollinger Bands - single value calculation (requires exactly 20 periods)
 	#[staticmethod]
-	fn bollinger_bands_single(series: PySeriesStubbed) -> PyResult<(f64, f64, f64)> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn bollinger_bands_single(prices: PySeriesStubbed) -> PyResult<(f64, f64, f64)> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() != 20 {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
@@ -170,8 +170,8 @@ impl StandardTI {
 
 	/// MACD - single value calculation (requires exactly 34 periods)
 	#[staticmethod]
-	fn macd_single(series: PySeriesStubbed) -> PyResult<(f64, f64, f64)> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn macd_single(prices: PySeriesStubbed) -> PyResult<(f64, f64, f64)> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() != 34 {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
@@ -186,8 +186,8 @@ impl StandardTI {
 
 	/// RSI - single value calculation (requires exactly 14 periods)
 	#[staticmethod]
-	fn rsi_single(series: PySeriesStubbed) -> PyResult<f64> {
-		let values: Vec<f64> = extract_f64_values(series)?;
+	fn rsi_single(prices: PySeriesStubbed) -> PyResult<f64> {
+		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() != 14 {
 			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
