@@ -60,6 +60,11 @@ class EzpzPluginConfig(BaseModel):
   def from_toml_path(path: Path) -> "EzpzPluginConfig":
     return EzpzPluginToml(**toml.loads(path.read_text())).ezpz_pluginz
 
+  @staticmethod
+  def get_plugins(project_toml_path: Path) -> dict[str, set["PolarsPluginMacroMetadataPD"]]:
+    ezpz_pluginz = EzpzPluginConfig.from_toml_path(project_toml_path)
+    return group_models_by_key(set(process_includes(ezpz_pluginz.include)), "polars_ns")
+
 
 class EzpzPluginToml(BaseModel):
   ezpz_pluginz: EzpzPluginConfig

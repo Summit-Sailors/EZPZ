@@ -6,6 +6,7 @@ use {
 	pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods},
 };
 
+/// Trend Technical Indicators - A collection of trend analysis functions for financial data
 #[gen_stub_pyclass]
 #[pyclass]
 #[derive(Clone)]
@@ -16,6 +17,19 @@ pub struct TrendTI;
 impl TrendTI {
 	// Single value functions (return a single value from the entire series)
 
+	/// Calculate Aroon Up indicator for a single value
+	///
+	/// The Aroon Up indicator measures the strength of upward price momentum by calculating
+	/// the percentage of time since the highest high within the given period.
+	///
+	/// # Arguments
+	/// * `highs` - PySeriesStubbed containing high price values
+	///
+	/// # Returns
+	/// * `PyResult<f64>` - Aroon Up value (0-100), where higher values indicate stronger upward momentum
+	///
+	/// # Errors
+	/// * Returns PyValueError if highs series is empty
 	#[staticmethod]
 	fn aroon_up_single(highs: PySeriesStubbed) -> PyResult<f64> {
 		let values: Vec<f64> = extract_f64_values(highs)?;
@@ -28,6 +42,19 @@ impl TrendTI {
 		Ok(result)
 	}
 
+	/// Calculate Aroon Down indicator for a single value
+	///
+	/// The Aroon Down indicator measures the strength of downward price momentum by calculating
+	/// the percentage of time since the lowest low within the given period.
+	///
+	/// # Arguments
+	/// * `lows` - PySeriesStubbed containing low price values
+	///
+	/// # Returns
+	/// * `PyResult<f64>` - Aroon Down value (0-100), where higher values indicate stronger downward momentum
+	///
+	/// # Errors
+	/// * Returns PyValueError if lows series is empty
 	#[staticmethod]
 	fn aroon_down_single(lows: PySeriesStubbed) -> PyResult<f64> {
 		let values: Vec<f64> = extract_f64_values(lows)?;
@@ -40,12 +67,36 @@ impl TrendTI {
 		Ok(result)
 	}
 
+	/// Calculate Aroon Oscillator from Aroon Up and Aroon Down values
+	///
+	/// The Aroon Oscillator is the difference between Aroon Up and Aroon Down indicators,
+	/// providing a single measure of trend direction and strength.
+	///
+	/// # Arguments
+	/// * `aroon_up` - f64 value of Aroon Up indicator (0-100)
+	/// * `aroon_down` - f64 value of Aroon Down indicator (0-100)
+	///
+	/// # Returns
+	/// * `PyResult<f64>` - Aroon Oscillator value (-100 to 100), where positive values indicate upward trend
 	#[staticmethod]
 	fn aroon_oscillator_single(aroon_up: f64, aroon_down: f64) -> PyResult<f64> {
 		let result = rust_ti::trend_indicators::single::aroon_oscillator(&aroon_up, &aroon_down);
 		Ok(result)
 	}
 
+	/// Calculate complete Aroon Indicator (Up, Down, and Oscillator) for single values
+	///
+	/// Computes all three Aroon components in one call: Aroon Up, Aroon Down, and Aroon Oscillator.
+	///
+	/// # Arguments
+	/// * `highs` - PySeriesStubbed containing high price values
+	/// * `lows` - PySeriesStubbed containing low price values
+	///
+	/// # Returns
+	/// * `PyResult<(f64, f64, f64)>` - Tuple containing (Aroon Up, Aroon Down, Aroon Oscillator)
+	///
+	/// # Errors
+	/// * Returns PyValueError if highs and lows series have different lengths
 	#[staticmethod]
 	fn aroon_indicator_single(highs: PySeriesStubbed, lows: PySeriesStubbed) -> PyResult<(f64, f64, f64)> {
 		let highs_values: Vec<f64> = extract_f64_values(highs)?;
@@ -63,24 +114,75 @@ impl TrendTI {
 		Ok(result)
 	}
 
+	/// Calculate Parabolic SAR for long positions (single value)
+	///
+	/// Computes the Stop and Reverse point for long positions in the Parabolic Time/Price System.
+	///
+	/// # Arguments
+	/// * `previous_sar` - f64 previous SAR value
+	/// * `extreme_point` - f64 highest high reached during the current trend
+	/// * `acceleration_factor` - f64 current acceleration factor (typically 0.02 to 0.20)
+	/// * `low` - f64 current period's low price
+	///
+	/// # Returns
+	/// * `PyResult<f64>` - New SAR value for long position
 	#[staticmethod]
 	fn long_parabolic_time_price_system_single(previous_sar: f64, extreme_point: f64, acceleration_factor: f64, low: f64) -> PyResult<f64> {
 		let result = rust_ti::trend_indicators::single::long_parabolic_time_price_system(&previous_sar, &extreme_point, &acceleration_factor, &low);
 		Ok(result)
 	}
 
+	/// Calculate Parabolic SAR for short positions (single value)
+	///
+	/// Computes the Stop and Reverse point for short positions in the Parabolic Time/Price System.
+	///
+	/// # Arguments
+	/// * `previous_sar` - f64 previous SAR value
+	/// * `extreme_point` - f64 lowest low reached during the current trend
+	/// * `acceleration_factor` - f64 current acceleration factor (typically 0.02 to 0.20)
+	/// * `high` - f64 current period's high price
+	///
+	/// # Returns
+	/// * `PyResult<f64>` - New SAR value for short position
 	#[staticmethod]
 	fn short_parabolic_time_price_system_single(previous_sar: f64, extreme_point: f64, acceleration_factor: f64, high: f64) -> PyResult<f64> {
 		let result = rust_ti::trend_indicators::single::short_parabolic_time_price_system(&previous_sar, &extreme_point, &acceleration_factor, &high);
 		Ok(result)
 	}
 
+	/// Calculate Volume Price Trend indicator (single value)
+	///
+	/// VPT combines price and volume to show the relationship between a security's price movement and volume.
+	///
+	/// # Arguments
+	/// * `current_price` - f64 current period's price
+	/// * `previous_price` - f64 previous period's price
+	/// * `volume` - f64 current period's volume
+	/// * `previous_volume_price_trend` - f64 previous VPT value
+	///
+	/// # Returns
+	/// * `PyResult<f64>` - New Volume Price Trend value
 	#[staticmethod]
 	fn volume_price_trend_single(current_price: f64, previous_price: f64, volume: f64, previous_volume_price_trend: f64) -> PyResult<f64> {
 		let result = rust_ti::trend_indicators::single::volume_price_trend(&current_price, &previous_price, &volume, &previous_volume_price_trend);
 		Ok(result)
 	}
 
+	/// Calculate True Strength Index (single value)
+	///
+	/// TSI is a momentum oscillator that uses moving averages of price changes to filter out price noise.
+	///
+	/// # Arguments
+	/// * `prices` - PySeriesStubbed containing price values
+	/// * `first_constant_model` - &str smoothing method for first smoothing ("SimpleMovingAverage", "ExponentialMovingAverage", etc.)
+	/// * `first_period` - usize period for first smoothing
+	/// * `second_constant_model` - &str smoothing method for second smoothing
+	///
+	/// # Returns
+	/// * `PyResult<f64>` - True Strength Index value (-100 to 100)
+	///
+	/// # Errors
+	/// * Returns PyValueError if prices series is empty or invalid constant model type
 	#[staticmethod]
 	fn true_strength_index_single(prices: PySeriesStubbed, first_constant_model: &str, first_period: usize, second_constant_model: &str) -> PyResult<f64> {
 		let values: Vec<f64> = extract_f64_values(prices)?;
@@ -97,7 +199,18 @@ impl TrendTI {
 		Ok(result)
 	}
 
-	// Aroon Up bulk function
+	// Bulk functions (return series of values)
+
+	/// Calculate Aroon Up indicator for time series data
+	///
+	/// Computes Aroon Up values for each period in the time series, measuring upward momentum strength.
+	///
+	/// # Arguments
+	/// * `highs` - PySeriesStubbed containing high price values
+	/// * `period` - usize lookback period for calculation (typically 14)
+	///
+	/// # Returns
+	/// * `PyResult<PySeriesStubbed>` - Series of Aroon Up values (0-100) named "aroon_up"
 	#[staticmethod]
 	fn aroon_up_bulk(highs: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
 		let highs_values: Vec<f64> = extract_f64_values(highs)?;
@@ -107,7 +220,16 @@ impl TrendTI {
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
 	}
 
-	/// Calculate Aroon Down indicator
+	/// Calculate Aroon Down indicator for time series data
+	///
+	/// Computes Aroon Down values for each period in the time series, measuring downward momentum strength.
+	///
+	/// # Arguments
+	/// * `lows` - PySeriesStubbed containing low price values
+	/// * `period` - usize lookback period for calculation (typically 14)
+	///
+	/// # Returns
+	/// * `PyResult<PySeriesStubbed>` - Series of Aroon Down values (0-100) named "aroon_down"
 	#[staticmethod]
 	fn aroon_down_bulk(lows: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
 		let lows_values: Vec<f64> = extract_f64_values(lows)?;
@@ -117,7 +239,16 @@ impl TrendTI {
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
 	}
 
-	/// Calculate Aroon Oscillator
+	/// Calculate Aroon Oscillator for time series data
+	///
+	/// Computes the difference between Aroon Up and Aroon Down for each period.
+	///
+	/// # Arguments
+	/// * `aroon_up` - PySeriesStubbed containing Aroon Up values (0-100)
+	/// * `aroon_down` - PySeriesStubbed containing Aroon Down values (0-100)
+	///
+	/// # Returns
+	/// * `PyResult<PySeriesStubbed>` - Series of Aroon Oscillator values (-100 to 100) named "aroon_oscillator"
 	#[staticmethod]
 	fn aroon_oscillator_bulk(aroon_up: PySeriesStubbed, aroon_down: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
 		let aroon_up_values: Vec<f64> = extract_f64_values(aroon_up)?;
@@ -128,9 +259,17 @@ impl TrendTI {
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
 	}
 
-	/// Calculate Aroon Indicator (returns Aroon Up, Aroon Down, and Aroon Oscillator)
+	/// Calculate complete Aroon Indicator system for time series data
 	///
-	/// Returns a DataFrame with Columns ("aroon_up", "aroon_down", "aroon_oscillator")
+	/// Computes Aroon Up, Aroon Down, and Aroon Oscillator for each period in one operation.
+	///
+	/// # Arguments
+	/// * `highs` - PySeriesStubbed containing high price values
+	/// * `lows` - PySeriesStubbed containing low price values
+	/// * `period` - usize lookback period for calculation (typically 14)
+	///
+	/// # Returns
+	/// * `PyResult<PyDfStubbed>` - DataFrame with columns: "aroon_up", "aroon_down", "aroon_oscillator"
 	#[staticmethod]
 	fn aroon_indicator_bulk(highs: PySeriesStubbed, lows: PySeriesStubbed, period: usize) -> PyResult<PyDfStubbed> {
 		let highs_values: Vec<f64> = extract_f64_values(highs)?;
@@ -154,7 +293,24 @@ impl TrendTI {
 		create_triple_df(aroon_up, aroon_down, aroon_oscillator, "aroon_up", "aroon_down", "aroon_oscillator")
 	}
 
-	/// Calculate Parabolic Time Price System (SAR)
+	/// Calculate Parabolic Time Price System (SAR) for time series data
+	///
+	/// Computes Stop and Reverse points for trend-following system that provides trailing stop levels.
+	///
+	/// # Arguments
+	/// * `highs` - PySeriesStubbed containing high price values
+	/// * `lows` - PySeriesStubbed containing low price values
+	/// * `acceleration_factor_start` - f64 initial acceleration factor (typically 0.02)
+	/// * `acceleration_factor_max` - f64 maximum acceleration factor (typically 0.20)
+	/// * `acceleration_factor_step` - f64 acceleration factor increment (typically 0.02)
+	/// * `start_position` - &str initial position: "Long" or "Short"
+	/// * `previous_sar` - f64 initial SAR value
+	///
+	/// # Returns
+	/// * `PyResult<PySeriesStubbed>` - Series of SAR values named "parabolic_sar"
+	///
+	/// # Errors
+	/// * Returns PyValueError if start_position is not "Long" or "Short"
 	#[staticmethod]
 	fn parabolic_time_price_system_bulk(
 		highs: PySeriesStubbed,
@@ -188,9 +344,24 @@ impl TrendTI {
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
 	}
 
-	/// Calculate Directional Movement System (returns +DI, -DI, ADX, ADXR)
+	/// Calculate Directional Movement System indicators for time series data
 	///
-	/// Returns a DataFrame with columns: (positive_di, negative_di, adx, adxr)
+	/// Computes the complete DMS including Positive Directional Indicator (+DI), Negative Directional
+	/// Indicator (-DI), Average Directional Index (ADX), and Average Directional Rating (ADXR).
+	///
+	/// # Arguments
+	/// * `highs` - PySeriesStubbed containing high price values
+	/// * `lows` - PySeriesStubbed containing low price values
+	/// * `closes` - PySeriesStubbed containing close price values
+	/// * `period` - usize calculation period (typically 14)
+	/// * `constant_model_type` - &str smoothing method: "SimpleMovingAverage", "SmoothedMovingAverage", "ExponentialMovingAverage", etc.
+	///
+	/// # Returns
+	/// * `PyResult<PyDfStubbed>` - DataFrame with columns: "positive_di", "negative_di", "adx", "adxr"
+	///
+	/// # Errors
+	/// * Returns PyValueError for invalid constant model type
+	/// * Returns PyRuntimeError if DataFrame creation fails
 	#[staticmethod]
 	fn directional_movement_system_bulk(
 		highs: PySeriesStubbed,
@@ -233,7 +404,17 @@ impl TrendTI {
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}
 
-	/// Calculate Volume Price Trend
+	/// Calculate Volume Price Trend indicator for time series data
+	///
+	/// VPT combines price and volume to show the relationship between price movement and volume flow.
+	///
+	/// # Arguments
+	/// * `prices` - PySeriesStubbed containing price values
+	/// * `volumes` - PySeriesStubbed containing volume values
+	/// * `previous_volume_price_trend` - f64 initial VPT value (typically 0)
+	///
+	/// # Returns
+	/// * `PyResult<PySeriesStubbed>` - Series of Volume Price Trend values named "volume_price_trend"
 	#[staticmethod]
 	fn volume_price_trend_bulk(prices: PySeriesStubbed, volumes: PySeriesStubbed, previous_volume_price_trend: f64) -> PyResult<PySeriesStubbed> {
 		let prices_values: Vec<f64> = extract_f64_values(prices)?;
@@ -245,7 +426,23 @@ impl TrendTI {
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
 	}
 
-	/// Calculate True Strength Index
+	/// Calculate True Strength Index for time series data
+	///
+	/// TSI is a momentum oscillator that uses double-smoothed price changes to filter noise
+	/// and provide clearer signals of price momentum direction and strength.
+	///
+	/// # Arguments
+	/// * `prices` - PySeriesStubbed containing price values
+	/// * `first_constant_model` - &str first smoothing method: "SimpleMovingAverage", "ExponentialMovingAverage", etc.
+	/// * `first_period` - usize period for first smoothing (typically 25)
+	/// * `second_constant_model` - &str second smoothing method
+	/// * `second_period` - usize period for second smoothing (typically 13)
+	///
+	/// # Returns
+	/// * `PyResult<PySeriesStubbed>` - Series of TSI values (-100 to 100) named "true_strength_index"
+	///
+	/// # Errors
+	/// * Returns PyValueError for invalid constant model types
 	#[staticmethod]
 	fn true_strength_index_bulk(
 		prices: PySeriesStubbed,

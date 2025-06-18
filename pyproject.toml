@@ -9,7 +9,7 @@ requires = ["hatchling"]
 
 [project]
 authors = []
-dependencies = []
+dependencies = ["maturin>=1.8.7"]
 description = ''
 name = "pysilo"
 readme = "README.md"
@@ -34,6 +34,7 @@ dev-dependencies = [
   "jupyterlab==4.4.3",
   "jupyterthemes==0.20.0",
   "pylint==3.3.7",
+  "pytest>=8.4.1",
   "ruff==0.11.13",
 ]
 virtual = true
@@ -132,3 +133,9 @@ combine-as-imports = true
 force-wrap-aliases = true
 known-first-party = ["ezpz_pluginz"]
 length-sort = true
+
+[tool.pytest.ini_options]
+python_classes = ["Test*"]
+python_files = ["*_test.py", "test_*.py"]
+python_functions = ["test_*"]
+testpaths = ["pluginz/tests"]

@@ -1,12 +1,18 @@
 import polars as pl
 
 try:
+  {% if imports %}
   {% for import_ in imports -%}
   {{ import_ }}
   {% endfor -%}
-
+  {% endif %}
+  {% if registry %}
   {% for entry in registry -%}
   {{ entry }}
   {% endfor -%}
+  {% endif %}
+  {% if not imports and not registry %}
+  pass
+  {% endif %}
 except Exception as e:
     print(e)

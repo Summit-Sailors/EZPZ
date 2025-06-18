@@ -13,10 +13,13 @@ name = "ezpz_rust_ti"
 [dependencies]
 ezpz-stubz = { workspace = true }
 polars = { workspace = true }
-pyo3 = { workspace = true }
-pyo3-polars = { workspace = true }
-pyo3-stub-gen = { workspace = true }
+pyo3 = { workspace = true, features = ["extension-module"] }
+pyo3-polars = { workspace = true, features = ["derive", "dtype-full", "lazy"] }
+pyo3-stub-gen = { workspace = true, default-features = false }
 rust_ti = "1.4.2"
+
+[build-dependencies]
+pyo3-build-config = "0.25.1"
 
 
 [features]

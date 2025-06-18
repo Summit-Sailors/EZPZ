@@ -22,6 +22,7 @@ class PolarsPluginMacroKwargs(TypedDict):
   polars_ns: str
 
 
+# purpose is to be recognized by painlezz_macroz (not an actual decorator)
 def ezpz_plugin_collect[T](**kwargs: Unpack[PolarsPluginMacroKwargs]) -> Callable[[T], T]:
   return class_macro
 
@@ -38,6 +39,7 @@ class PolarsPluginMacroMetadataPD(BaseModel):
     return f"pl.api.{self.polars_ns.api_decorator}('{self.attr_name}')({self.type_hint})"
 
 
+# libsct visitor
 class PolarsPluginCollector(MacroMetadataCollector[PolarsPluginMacroMetadataPD, PolarsPluginMacroKwargs]):
   def __init__(self) -> None:
     super().__init__(
@@ -54,6 +56,7 @@ class PolarsPluginCollector(MacroMetadataCollector[PolarsPluginMacroMetadataPD, 
 logger = logging.getLogger(__name__)
 
 
+# libcst transformer (modifies polars source code)
 class PluginPatcher(MatcherDecoratableTransformer):
   METADATA_DEPENDENCIES = (PolarsClassProvider,)
 
@@ -69,6 +72,7 @@ class PluginPatcher(MatcherDecoratableTransformer):
     self.has_added_imports = False
     self.imports = [cst.parse_module(plugin.import_).body[0] for plugin in self.plugins]
 
+  # called when libcst leaves a ClassDef node that matches a polars namespace
   @m.leave(m.ClassDef(name=m.Name(value=m.MatchIfTrue(lambda name: name in EPolarsNS))))
   def add_new_attrs(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.ClassDef:
     if original_node.name.value != self.polars_ns:
