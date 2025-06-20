@@ -33,11 +33,15 @@ class MacroMetadataCollector[T: BaseModel, TMacroKwargs: Any](m.MatcherDecoratab
         args: list[JSONSerializable] = []
         kwargs = cast("TMacroKwargs", {})
         for arg in decorator_args:
-          evaled = ast.literal_eval(dump(node))
+          # Extract the value from the argument, not the entire node
+          evaled = ast.literal_eval(arg.value.value) if isinstance(arg.value, cst.SimpleString) else ast.literal_eval(dump(arg.value))
+
           if arg.keyword is None:
             args.append(evaled)
           else:
             kwargs[arg.keyword.value] = evaled
-          self.macro_data.append(self.callback(args, kwargs))
+
+        # Move this outside the loop - we want one callback per decorator, not per argument
+        self.macro_data.append(self.callback(args, kwargs))
       case _:
         pass
