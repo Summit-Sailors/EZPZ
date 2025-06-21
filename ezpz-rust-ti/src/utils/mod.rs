@@ -4,7 +4,7 @@ use {
 	pyo3::prelude::*,
 };
 
-pub(crate) fn parse_constant_model_type(constant_model_type: &str) -> PyResult<rust_ti::ConstantModelType> {
+pub(crate) fn parse_constant_model_type(constant_model_type: &str) -> PyResult<rust_ti::ConstantModelType<'_>> {
 	match constant_model_type.to_lowercase().as_str() {
 		"simple_moving_average" => Ok(rust_ti::ConstantModelType::SimpleMovingAverage),
 		"smoothed_moving_average" => Ok(rust_ti::ConstantModelType::SmoothedMovingAverage),

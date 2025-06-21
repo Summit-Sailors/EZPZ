@@ -12,249 +12,309 @@ class BasicTI:
     r"""
     Calculate the arithmetic mean of all values.
 
-    Args:
-        prices: Series of numeric values
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
 
-    Returns:
-        float: The arithmetic mean
+    # Returns
+    f64 - The arithmetic mean
     """
   @staticmethod
   def median_single(prices: polars.Series) -> builtins.float:
     r"""
     Calculate the median of all values.
 
-    Args:
-        prices: Series of numeric values
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
 
-    Returns:
-        float: The median value
+    # Returns
+    f64 - The median value
     """
   @staticmethod
   def mode_single(prices: polars.Series) -> builtins.float:
     r"""
     Calculate the mode of all values.
 
-    Args:
-        prices: Series of numeric values
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
 
-    Returns:
-        float: The most frequently occurring value
+    # Returns
+    f64 - The most frequently occurring value
     """
   @staticmethod
   def variance_single(prices: polars.Series) -> builtins.float:
     r"""
     Calculate the variance of all values.
 
-    Args:
-        prices: Series of numeric values
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
 
-    Returns:
-        float: The variance
+    # Returns
+    f64 - The variance
     """
   @staticmethod
   def standard_deviation_single(prices: polars.Series) -> builtins.float:
     r"""
     Calculate the standard deviation of all values.
 
-    Args:
-        prices: Series of numeric values
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
 
-    Returns:
-        float: The standard deviation
+    # Returns
+    f64 - The standard deviation
     """
   @staticmethod
   def max_single(prices: polars.Series) -> builtins.float:
     r"""
     Find the maximum value.
 
-    Args:
-        prices: Series of numeric values
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
 
-    Returns:
-        float: The maximum value
+    # Returns
+    f64 - The maximum value
     """
   @staticmethod
   def min_single(prices: polars.Series) -> builtins.float:
     r"""
     Find the minimum value.
 
-    Args:
-        prices: Series of numeric values
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
 
-    Returns:
-        float: The minimum value
+    # Returns
+    f64 - The minimum value
     """
   @staticmethod
   def absolute_deviation_single(prices: polars.Series, central_point: builtins.str) -> builtins.float:
     r"""
     Calculate the absolute deviation from a central point.
 
-    Args:
-        prices: Series of numeric values
-        central_point: String indicating central point type ("mean", "median", etc.)
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
+    - `central_point`: &str - Central point type ("mean", "median", etc.)
 
-    Returns:
-        float: The absolute deviation
+    # Returns
+    f64 - The absolute deviation
     """
   @staticmethod
   def log_difference_single(price_t: builtins.float, price_t_1: builtins.float) -> builtins.float:
     r"""
     Calculate the logarithmic difference between two price points.
 
-    Args:
-        price_t: Current price value
-        price_t_1: Previous price value
+    # Parameters
+    - `price_t`: f64 - Current price value
+    - `price_t_1`: f64 - Previous price value
 
-    Returns:
-        float: The logarithmic difference
+    # Returns
+    f64 - The logarithmic difference
     """
   @staticmethod
   def mean_bulk(prices: polars.Series, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling mean over a specified period.
 
-    Args:
-        prices: Series of numeric values
-        period: Rolling window size
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
+    - `period`: usize - Rolling window size
 
-    Returns:
-        Series: Rolling mean values
+    # Returns
+    PySeriesStubbed - Series containing rolling mean values
     """
   @staticmethod
   def median_bulk(prices: polars.Series, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling median over a specified period.
 
-    Args:
-        prices: Series of numeric values
-        period: Rolling window size
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
+    - `period`: usize - Rolling window size
 
-    Returns:
-        Series: Rolling median values
+    # Returns
+    PySeriesStubbed - Series containing rolling median values
     """
   @staticmethod
   def mode_bulk(prices: polars.Series, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling mode over a specified period.
 
-    Args:
-        prices: Series of numeric values
-        period: Rolling window size
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
+    - `period`: usize - Rolling window size
 
-    Returns:
-        Series: Rolling mode values
+    # Returns
+    PySeriesStubbed - Series containing rolling mode values
     """
   @staticmethod
   def variance_bulk(prices: polars.Series, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling variance over a specified period.
 
-    Args:
-        prices: Series of numeric values
-        period: Rolling window size
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
+    - `period`: usize - Rolling window size
 
-    Returns:
-        Series: Rolling variance values
+    # Returns
+    PySeriesStubbed - Series containing rolling variance values
     """
   @staticmethod
   def standard_deviation_bulk(prices: polars.Series, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling standard deviation over a specified period.
 
-    Args:
-        prices: Series of numeric values
-        period: Rolling window size
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
+    - `period`: usize - Rolling window size
 
-    Returns:
-        Series: Rolling standard deviation values
+    # Returns
+    PySeriesStubbed - Series containing rolling standard deviation values
     """
   @staticmethod
   def absolute_deviation_bulk(prices: polars.Series, period: builtins.int, central_point: builtins.str) -> polars.Series:
     r"""
     Calculate rolling absolute deviation over a specified period.
 
-    Args:
-        prices: Series of numeric values
-        period: Rolling window size
-        central_point: String indicating central point type ("mean", "median", etc.)
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
+    - `period`: usize - Rolling window size
+    - `central_point`: &str - Central point type ("mean", "median", etc.)
 
-    Returns:
-        Series: Rolling absolute deviation values
+    # Returns
+    PySeriesStubbed - Series containing rolling absolute deviation values
     """
   @staticmethod
   def log_bulk(prices: polars.Series) -> polars.Series:
     r"""
     Calculate natural logarithm of all values.
 
-    Args:
-        prices: Series of numeric values
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
 
-    Returns:
-        Series: Natural logarithm values
+    # Returns
+    PySeriesStubbed - Series containing natural logarithm values
     """
   @staticmethod
   def log_difference_bulk(prices: polars.Series) -> polars.Series:
     r"""
     Calculate logarithmic differences between consecutive values.
 
-    Args:
-        prices: Series of numeric values
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of numeric values
 
-    Returns:
-        Series: Logarithmic difference values
+    # Returns
+    PySeriesStubbed - Series containing logarithmic difference values
     """
 
 class CandleTI:
   @staticmethod
-  def moving_constant_envelopes(prices: polars.Series, constant_model_type: builtins.str, difference: builtins.float) -> polars.DataFrame:
+  def moving_constant_envelopes_single(prices: polars.Series, constant_model_type: builtins.str, difference: builtins.float) -> polars.DataFrame:
     r"""
     Moving Constant Envelopes - Creates upper and lower bands from moving constant of price
 
-    Returns DataFrame with columns: lower_envelope, middle_envelope, upper_envelope
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values
+    - `constant_model_type`: &str - Type of moving average (e.g., "sma", "ema", "wma")
+    - `difference`: f64 - Fixed difference value to create envelope bands
+
+    # Returns
+    DataFrame with columns:
+    - `lower_envelope`: f64 - Lower envelope band (middle - difference)
+    - `middle_envelope`: f64 - Middle line (moving average)
+    - `upper_envelope`: f64 - Upper envelope band (middle + difference)
     """
   @staticmethod
-  def mcginley_dynamic_envelopes(prices: polars.Series, difference: builtins.float, previous_mcginley_dynamic: builtins.float) -> polars.DataFrame:
+  def mcginley_dynamic_envelopes_single(prices: polars.Series, difference: builtins.float, previous_mcginley_dynamic: builtins.float) -> polars.DataFrame:
     r"""
     McGinley Dynamic Envelopes - Variation of moving constant envelopes using McGinley Dynamic
 
-    Returns DataFrame with columns: lower_envelope, mcginley_dynamic, upper_envelope
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values
+    - `difference`: f64 - Fixed difference value to create envelope bands
+    - `previous_mcginley_dynamic`: f64 - Previous McGinley Dynamic value for calculation
+
+    # Returns
+    DataFrame with columns:
+    - `lower_envelope`: f64 - Lower envelope band (McGinley Dynamic - difference)
+    - `mcginley_dynamic`: f64 - McGinley Dynamic value
+    - `upper_envelope`: f64 - Upper envelope band (McGinley Dynamic + difference)
     """
   @staticmethod
-  def moving_constant_bands(
+  def moving_constant_bands_single(
     prices: polars.Series, constant_model_type: builtins.str, deviation_model: builtins.str, deviation_multiplier: builtins.float
   ) -> polars.DataFrame:
     r"""
     Moving Constant Bands - Extended Bollinger Bands with configurable models
 
-    Returns DataFrame with columns: lower_band, middle_band, upper_band
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values
+    - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
+    - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
+    - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
+
+    # Returns
+    DataFrame with columns:
+    - `lower_band`: f64 - Lower band (moving average - deviation * multiplier)
+    - `middle_band`: f64 - Middle band (moving average)
+    - `upper_band`: f64 - Upper band (moving average + deviation * multiplier)
     """
   @staticmethod
-  def mcginley_dynamic_bands(
+  def mcginley_dynamic_bands_single(
     prices: polars.Series, deviation_model: builtins.str, deviation_multiplier: builtins.float, previous_mcginley_dynamic: builtins.float
   ) -> polars.DataFrame:
     r"""
     McGinley Dynamic Bands - Variation of moving constant bands using McGinley Dynamic
 
-    Returns DataFrame with columns: lower_band, mcginley_dynamic, upper_band
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values
+    - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
+    - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
+    - `previous_mcginley_dynamic`: f64 - Previous McGinley Dynamic value for calculation
+
+    # Returns
+    DataFrame with columns:
+    - `lower_band`: f64 - Lower band (McGinley Dynamic - deviation * multiplier)
+    - `mcginley_dynamic`: f64 - McGinley Dynamic value
+    - `upper_band`: f64 - Upper band (McGinley Dynamic + deviation * multiplier)
     """
   @staticmethod
-  def ichimoku_cloud(
+  def ichimoku_cloud_single(
     highs: polars.Series, lows: polars.Series, close: polars.Series, conversion_period: builtins.int, base_period: builtins.int, span_b_period: builtins.int
   ) -> polars.DataFrame:
     r"""
     Ichimoku Cloud - Calculates support and resistance levels
 
-    Returns DataFrame with columns: leading_span_a, leading_span_b, base_line, conversion_line, lagged_price
+    # Parameters
+    - `highs`: PySeriesStubbed - Series of high prices
+    - `lows`: PySeriesStubbed - Series of low prices
+    - `close`: PySeriesStubbed - Series of closing prices
+    - `conversion_period`: usize - Period for conversion line calculation (typically 9)
+    - `base_period`: usize - Period for base line calculation (typically 26)
+    - `span_b_period`: usize - Period for leading span B calculation (typically 52)
+
+    # Returns
+    DataFrame with columns:
+    - `leading_span_a`: f64 - Leading Span A (future support/resistance)
+    - `leading_span_b`: f64 - Leading Span B (future support/resistance)
+    - `base_line`: f64 - Base Line (Kijun-sen)
+    - `conversion_line`: f64 - Conversion Line (Tenkan-sen)
+    - `lagged_price`: f64 - Lagging Span (Chikou Span)
     """
   @staticmethod
-  def donchian_channels(highs: polars.Series, lows: polars.Series) -> polars.DataFrame:
+  def donchian_channels_single(highs: polars.Series, lows: polars.Series) -> polars.DataFrame:
     r"""
     Donchian Channels - Produces bands from period highs and lows
 
-    Returns DataFrame with columns: donchian_lower, donchian_middle, donchian_upper
+    # Parameters
+    - `highs`: PySeriesStubbed - Series of high prices
+    - `lows`: PySeriesStubbed - Series of low prices
+
+    # Returns
+    DataFrame with columns:
+    - `donchian_lower`: f64 - Lower channel (lowest low over period)
+    - `donchian_middle`: f64 - Middle channel (average of upper and lower)
+    - `donchian_upper`: f64 - Upper channel (highest high over period)
     """
   @staticmethod
-  def keltner_channel(
+  def keltner_channel_single(
     highs: polars.Series,
     lows: polars.Series,
     close: polars.Series,
@@ -265,14 +325,37 @@ class CandleTI:
     r"""
     Keltner Channel - Bands based on moving average and average true range
 
-    Returns DataFrame with columns: keltner_lower, keltner_middle, keltner_upper
+    # Parameters
+    - `highs`: PySeriesStubbed - Series of high prices
+    - `lows`: PySeriesStubbed - Series of low prices
+    - `close`: PySeriesStubbed - Series of closing prices
+    - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
+    - `atr_constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
+    - `multiplier`: f64 - Multiplier for the ATR to create channel width
+
+    # Returns
+    DataFrame with columns:
+    - `keltner_lower`: f64 - Lower channel (moving average - ATR * multiplier)
+    - `keltner_middle`: f64 - Middle channel (moving average)
+    - `keltner_upper`: f64 - Upper channel (moving average + ATR * multiplier)
     """
   @staticmethod
-  def supertrend(
+  def supertrend_single(
     highs: polars.Series, lows: polars.Series, close: polars.Series, constant_model_type: builtins.str, multiplier: builtins.float
   ) -> polars.Series:
     r"""
     Supertrend - Trend indicator showing support and resistance levels
+
+    # Parameters
+    - `highs`: PySeriesStubbed - Series of high prices
+    - `lows`: PySeriesStubbed - Series of low prices
+    - `close`: PySeriesStubbed - Series of closing prices
+    - `constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
+    - `multiplier`: f64 - Multiplier for the ATR to determine trend sensitivity
+
+    # Returns
+    Series containing:
+    - `supertrend`: f64 - Supertrend value (support/resistance level based on trend direction)
     """
   @staticmethod
   def moving_constant_envelopes_bulk(
@@ -281,7 +364,17 @@ class CandleTI:
     r"""
     Moving Constant Envelopes (Bulk) - Returns envelopes over time periods
 
-    Returns DataFrame with columns: lower_envelope, middle_envelope, upper_envelope
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values
+    - `constant_model_type`: &str - Type of moving average (e.g., "sma", "ema", "wma")
+    - `difference`: f64 - Fixed difference value to create envelope bands
+    - `period`: usize - Rolling window period for calculations
+
+    # Returns
+    DataFrame with columns:
+    - `lower_envelope`: Vec<f64> - Time series of lower envelope bands
+    - `middle_envelope`: Vec<f64> - Time series of middle lines (moving averages)
+    - `upper_envelope`: Vec<f64> - Time series of upper envelope bands
     """
   @staticmethod
   def mcginley_dynamic_envelopes_bulk(
@@ -290,7 +383,17 @@ class CandleTI:
     r"""
     McGinley Dynamic Envelopes (Bulk)
 
-    Returns DataFrame with columns: lower_envelope, mcginley_dynamic, upper_envelope
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values
+    - `difference`: f64 - Fixed difference value to create envelope bands
+    - `previous_mcginley_dynamic`: f64 - Initial McGinley Dynamic value for calculation
+    - `period`: usize - Rolling window period for calculations
+
+    # Returns
+    DataFrame with columns:
+    - `lower_envelope`: Vec<f64> - Time series of lower envelope bands
+    - `mcginley_dynamic`: Vec<f64> - Time series of McGinley Dynamic values
+    - `upper_envelope`: Vec<f64> - Time series of upper envelope bands
     """
   @staticmethod
   def moving_constant_bands_bulk(
@@ -299,7 +402,18 @@ class CandleTI:
     r"""
     Moving Constant Bands (Bulk)
 
-    Returns DataFrame with columns: lower_band, middle_band, upper_band
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values
+    - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
+    - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
+    - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
+    - `period`: usize - Rolling window period for calculations
+
+    # Returns
+    DataFrame with columns:
+    - `lower_band`: Vec<f64> - Time series of lower bands
+    - `middle_band`: Vec<f64> - Time series of middle bands (moving averages)
+    - `upper_band`: Vec<f64> - Time series of upper bands
     """
   @staticmethod
   def mcginley_dynamic_bands_bulk(
@@ -308,7 +422,18 @@ class CandleTI:
     r"""
     McGinley Dynamic Bands (Bulk)
 
-    Returns DataFrame with columns: lower_band, mcginley_dynamic, upper_band
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values
+    - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
+    - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
+    - `previous_mcginley_dynamic`: f64 - Initial McGinley Dynamic value for calculation
+    - `period`: usize - Rolling window period for calculations
+
+    # Returns
+    DataFrame with columns:
+    - `lower_band`: Vec<f64> - Time series of lower bands
+    - `mcginley_dynamic`: Vec<f64> - Time series of McGinley Dynamic values
+    - `upper_band`: Vec<f64> - Time series of upper bands
     """
   @staticmethod
   def ichimoku_cloud_bulk(
@@ -317,14 +442,37 @@ class CandleTI:
     r"""
     Ichimoku Cloud (Bulk) - Returns ichimoku components over time
 
-    Returns DataFrame with columns: leading_span_a, leading_span_b, base_line, conversion_line, lagged_price
+    # Parameters
+    - `highs`: PySeriesStubbed - Series of high prices
+    - `lows`: PySeriesStubbed - Series of low prices
+    - `closes`: PySeriesStubbed - Series of closing prices
+    - `conversion_period`: usize - Period for conversion line calculation (typically 9)
+    - `base_period`: usize - Period for base line calculation (typically 26)
+    - `span_b_period`: usize - Period for leading span B calculation (typically 52)
+
+    # Returns
+    DataFrame with columns:
+    - `leading_span_a`: Vec<f64> - Time series of Leading Span A values
+    - `leading_span_b`: Vec<f64> - Time series of Leading Span B values
+    - `base_line`: Vec<f64> - Time series of Base Line (Kijun-sen) values
+    - `conversion_line`: Vec<f64> - Time series of Conversion Line (Tenkan-sen) values
+    - `lagged_price`: Vec<f64> - Time series of Lagging Span (Chikou Span) values
     """
   @staticmethod
   def donchian_channels_bulk(highs: polars.Series, lows: polars.Series, period: builtins.int) -> polars.DataFrame:
     r"""
     Donchian Channels (Bulk) - Returns donchian bands over time
 
-    Returns DataFrame with columns: lower_band, middle_band, upper_band
+    # Parameters
+    - `highs`: PySeriesStubbed - Series of high prices
+    - `lows`: PySeriesStubbed - Series of low prices
+    - `period`: usize - Rolling window period for channel calculation
+
+    # Returns
+    DataFrame with columns:
+    - `lower_band`: Vec<f64> - Time series of lower channels (lowest lows)
+    - `middle_band`: Vec<f64> - Time series of middle channels (averages)
+    - `upper_band`: Vec<f64> - Time series of upper channels (highest highs)
     """
   @staticmethod
   def keltner_channel_bulk(
@@ -339,7 +487,20 @@ class CandleTI:
     r"""
     Keltner Channel (Bulk) - Returns keltner bands over time
 
-    Returns DataFrame with columns: lower_band, middle_band, upper_band
+    # Parameters
+    - `highs`: PySeriesStubbed - Series of high prices
+    - `lows`: PySeriesStubbed - Series of low prices
+    - `closes`: PySeriesStubbed - Series of closing prices
+    - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
+    - `atr_constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
+    - `multiplier`: f64 - Multiplier for the ATR to create channel width
+    - `period`: usize - Rolling window period for calculations
+
+    # Returns
+    DataFrame with columns:
+    - `lower_band`: Vec<f64> - Time series of lower channels
+    - `middle_band`: Vec<f64> - Time series of middle channels (moving averages)
+    - `upper_band`: Vec<f64> - Time series of upper channels
     """
   @staticmethod
   def supertrend_bulk(
@@ -347,6 +508,18 @@ class CandleTI:
   ) -> polars.Series:
     r"""
     Supertrend (Bulk) - Returns supertrend values over time
+
+    # Parameters
+    - `highs`: PySeriesStubbed - Series of high prices
+    - `lows`: PySeriesStubbed - Series of low prices
+    - `closes`: PySeriesStubbed - Series of closing prices
+    - `constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
+    - `multiplier`: f64 - Multiplier for the ATR to determine trend sensitivity
+    - `period`: usize - Rolling window period for ATR calculation
+
+    # Returns
+    Series containing:
+    - `supertrend`: Vec<f64> - Time series of supertrend values (support/resistance levels)
     """
 
 class ChartTrendsTI:
@@ -354,31 +527,72 @@ class ChartTrendsTI:
   def peaks(prices: polars.Series, period: builtins.int, closest_neighbor: builtins.int) -> builtins.list[tuple[builtins.float, builtins.int]]:
     r"""
     Find peaks in a price series over a given period
-    Returns a list of tuples (peak_value, peak_index)
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data to analyze
+    - `period`: usize - Period length for peak detection
+    - `closest_neighbor`: usize - Minimum distance between peaks
+
+    # Returns
+    Vec<(f64, usize)> - List of tuples containing:
+    - `peak_value`: The price value at the peak
+    - `peak_index`: The index position of the peak in the series
     """
   @staticmethod
   def valleys(prices: polars.Series, period: builtins.int, closest_neighbor: builtins.int) -> builtins.list[tuple[builtins.float, builtins.int]]:
     r"""
     Find valleys in a price series over a given period
-    Returns a list of tuples (valley_value, valley_index)
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data to analyze
+    - `period`: usize - Period length for valley detection
+    - `closest_neighbor`: usize - Minimum distance between valleys
+
+    # Returns
+    Vec<(f64, usize)> - List of tuples containing:
+    - `valley_value`: The price value at the valley
+    - `valley_index`: The index position of the valley in the series
     """
   @staticmethod
   def peak_trend(prices: polars.Series, period: builtins.int) -> tuple[builtins.float, builtins.float]:
     r"""
     Calculate peak trend (linear regression on peaks)
-    Returns a tuple (slope, intercept)
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data to analyze
+    - `period`: usize - Period length for peak detection
+
+    # Returns
+    Tuple of (slope: f64, intercept: f64)
+    - `slope`: The slope of the linear regression line through peaks
+    - `intercept`: The y-intercept of the linear regression line
     """
   @staticmethod
   def valley_trend(prices: polars.Series, period: builtins.int) -> tuple[builtins.float, builtins.float]:
     r"""
     Calculate valley trend (linear regression on valleys)
-    Returns a tuple (slope, intercept)
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data to analyze
+    - `period`: usize - Period length for valley detection
+
+    # Returns
+    Tuple of (slope: f64, intercept: f64)
+    - `slope`: The slope of the linear regression line through valleys
+    - `intercept`: The y-intercept of the linear regression line
     """
   @staticmethod
   def overall_trend(prices: polars.Series) -> tuple[builtins.float, builtins.float]:
     r"""
     Calculate overall trend (linear regression on all prices)
-    Returns a tuple (slope, intercept)
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data to analyze
+
+    # Returns
+    Tuple of (slope: f64, intercept: f64)
+    - `slope`: The slope of the linear regression line through all price points
+    - `intercept`: The y-intercept of the linear regression line
     """
   @staticmethod
   def break_down_trends(
@@ -395,7 +609,25 @@ class ChartTrendsTI:
   ) -> builtins.list[tuple[builtins.int, builtins.int, builtins.float, builtins.float]]:
     r"""
     Break down trends in a price series
-    Returns a list of tuples (start_index, end_index, slope, intercept)
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data to analyze
+    - `max_outliers`: usize - Maximum number of outliers allowed
+    - `soft_r_squared_minimum`: f64 - Soft minimum threshold for R-squared value
+    - `soft_r_squared_maximum`: f64 - Soft maximum threshold for R-squared value
+    - `hard_r_squared_minimum`: f64 - Hard minimum threshold for R-squared value
+    - `hard_r_squared_maximum`: f64 - Hard maximum threshold for R-squared value
+    - `soft_standard_error_multiplier`: f64 - Soft multiplier for standard error threshold
+    - `hard_standard_error_multiplier`: f64 - Hard multiplier for standard error threshold
+    - `soft_reduced_chi_squared_multiplier`: f64 - Soft multiplier for reduced chi-squared threshold
+    - `hard_reduced_chi_squared_multiplier`: f64 - Hard multiplier for reduced chi-squared threshold
+
+    # Returns
+    Vec<(usize, usize, f64, f64)> - List of tuples containing:
+    - `start_index`: Starting index of the trend segment
+    - `end_index`: Ending index of the trend segment
+    - `slope`: The slope of the linear regression for this trend segment
+    - `intercept`: The y-intercept of the linear regression for this trend segment
     """
 
 class CorrelationTI:
@@ -407,6 +639,15 @@ class CorrelationTI:
     Correlation between two assets - Single value calculation
     Calculates correlation between prices of two assets using specified models
     Returns a single correlation value for the entire price series
+
+    # Parameters
+    - `prices_asset_a`: PySeriesStubbed - Price series for the first asset
+    - `prices_asset_b`: PySeriesStubbed - Price series for the second asset
+    - `constant_model_type`: &str - Type of constant model to use for correlation calculation
+    - `deviation_model`: &str - Type of deviation model to use for correlation calculation
+
+    # Returns
+    f64 - Single correlation coefficient between the two asset price series
     """
   @staticmethod
   def correlate_asset_prices_bulk(
@@ -416,6 +657,16 @@ class CorrelationTI:
     Correlation between two assets - Rolling/Bulk calculation
     Calculates rolling correlation between prices of two assets using specified models
     Returns a series of correlation values for each period window
+
+    # Parameters
+    - `prices_asset_a`: PySeriesStubbed - Price series for the first asset
+    - `prices_asset_b`: PySeriesStubbed - Price series for the second asset
+    - `constant_model_type`: &str - Type of constant model to use for correlation calculation
+    - `deviation_model`: &str - Type of deviation model to use for correlation calculation
+    - `period`: usize - Rolling window size for correlation calculation
+
+    # Returns
+    PySeriesStubbed - Series containing rolling correlation coefficients for each period window
     """
 
 class MATI:
@@ -1073,22 +1324,52 @@ class StandardTI:
   def sma_bulk(prices: polars.Series, period: builtins.int) -> polars.Series:
     r"""
     Simple Moving Average - calculates the mean over a rolling window
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data
+    - `period`: usize - Number of periods for the moving average window
+
+    # Returns
+    PySeriesStubbed - Series containing SMA values for each period
     """
   @staticmethod
   def smma_bulk(prices: polars.Series, period: builtins.int) -> polars.Series:
     r"""
     Smoothed Moving Average - puts more weight on recent prices
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data
+    - `period`: usize - Number of periods for the smoothed moving average window
+
+    # Returns
+    PySeriesStubbed - Series containing SMMA values for each period
     """
   @staticmethod
   def ema_bulk(prices: polars.Series, period: builtins.int) -> polars.Series:
     r"""
     Exponential Moving Average - puts exponentially more weight on recent prices
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data
+    - `period`: usize - Number of periods for the exponential moving average window
+
+    # Returns
+    PySeriesStubbed - Series containing EMA values for each period
     """
   @staticmethod
   def bollinger_bands_bulk(prices: polars.Series) -> polars.DataFrame:
     r"""
     Bollinger Bands - returns three series: lower band, middle (SMA), upper band
     Standard period is 20 with 2 standard deviations
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data (minimum 20 periods required)
+
+    # Returns
+    PyDfStubbed - DataFrame with three columns:
+    - `bb_lower`: Lower Bollinger Band values
+    - `bb_middle`: Middle band (20-period SMA)
+    - `bb_upper`: Upper Bollinger Band values
     """
   @staticmethod
   def macd_bulk(prices: polars.Series) -> polars.DataFrame:
@@ -1096,42 +1377,99 @@ class StandardTI:
     MACD - Moving Average Convergence Divergence
     Returns three series: MACD line, Signal line, Histogram
     Standard periods: 12, 26, 9
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data (minimum 34 periods required)
+
+    # Returns
+    PyDfStubbed - DataFrame with three columns:
+    - `macd`: MACD line (12-period EMA - 26-period EMA)
+    - `macd_signal`: Signal line (9-period EMA of MACD line)
+    - `macd_histogram`: Histogram (MACD line - Signal line)
     """
   @staticmethod
   def rsi_bulk(prices: polars.Series) -> polars.Series:
     r"""
     RSI - Relative Strength Index
     Standard period is 14 using smoothed moving average
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data (minimum 14 periods required)
+
+    # Returns
+    PySeriesStubbed - Series containing RSI values (0-100 scale)
     """
   @staticmethod
   def sma_single(prices: polars.Series) -> builtins.float:
     r"""
     Simple Moving Average - single value calculation
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data (cannot be empty)
+
+    # Returns
+    f64 - Single SMA value calculated from all provided prices
     """
   @staticmethod
   def smma_single(prices: polars.Series) -> builtins.float:
     r"""
     Smoothed Moving Average - single value calculation
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data (cannot be empty)
+
+    # Returns
+    f64 - Single SMMA value calculated from all provided prices
     """
   @staticmethod
   def ema_single(prices: polars.Series) -> builtins.float:
     r"""
     Exponential Moving Average - single value calculation
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data (cannot be empty)
+
+    # Returns
+    f64 - Single EMA value calculated from all provided prices
     """
   @staticmethod
   def bollinger_bands_single(prices: polars.Series) -> tuple[builtins.float, builtins.float, builtins.float]:
     r"""
     Bollinger Bands - single value calculation (requires exactly 20 periods)
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data (must be exactly 20 periods)
+
+    # Returns
+    Tuple of (lower_band: f64, middle_band: f64, upper_band: f64)
+    - `lower_band`: Lower Bollinger Band value
+    - `middle_band`: Middle band (SMA) value
+    - `upper_band`: Upper Bollinger Band value
     """
   @staticmethod
   def macd_single(prices: polars.Series) -> tuple[builtins.float, builtins.float, builtins.float]:
     r"""
     MACD - single value calculation (requires exactly 34 periods)
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data (must be exactly 34 periods)
+
+    # Returns
+    Tuple of (macd_line: f64, signal_line: f64, histogram: f64)
+    - `macd_line`: MACD line value (12-period EMA - 26-period EMA)
+    - `signal_line`: Signal line value (9-period EMA of MACD line)
+    - `histogram`: Histogram value (MACD line - Signal line)
     """
   @staticmethod
   def rsi_single(prices: polars.Series) -> builtins.float:
     r"""
     RSI - single value calculation (requires exactly 14 periods)
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Price series data (must be exactly 14 periods)
+
+    # Returns
+    f64 - Single RSI value (0-100 scale)
     """
 
 class StrengthTI:
@@ -1141,16 +1479,42 @@ class StrengthTI:
   ) -> polars.Series:
     r"""
     Accumulation Distribution - Shows whether the stock is being accumulated or distributed
+
+    # Parameters
+    - `high`: PySeriesStubbed - Series of high prices
+    - `low`: PySeriesStubbed - Series of low prices
+    - `close`: PySeriesStubbed - Series of closing prices
+    - `volume`: PySeriesStubbed - Series of trading volumes
+    - `previous_ad`: Option<f64> - Previous accumulation/distribution value (defaults to 0.0)
+
+    # Returns
+    PySeriesStubbed - Series containing accumulation/distribution values
     """
   @staticmethod
   def positive_volume_index(close: polars.Series, volume: polars.Series, previous_pvi: builtins.float | None) -> polars.Series:
     r"""
     Positive Volume Index - Measures volume trend strength when volume increases
+
+    # Parameters
+    - `close`: PySeriesStubbed - Series of closing prices
+    - `volume`: PySeriesStubbed - Series of trading volumes
+    - `previous_pvi`: Option<f64> - Previous positive volume index value (defaults to 0.0)
+
+    # Returns
+    PySeriesStubbed - Series containing positive volume index values
     """
   @staticmethod
   def negative_volume_index(close: polars.Series, volume: polars.Series, previous_nvi: builtins.float | None) -> polars.Series:
     r"""
     Negative Volume Index - Measures volume trend strength when volume decreases
+
+    # Parameters
+    - `close`: PySeriesStubbed - Series of closing prices
+    - `volume`: PySeriesStubbed - Series of trading volumes
+    - `previous_nvi`: Option<f64> - Previous negative volume index value (defaults to 0.0)
+
+    # Returns
+    PySeriesStubbed - Series containing negative volume index values
     """
   @staticmethod
   def relative_vigor_index(
@@ -1158,6 +1522,17 @@ class StrengthTI:
   ) -> polars.Series:
     r"""
     Relative Vigor Index - Measures the strength of an asset by looking at previous prices
+
+    # Parameters
+    - `open`: PySeriesStubbed - Series of opening prices
+    - `high`: PySeriesStubbed - Series of high prices
+    - `low`: PySeriesStubbed - Series of low prices
+    - `close`: PySeriesStubbed - Series of closing prices
+    - `constant_model_type`: &str - Type of constant model to use
+    - `period`: usize - Period length for calculation
+
+    # Returns
+    PySeriesStubbed - Series containing relative vigor index values
     """
   @staticmethod
   def single_accumulation_distribution(
@@ -1165,11 +1540,29 @@ class StrengthTI:
   ) -> builtins.float:
     r"""
     Single Accumulation Distribution - Single value calculation
+
+    # Parameters
+    - `high`: f64 - High price for the period
+    - `low`: f64 - Low price for the period
+    - `close`: f64 - Closing price for the period
+    - `volume`: f64 - Trading volume for the period
+    - `previous_ad`: Option<f64> - Previous accumulation/distribution value (defaults to 0.0)
+
+    # Returns
+    f64 - Single accumulation/distribution value
     """
   @staticmethod
   def single_volume_index(current_close: builtins.float, previous_close: builtins.float, previous_volume_index: builtins.float | None) -> builtins.float:
     r"""
     Single Volume Index - Generic version of PVI and NVI for single calculation
+
+    # Parameters
+    - `current_close`: f64 - Current period closing price
+    - `previous_close`: f64 - Previous period closing price
+    - `previous_volume_index`: Option<f64> - Previous volume index value (defaults to 0.0)
+
+    # Returns
+    f64 - Single volume index value
     """
   @staticmethod
   def single_relative_vigor_index(
@@ -1177,6 +1570,16 @@ class StrengthTI:
   ) -> builtins.float:
     r"""
     Single Relative Vigor Index - Single value calculation
+
+    # Parameters
+    - `open`: PySeriesStubbed - Series of opening prices
+    - `high`: PySeriesStubbed - Series of high prices
+    - `low`: PySeriesStubbed - Series of low prices
+    - `close`: PySeriesStubbed - Series of closing prices
+    - `constant_model_type`: &str - Type of constant model to use
+
+    # Returns
+    f64 - Single relative vigor index value
     """
 
 class TrendTI:
@@ -1480,12 +1883,25 @@ class VolatilityTI:
     r"""
     Ulcer Index (Single) - Calculates how quickly the price is able to get back to its former high
     Can be used instead of standard deviation for volatility measurement
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values to analyze
+
+    # Returns
+    f64 - Single Ulcer Index value representing overall price volatility and drawdown risk
     """
   @staticmethod
   def ulcer_index_bulk(prices: polars.Series, period: builtins.int) -> polars.Series:
     r"""
     Ulcer Index (Bulk) - Calculates rolling Ulcer Index over specified period
     Returns a series of Ulcer Index values
+
+    # Parameters
+    - `prices`: PySeriesStubbed - Series of price values to analyze
+    - `period`: usize - Rolling window period for calculation
+
+    # Returns
+    PySeriesStubbed - Series of rolling Ulcer Index values with name "ulcer_index"
     """
   @staticmethod
   def volatility_system(
@@ -1493,8 +1909,17 @@ class VolatilityTI:
   ) -> polars.Series:
     r"""
     Volatility System - Calculates Welles volatility system with Stop and Reverse (SaR) points
-
     Uses trend analysis to determine long/short positions and calculate SaR levels
-
     Constant multiplier typically between 2.8-3.1 (Welles used 3.0)
+
+    # Parameters
+    - `high`: PySeriesStubbed - Series of high price values
+    - `low`: PySeriesStubbed - Series of low price values
+    - `close`: PySeriesStubbed - Series of closing price values
+    - `period`: usize - Period for volatility calculation
+    - `constant_multiplier`: f64 - Multiplier for volatility (typically 2.8-3.1)
+    - `constant_model_type`: &str - Type of constant model to use for calculation
+
+    # Returns
+    PySeriesStubbed - Series of volatility system values with Stop and Reverse points, named "volatility_system"
     """

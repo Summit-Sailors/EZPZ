@@ -52,6 +52,51 @@ class PolarsPluginCollector(MacroMetadataCollector[PolarsPluginMacroMetadataPD, 
       ),
     )
 
+  # handles function call syntax e.g ezpz_plugin_collect(args, kwargs)(Class)
+  def visit_Call(self, node: cst.Call) -> None:
+    if isinstance(node.func, cst.Call) and isinstance(node.func.func, cst.Name) and node.func.func.value == ezpz_plugin_collect.__name__:
+      kwargs = self._extract_kwargs_from_call(node.func)
+      if kwargs and node.args and len(node.args) > 0:
+        arg = node.args[0]
+        if isinstance(arg.value, cst.Name):
+          class_name = arg.value.value
+          try:
+            metadata = PolarsPluginMacroMetadataPD(
+              import_=kwargs["import_"],
+              type_hint=kwargs["type_hint"],
+              attr_name=kwargs["attr_name"],
+              polars_ns=EPolarsNS(kwargs["polars_ns"]),
+            )
+            self.macro_data.append(metadata)
+          except (KeyError, ValueError) as e:
+            logging.getLogger(__name__).warning(f"Failed to create plugin metadata: {e}")
+    super().visit_Call(node)
+
+  def _extract_kwargs_from_call(self, call_node: cst.Call) -> dict[str, str] | None:
+    kwargs = {}
+
+    for arg in call_node.args:
+      if isinstance(arg, cst.Arg) and arg.keyword:
+        key = arg.keyword.value
+        value = self._extract_string_value(arg.value)
+        if value is not None:
+          kwargs[key] = value
+
+    required_keys = {"import_", "type_hint", "attr_name", "polars_ns"}
+    if required_keys.issubset(kwargs.keys()):
+      return kwargs
+    return None
+
+  def _extract_string_value(self, node: cst.BaseExpression) -> str | None:
+    if isinstance(node, cst.SimpleString):
+      # remove quotes from the string
+      return node.value.strip("\"'")
+    if isinstance(node, cst.ConcatenatedString):
+      # concatenated strings handling
+      parts = [part.value.strip("\"'") for part in (node.left, node.right) if isinstance(part, cst.SimpleString)]
+      return "".join(parts) if parts else None
+    return None
+
 
 logger = logging.getLogger(__name__)
 

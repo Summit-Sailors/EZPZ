@@ -17,11 +17,11 @@ impl BasicTI {
 
 	/// Calculate the arithmetic mean of all values.
 	///
-	/// Args:
-	///     prices: Series of numeric values
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
 	///
-	/// Returns:
-	///     float: The arithmetic mean
+	/// # Returns
+	/// f64 - The arithmetic mean
 	#[staticmethod]
 	fn mean_single(prices: PySeriesStubbed) -> PyResult<f64> {
 		let values = extract_f64_values(prices)?;
@@ -30,11 +30,11 @@ impl BasicTI {
 
 	/// Calculate the median of all values.
 	///
-	/// Args:
-	///     prices: Series of numeric values
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
 	///
-	/// Returns:
-	///     float: The median value
+	/// # Returns
+	/// f64 - The median value
 	#[staticmethod]
 	fn median_single(prices: PySeriesStubbed) -> PyResult<f64> {
 		let values = extract_f64_values(prices)?;
@@ -43,11 +43,11 @@ impl BasicTI {
 
 	/// Calculate the mode of all values.
 	///
-	/// Args:
-	///     prices: Series of numeric values
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
 	///
-	/// Returns:
-	///     float: The most frequently occurring value
+	/// # Returns
+	/// f64 - The most frequently occurring value
 	#[staticmethod]
 	fn mode_single(prices: PySeriesStubbed) -> PyResult<f64> {
 		let values = extract_f64_values(prices)?;
@@ -56,11 +56,11 @@ impl BasicTI {
 
 	/// Calculate the variance of all values.
 	///
-	/// Args:
-	///     prices: Series of numeric values
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
 	///
-	/// Returns:
-	///     float: The variance
+	/// # Returns
+	/// f64 - The variance
 	#[staticmethod]
 	fn variance_single(prices: PySeriesStubbed) -> PyResult<f64> {
 		let values = extract_f64_values(prices)?;
@@ -69,11 +69,11 @@ impl BasicTI {
 
 	/// Calculate the standard deviation of all values.
 	///
-	/// Args:
-	///     prices: Series of numeric values
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
 	///
-	/// Returns:
-	///     float: The standard deviation
+	/// # Returns
+	/// f64 - The standard deviation
 	#[staticmethod]
 	fn standard_deviation_single(prices: PySeriesStubbed) -> PyResult<f64> {
 		let values = extract_f64_values(prices)?;
@@ -82,11 +82,11 @@ impl BasicTI {
 
 	/// Find the maximum value.
 	///
-	/// Args:
-	///     prices: Series of numeric values
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
 	///
-	/// Returns:
-	///     float: The maximum value
+	/// # Returns
+	/// f64 - The maximum value
 	#[staticmethod]
 	fn max_single(prices: PySeriesStubbed) -> PyResult<f64> {
 		let values = extract_f64_values(prices)?;
@@ -95,11 +95,11 @@ impl BasicTI {
 
 	/// Find the minimum value.
 	///
-	/// Args:
-	///     prices: Series of numeric values
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
 	///
-	/// Returns:
-	///     float: The minimum value
+	/// # Returns
+	/// f64 - The minimum value
 	#[staticmethod]
 	fn min_single(prices: PySeriesStubbed) -> PyResult<f64> {
 		let values = extract_f64_values(prices)?;
@@ -108,12 +108,12 @@ impl BasicTI {
 
 	/// Calculate the absolute deviation from a central point.
 	///
-	/// Args:
-	///     prices: Series of numeric values
-	///     central_point: String indicating central point type ("mean", "median", etc.)
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
+	/// - `central_point`: &str - Central point type ("mean", "median", etc.)
 	///
-	/// Returns:
-	///     float: The absolute deviation
+	/// # Returns
+	/// f64 - The absolute deviation
 	#[staticmethod]
 	fn absolute_deviation_single(prices: PySeriesStubbed, central_point: &str) -> PyResult<f64> {
 		let values = extract_f64_values(prices)?;
@@ -123,12 +123,12 @@ impl BasicTI {
 
 	/// Calculate the logarithmic difference between two price points.
 	///
-	/// Args:
-	///     price_t: Current price value
-	///     price_t_1: Previous price value
+	/// # Parameters
+	/// - `price_t`: f64 - Current price value
+	/// - `price_t_1`: f64 - Previous price value
 	///
-	/// Returns:
-	///     float: The logarithmic difference
+	/// # Returns
+	/// f64 - The logarithmic difference
 	#[staticmethod]
 	fn log_difference_single(price_t: f64, price_t_1: f64) -> PyResult<f64> {
 		Ok(rust_ti::basic_indicators::single::log_difference(&price_t, &price_t_1))
@@ -138,12 +138,12 @@ impl BasicTI {
 
 	/// Calculate rolling mean over a specified period.
 	///
-	/// Args:
-	///     prices: Series of numeric values
-	///     period: Rolling window size
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
+	/// - `period`: usize - Rolling window size
 	///
-	/// Returns:
-	///     Series: Rolling mean values
+	/// # Returns
+	/// PySeriesStubbed - Series containing rolling mean values
 	#[staticmethod]
 	fn mean_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
 		let values = extract_f64_values(prices)?;
@@ -153,12 +153,12 @@ impl BasicTI {
 
 	/// Calculate rolling median over a specified period.
 	///
-	/// Args:
-	///     prices: Series of numeric values
-	///     period: Rolling window size
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
+	/// - `period`: usize - Rolling window size
 	///
-	/// Returns:
-	///     Series: Rolling median values
+	/// # Returns
+	/// PySeriesStubbed - Series containing rolling median values
 	#[staticmethod]
 	fn median_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
 		let values = extract_f64_values(prices)?;
@@ -168,12 +168,12 @@ impl BasicTI {
 
 	/// Calculate rolling mode over a specified period.
 	///
-	/// Args:
-	///     prices: Series of numeric values
-	///     period: Rolling window size
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
+	/// - `period`: usize - Rolling window size
 	///
-	/// Returns:
-	///     Series: Rolling mode values
+	/// # Returns
+	/// PySeriesStubbed - Series containing rolling mode values
 	#[staticmethod]
 	fn mode_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
 		let values = extract_f64_values(prices)?;
@@ -183,12 +183,12 @@ impl BasicTI {
 
 	/// Calculate rolling variance over a specified period.
 	///
-	/// Args:
-	///     prices: Series of numeric values
-	///     period: Rolling window size
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
+	/// - `period`: usize - Rolling window size
 	///
-	/// Returns:
-	///     Series: Rolling variance values
+	/// # Returns
+	/// PySeriesStubbed - Series containing rolling variance values
 	#[staticmethod]
 	fn variance_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
 		let values = extract_f64_values(prices)?;
@@ -198,12 +198,12 @@ impl BasicTI {
 
 	/// Calculate rolling standard deviation over a specified period.
 	///
-	/// Args:
-	///     prices: Series of numeric values
-	///     period: Rolling window size
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
+	/// - `period`: usize - Rolling window size
 	///
-	/// Returns:
-	///     Series: Rolling standard deviation values
+	/// # Returns
+	/// PySeriesStubbed - Series containing rolling standard deviation values
 	#[staticmethod]
 	fn standard_deviation_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
 		let values = extract_f64_values(prices)?;
@@ -213,13 +213,13 @@ impl BasicTI {
 
 	/// Calculate rolling absolute deviation over a specified period.
 	///
-	/// Args:
-	///     prices: Series of numeric values
-	///     period: Rolling window size
-	///     central_point: String indicating central point type ("mean", "median", etc.)
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
+	/// - `period`: usize - Rolling window size
+	/// - `central_point`: &str - Central point type ("mean", "median", etc.)
 	///
-	/// Returns:
-	///     Series: Rolling absolute deviation values
+	/// # Returns
+	/// PySeriesStubbed - Series containing rolling absolute deviation values
 	#[staticmethod]
 	fn absolute_deviation_bulk(prices: PySeriesStubbed, period: usize, central_point: &str) -> PyResult<PySeriesStubbed> {
 		let values = extract_f64_values(prices)?;
@@ -230,11 +230,11 @@ impl BasicTI {
 
 	/// Calculate natural logarithm of all values.
 	///
-	/// Args:
-	///     prices: Series of numeric values
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
 	///
-	/// Returns:
-	///     Series: Natural logarithm values
+	/// # Returns
+	/// PySeriesStubbed - Series containing natural logarithm values
 	#[staticmethod]
 	fn log_bulk(prices: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
 		let values = extract_f64_values(prices)?;
@@ -244,11 +244,11 @@ impl BasicTI {
 
 	/// Calculate logarithmic differences between consecutive values.
 	///
-	/// Args:
-	///     prices: Series of numeric values
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of numeric values
 	///
-	/// Returns:
-	///     Series: Logarithmic difference values
+	/// # Returns
+	/// PySeriesStubbed - Series containing logarithmic difference values
 	#[staticmethod]
 	fn log_difference_bulk(prices: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
 		let values = extract_f64_values(prices)?;

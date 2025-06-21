@@ -16,10 +16,18 @@ pub struct CandleTI;
 impl CandleTI {
 	/// Moving Constant Envelopes - Creates upper and lower bands from moving constant of price
 	///
-	/// Returns DataFrame with columns: lower_envelope, middle_envelope, upper_envelope
-
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of price values
+	/// - `constant_model_type`: &str - Type of moving average (e.g., "sma", "ema", "wma")
+	/// - `difference`: f64 - Fixed difference value to create envelope bands
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_envelope`: f64 - Lower envelope band (middle - difference)
+	/// - `middle_envelope`: f64 - Middle line (moving average)
+	/// - `upper_envelope`: f64 - Upper envelope band (middle + difference)
 	#[staticmethod]
-	fn moving_constant_envelopes(prices: PySeriesStubbed, constant_model_type: &str, difference: f64) -> PyResult<PyDfStubbed> {
+	fn moving_constant_envelopes_single(prices: PySeriesStubbed, constant_model_type: &str, difference: f64) -> PyResult<PyDfStubbed> {
 		let values = extract_f64_values(prices)?;
 		let constant_type = parse_constant_model_type(constant_model_type)?;
 		let result = rust_ti::candle_indicators::single::moving_constant_envelopes(&values, &constant_type, &difference);
@@ -36,9 +44,18 @@ impl CandleTI {
 
 	/// McGinley Dynamic Envelopes - Variation of moving constant envelopes using McGinley Dynamic
 	///
-	/// Returns DataFrame with columns: lower_envelope, mcginley_dynamic, upper_envelope
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of price values
+	/// - `difference`: f64 - Fixed difference value to create envelope bands
+	/// - `previous_mcginley_dynamic`: f64 - Previous McGinley Dynamic value for calculation
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_envelope`: f64 - Lower envelope band (McGinley Dynamic - difference)
+	/// - `mcginley_dynamic`: f64 - McGinley Dynamic value
+	/// - `upper_envelope`: f64 - Upper envelope band (McGinley Dynamic + difference)
 	#[staticmethod]
-	fn mcginley_dynamic_envelopes(prices: PySeriesStubbed, difference: f64, previous_mcginley_dynamic: f64) -> PyResult<PyDfStubbed> {
+	fn mcginley_dynamic_envelopes_single(prices: PySeriesStubbed, difference: f64, previous_mcginley_dynamic: f64) -> PyResult<PyDfStubbed> {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 		let result = rust_ti::candle_indicators::single::mcginley_dynamic_envelopes(&values, &difference, &previous_mcginley_dynamic);
 
@@ -54,9 +71,24 @@ impl CandleTI {
 
 	/// Moving Constant Bands - Extended Bollinger Bands with configurable models
 	///
-	/// Returns DataFrame with columns: lower_band, middle_band, upper_band
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of price values
+	/// - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
+	/// - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
+	/// - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_band`: f64 - Lower band (moving average - deviation * multiplier)
+	/// - `middle_band`: f64 - Middle band (moving average)
+	/// - `upper_band`: f64 - Upper band (moving average + deviation * multiplier)
 	#[staticmethod]
-	fn moving_constant_bands(prices: PySeriesStubbed, constant_model_type: &str, deviation_model: &str, deviation_multiplier: f64) -> PyResult<PyDfStubbed> {
+	fn moving_constant_bands_single(
+		prices: PySeriesStubbed,
+		constant_model_type: &str,
+		deviation_model: &str,
+		deviation_multiplier: f64,
+	) -> PyResult<PyDfStubbed> {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 		let constant_type = parse_constant_model_type(constant_model_type)?;
 		let deviation_type = parse_deviation_model(deviation_model)?;
@@ -74,9 +106,19 @@ impl CandleTI {
 
 	/// McGinley Dynamic Bands - Variation of moving constant bands using McGinley Dynamic
 	///
-	/// Returns DataFrame with columns: lower_band, mcginley_dynamic, upper_band
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of price values
+	/// - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
+	/// - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
+	/// - `previous_mcginley_dynamic`: f64 - Previous McGinley Dynamic value for calculation
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_band`: f64 - Lower band (McGinley Dynamic - deviation * multiplier)
+	/// - `mcginley_dynamic`: f64 - McGinley Dynamic value
+	/// - `upper_band`: f64 - Upper band (McGinley Dynamic + deviation * multiplier)
 	#[staticmethod]
-	fn mcginley_dynamic_bands(
+	fn mcginley_dynamic_bands_single(
 		prices: PySeriesStubbed,
 		deviation_model: &str,
 		deviation_multiplier: f64,
@@ -98,9 +140,23 @@ impl CandleTI {
 
 	/// Ichimoku Cloud - Calculates support and resistance levels
 	///
-	/// Returns DataFrame with columns: leading_span_a, leading_span_b, base_line, conversion_line, lagged_price
+	/// # Parameters
+	/// - `highs`: PySeriesStubbed - Series of high prices
+	/// - `lows`: PySeriesStubbed - Series of low prices
+	/// - `close`: PySeriesStubbed - Series of closing prices
+	/// - `conversion_period`: usize - Period for conversion line calculation (typically 9)
+	/// - `base_period`: usize - Period for base line calculation (typically 26)
+	/// - `span_b_period`: usize - Period for leading span B calculation (typically 52)
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `leading_span_a`: f64 - Leading Span A (future support/resistance)
+	/// - `leading_span_b`: f64 - Leading Span B (future support/resistance)
+	/// - `base_line`: f64 - Base Line (Kijun-sen)
+	/// - `conversion_line`: f64 - Conversion Line (Tenkan-sen)
+	/// - `lagged_price`: f64 - Lagging Span (Chikou Span)
 	#[staticmethod]
-	fn ichimoku_cloud(
+	fn ichimoku_cloud_single(
 		highs: PySeriesStubbed,
 		lows: PySeriesStubbed,
 		close: PySeriesStubbed,
@@ -127,9 +183,17 @@ impl CandleTI {
 
 	/// Donchian Channels - Produces bands from period highs and lows
 	///
-	/// Returns DataFrame with columns: donchian_lower, donchian_middle, donchian_upper
+	/// # Parameters
+	/// - `highs`: PySeriesStubbed - Series of high prices
+	/// - `lows`: PySeriesStubbed - Series of low prices
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `donchian_lower`: f64 - Lower channel (lowest low over period)
+	/// - `donchian_middle`: f64 - Middle channel (average of upper and lower)
+	/// - `donchian_upper`: f64 - Upper channel (highest high over period)
 	#[staticmethod]
-	fn donchian_channels(highs: PySeriesStubbed, lows: PySeriesStubbed) -> PyResult<PyDfStubbed> {
+	fn donchian_channels_single(highs: PySeriesStubbed, lows: PySeriesStubbed) -> PyResult<PyDfStubbed> {
 		let high_values: Vec<f64> = extract_f64_values(highs)?;
 		let low_values: Vec<f64> = extract_f64_values(lows)?;
 		let result = rust_ti::candle_indicators::single::donchian_channels(&high_values, &low_values);
@@ -146,9 +210,21 @@ impl CandleTI {
 
 	/// Keltner Channel - Bands based on moving average and average true range
 	///
-	/// Returns DataFrame with columns: keltner_lower, keltner_middle, keltner_upper
+	/// # Parameters
+	/// - `highs`: PySeriesStubbed - Series of high prices
+	/// - `lows`: PySeriesStubbed - Series of low prices
+	/// - `close`: PySeriesStubbed - Series of closing prices
+	/// - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
+	/// - `atr_constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
+	/// - `multiplier`: f64 - Multiplier for the ATR to create channel width
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `keltner_lower`: f64 - Lower channel (moving average - ATR * multiplier)
+	/// - `keltner_middle`: f64 - Middle channel (moving average)
+	/// - `keltner_upper`: f64 - Upper channel (moving average + ATR * multiplier)
 	#[staticmethod]
-	fn keltner_channel(
+	fn keltner_channel_single(
 		highs: PySeriesStubbed,
 		lows: PySeriesStubbed,
 		close: PySeriesStubbed,
@@ -174,8 +250,19 @@ impl CandleTI {
 	}
 
 	/// Supertrend - Trend indicator showing support and resistance levels
+	///
+	/// # Parameters
+	/// - `highs`: PySeriesStubbed - Series of high prices
+	/// - `lows`: PySeriesStubbed - Series of low prices
+	/// - `close`: PySeriesStubbed - Series of closing prices
+	/// - `constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
+	/// - `multiplier`: f64 - Multiplier for the ATR to determine trend sensitivity
+	///
+	/// # Returns
+	/// Series containing:
+	/// - `supertrend`: f64 - Supertrend value (support/resistance level based on trend direction)
 	#[staticmethod]
-	fn supertrend(
+	fn supertrend_single(
 		highs: PySeriesStubbed,
 		lows: PySeriesStubbed,
 		close: PySeriesStubbed,
@@ -196,7 +283,17 @@ impl CandleTI {
 
 	/// Moving Constant Envelopes (Bulk) - Returns envelopes over time periods
 	///
-	/// Returns DataFrame with columns: lower_envelope, middle_envelope, upper_envelope
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of price values
+	/// - `constant_model_type`: &str - Type of moving average (e.g., "sma", "ema", "wma")
+	/// - `difference`: f64 - Fixed difference value to create envelope bands
+	/// - `period`: usize - Rolling window period for calculations
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_envelope`: Vec<f64> - Time series of lower envelope bands
+	/// - `middle_envelope`: Vec<f64> - Time series of middle lines (moving averages)
+	/// - `upper_envelope`: Vec<f64> - Time series of upper envelope bands
 	#[staticmethod]
 	fn moving_constant_envelopes_bulk(prices: PySeriesStubbed, constant_model_type: &str, difference: f64, period: usize) -> PyResult<PyDfStubbed> {
 		let values: Vec<f64> = extract_f64_values(prices)?;
@@ -209,7 +306,17 @@ impl CandleTI {
 
 	/// McGinley Dynamic Envelopes (Bulk)
 	///
-	/// Returns DataFrame with columns: lower_envelope, mcginley_dynamic, upper_envelope
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of price values
+	/// - `difference`: f64 - Fixed difference value to create envelope bands
+	/// - `previous_mcginley_dynamic`: f64 - Initial McGinley Dynamic value for calculation
+	/// - `period`: usize - Rolling window period for calculations
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_envelope`: Vec<f64> - Time series of lower envelope bands
+	/// - `mcginley_dynamic`: Vec<f64> - Time series of McGinley Dynamic values
+	/// - `upper_envelope`: Vec<f64> - Time series of upper envelope bands
 	#[staticmethod]
 	fn mcginley_dynamic_envelopes_bulk(prices: PySeriesStubbed, difference: f64, previous_mcginley_dynamic: f64, period: usize) -> PyResult<PyDfStubbed> {
 		let values: Vec<f64> = extract_f64_values(prices)?;
@@ -221,7 +328,18 @@ impl CandleTI {
 
 	/// Moving Constant Bands (Bulk)
 	///
-	/// Returns DataFrame with columns: lower_band, middle_band, upper_band
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of price values
+	/// - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
+	/// - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
+	/// - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
+	/// - `period`: usize - Rolling window period for calculations
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_band`: Vec<f64> - Time series of lower bands
+	/// - `middle_band`: Vec<f64> - Time series of middle bands (moving averages)
+	/// - `upper_band`: Vec<f64> - Time series of upper bands
 	#[staticmethod]
 	fn moving_constant_bands_bulk(
 		prices: PySeriesStubbed,
@@ -241,7 +359,18 @@ impl CandleTI {
 
 	/// McGinley Dynamic Bands (Bulk)
 	///
-	/// Returns DataFrame with columns: lower_band, mcginley_dynamic, upper_band
+	/// # Parameters
+	/// - `prices`: PySeriesStubbed - Series of price values
+	/// - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
+	/// - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
+	/// - `previous_mcginley_dynamic`: f64 - Initial McGinley Dynamic value for calculation
+	/// - `period`: usize - Rolling window period for calculations
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_band`: Vec<f64> - Time series of lower bands
+	/// - `mcginley_dynamic`: Vec<f64> - Time series of McGinley Dynamic values
+	/// - `upper_band`: Vec<f64> - Time series of upper bands
 	#[staticmethod]
 	fn mcginley_dynamic_bands_bulk(
 		prices: PySeriesStubbed,
@@ -261,7 +390,21 @@ impl CandleTI {
 
 	/// Ichimoku Cloud (Bulk) - Returns ichimoku components over time
 	///
-	/// Returns DataFrame with columns: leading_span_a, leading_span_b, base_line, conversion_line, lagged_price
+	/// # Parameters
+	/// - `highs`: PySeriesStubbed - Series of high prices
+	/// - `lows`: PySeriesStubbed - Series of low prices
+	/// - `closes`: PySeriesStubbed - Series of closing prices
+	/// - `conversion_period`: usize - Period for conversion line calculation (typically 9)
+	/// - `base_period`: usize - Period for base line calculation (typically 26)
+	/// - `span_b_period`: usize - Period for leading span B calculation (typically 52)
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `leading_span_a`: Vec<f64> - Time series of Leading Span A values
+	/// - `leading_span_b`: Vec<f64> - Time series of Leading Span B values
+	/// - `base_line`: Vec<f64> - Time series of Base Line (Kijun-sen) values
+	/// - `conversion_line`: Vec<f64> - Time series of Conversion Line (Tenkan-sen) values
+	/// - `lagged_price`: Vec<f64> - Time series of Lagging Span (Chikou Span) values
 	#[staticmethod]
 	fn ichimoku_cloud_bulk(
 		highs: PySeriesStubbed,
@@ -306,7 +449,16 @@ impl CandleTI {
 
 	/// Donchian Channels (Bulk) - Returns donchian bands over time
 	///
-	/// Returns DataFrame with columns: lower_band, middle_band, upper_band
+	/// # Parameters
+	/// - `highs`: PySeriesStubbed - Series of high prices
+	/// - `lows`: PySeriesStubbed - Series of low prices
+	/// - `period`: usize - Rolling window period for channel calculation
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_band`: Vec<f64> - Time series of lower channels (lowest lows)
+	/// - `middle_band`: Vec<f64> - Time series of middle channels (averages)
+	/// - `upper_band`: Vec<f64> - Time series of upper channels (highest highs)
 	#[staticmethod]
 	fn donchian_channels_bulk(highs: PySeriesStubbed, lows: PySeriesStubbed, period: usize) -> PyResult<PyDfStubbed> {
 		let highs_values: Vec<f64> = extract_f64_values(highs)?;
@@ -319,7 +471,20 @@ impl CandleTI {
 
 	/// Keltner Channel (Bulk) - Returns keltner bands over time
 	///
-	/// Returns DataFrame with columns: lower_band, middle_band, upper_band
+	/// # Parameters
+	/// - `highs`: PySeriesStubbed - Series of high prices
+	/// - `lows`: PySeriesStubbed - Series of low prices
+	/// - `closes`: PySeriesStubbed - Series of closing prices
+	/// - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
+	/// - `atr_constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
+	/// - `multiplier`: f64 - Multiplier for the ATR to create channel width
+	/// - `period`: usize - Rolling window period for calculations
+	///
+	/// # Returns
+	/// DataFrame with columns:
+	/// - `lower_band`: Vec<f64> - Time series of lower channels
+	/// - `middle_band`: Vec<f64> - Time series of middle channels (moving averages)
+	/// - `upper_band`: Vec<f64> - Time series of upper channels
 	#[staticmethod]
 	fn keltner_channel_bulk(
 		highs: PySeriesStubbed,
@@ -343,6 +508,18 @@ impl CandleTI {
 	}
 
 	/// Supertrend (Bulk) - Returns supertrend values over time
+	///
+	/// # Parameters
+	/// - `highs`: PySeriesStubbed - Series of high prices
+	/// - `lows`: PySeriesStubbed - Series of low prices
+	/// - `closes`: PySeriesStubbed - Series of closing prices
+	/// - `constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
+	/// - `multiplier`: f64 - Multiplier for the ATR to determine trend sensitivity
+	/// - `period`: usize - Rolling window period for ATR calculation
+	///
+	/// # Returns
+	/// Series containing:
+	/// - `supertrend`: Vec<f64> - Time series of supertrend values (support/resistance levels)
 	#[staticmethod]
 	fn supertrend_bulk(
 		highs: PySeriesStubbed,

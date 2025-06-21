@@ -17,7 +17,7 @@ requires-python = ">=3.13,<3.14"
 version = "0.0.1"
 
 [tool.rye.workspace]
-members = ["examples", "ezpz-rust-ti", "macroz", "pluginz"]
+members = ["ezpz-rust-ti", "macroz", "pluginz"]
 
 [tool.rye]
 dev-dependencies = [

@@ -12,7 +12,7 @@ use {
 #[allow(clippy::upper_case_acronyms)]
 pub struct MATI;
 
-fn parse_moving_average_type(ma_type: &str) -> PyResult<rust_ti::MovingAverageType> {
+fn parse_moving_average_type(ma_type: &str) -> PyResult<rust_ti::MovingAverageType<'_>> {
 	match ma_type.to_lowercase().as_str() {
 		"simple" => Ok(rust_ti::MovingAverageType::Simple),
 		"exponential" => Ok(rust_ti::MovingAverageType::Exponential),

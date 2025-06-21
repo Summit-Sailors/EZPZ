@@ -10,9 +10,9 @@ A collection of FOSS packages to make dev life more, well, EZPZ.
 
 ### EazyPolarz
 
-- guiz - GUI toolkit ([readme](ezpz/README.md))
-- pluginz - Plugin system with proper type checking ([readme](ezpz/README.md))
-- stubz - pyo3-polars integration with pyo3-stub-gen ([readme](ezpz/README.md))
+- ezpz-rust-ti - EZPZ Rust Technical Analysis Polars plugin ([readme](./ezpz-rust-ti/README.md))
+- pluginz - Plugin system with proper type checking ([readme](./pluginz/README.md))
+- stubz - pyo3-polars integration with pyo3-stub-gen ([readme](./stubz/README.md))
 
 ### Juzt
 
@@ -26,5 +26,5 @@ A collection of utilities to juzt get it done.
 
 - basez ([readme](ezpz/README.md))
 - formatterz - dead simple api to apply code formaters from various languages ([readme](ezpz/README.md))
-- macroz - marcos for python with AST validation inspired by rust ([readme](ezpz/README.md))
+- macroz - marcos for python with AST validation inspired by rust ([readme](./macroz/README.md))
 - projectz - utilities for easier monorepo management ([readme](ezpz/README.md))
