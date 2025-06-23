@@ -37,7 +37,7 @@ impl CandleTI {
 			"middle_envelope" => [result.1],
 			"upper_envelope" => [result.2],
 		}
-		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}
@@ -64,7 +64,7 @@ impl CandleTI {
 			"mcginley_dynamic" => [result.1],
 			"upper_envelope" => [result.2],
 		}
-		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}
@@ -99,7 +99,7 @@ impl CandleTI {
 			"middle_band" => [result.1],
 			"upper_band" => [result.2],
 		}
-		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}
@@ -133,7 +133,7 @@ impl CandleTI {
 			"mcginley_dynamic" => [result.1],
 			"upper_band" => [result.2],
 		}
-		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}
@@ -176,7 +176,7 @@ impl CandleTI {
 			"conversion_line" => [result.3],
 			"lagged_price" => [result.4],
 		}
-		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}
@@ -203,7 +203,7 @@ impl CandleTI {
 			"donchian_middle" => [result.1],
 			"donchian_upper" => [result.2],
 		}
-		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}
@@ -244,7 +244,7 @@ impl CandleTI {
 			"keltner_middle" => [result.1],
 			"keltner_upper" => [result.2],
 		}
-		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}
@@ -442,7 +442,7 @@ impl CandleTI {
 			"conversion_line" => conversion_line,
 			"lagged_price" => lagged_price,
 		}
-		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}

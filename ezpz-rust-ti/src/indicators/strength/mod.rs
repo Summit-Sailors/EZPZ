@@ -108,10 +108,10 @@ impl StrengthTI {
 		constant_model_type: &str,
 		period: usize,
 	) -> PyResult<PySeriesStubbed> {
-		let open_values: Vec<f64> = extract_f64_values(open)?;
-		let high_values: Vec<f64> = extract_f64_values(high)?;
-		let low_values: Vec<f64> = extract_f64_values(low)?;
-		let close_values: Vec<f64> = extract_f64_values(close)?;
+		let open_values = extract_f64_values(open)?;
+		let high_values = extract_f64_values(high)?;
+		let low_values = extract_f64_values(low)?;
+		let close_values = extract_f64_values(close)?;
 
 		let constant_type = parse_constant_model_type(constant_model_type)?;
 		let result = rust_ti::strength_indicators::bulk::relative_vigor_index(&open_values, &high_values, &low_values, &close_values, &constant_type, &period);

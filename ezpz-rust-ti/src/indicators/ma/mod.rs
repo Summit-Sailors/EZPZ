@@ -17,7 +17,7 @@ fn parse_moving_average_type(ma_type: &str) -> PyResult<rust_ti::MovingAverageTy
 		"simple" => Ok(rust_ti::MovingAverageType::Simple),
 		"exponential" => Ok(rust_ti::MovingAverageType::Exponential),
 		"smoothed" => Ok(rust_ti::MovingAverageType::Smoothed),
-		_ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Unsupported moving average type: {ma_type}"))),
+		_ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Unsupported moving average type")),
 	}
 }
 

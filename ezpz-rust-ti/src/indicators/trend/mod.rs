@@ -103,11 +103,7 @@ impl TrendTI {
 		let lows_values = extract_f64_values(lows)?;
 
 		if highs_values.len() != lows_values.len() {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-				"Length of highs ({}) must match length of lows ({})",
-				highs_values.len(),
-				lows_values.len()
-			)));
+			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Length of highs must match length of lows"));
 		}
 
 		let result = rust_ti::trend_indicators::single::aroon_indicator(&highs_values, &lows_values);
@@ -399,7 +395,7 @@ impl TrendTI {
 			"adx" => adx,
 			"adxr" => adxr,
 		}
-		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+		.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 		Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 	}

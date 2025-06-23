@@ -58,7 +58,7 @@ lru = "0.14.0"
 # polars
 connectorx = "0.4.3"
 hashbrown = { version = "0.15.4" }
-polars = { version = "0.48.1", features = [
+polars = { version = "0.49.1", features = [
   "dataframe_arithmetic",
   "describe",
   "dtype-full",
@@ -75,8 +75,8 @@ polars = { version = "0.48.1", features = [
 
 # PyO3
 pyo3 = { version = "*" }
-pyo3-polars = { version = "0.21.0", features = ["derive", "dtype-full", "lazy"] }
-pyo3-stub-gen = { version = "0.9.1", default-features = false }
+pyo3-polars = { version = "0.22.0", features = ["derive", "dtype-full", "lazy"] }
+pyo3-stub-gen = { version = "0.10.0", default-features = false }
 
 
 api = { path = "api" }
@@ -171,7 +171,7 @@ dioxus-free-icons = { git = "https://github.com/dioxus-community/dioxus-free-ico
 dioxus-sdk = { git = "https://github.com/DioxusLabs/sdk.git", features = ["time"] }
 
 tokio = { version = "1.45.1", default-features = false }
-tokio-tungstenite = { version = "0.26.2", default-features = false }
+tokio-tungstenite = { version = "0.27.0", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

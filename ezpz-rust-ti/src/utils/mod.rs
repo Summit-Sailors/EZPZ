@@ -11,7 +11,7 @@ pub(crate) fn parse_constant_model_type(constant_model_type: &str) -> PyResult<r
 		"exponential_moving_average" => Ok(rust_ti::ConstantModelType::ExponentialMovingAverage),
 		"simple_moving_median" => Ok(rust_ti::ConstantModelType::SimpleMovingMedian),
 		"simple_moving_mode" => Ok(rust_ti::ConstantModelType::SimpleMovingMode),
-		_ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Unsupported constant model type: {constant_model_type}"))),
+		_ => Err(pyo3::exceptions::PyValueError::new_err("Unsupported constant model type")),
 	}
 }
 
@@ -22,7 +22,7 @@ pub(crate) fn parse_deviation_model(model_type: &str) -> PyResult<rust_ti::Devia
 		"median_absolute_deviation" => Ok(rust_ti::DeviationModel::MedianAbsoluteDeviation),
 		"mode_absolute_deviation" => Ok(rust_ti::DeviationModel::ModeAbsoluteDeviation),
 		"ulcer_index" => Ok(rust_ti::DeviationModel::UlcerIndex),
-		_ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Unsupported deviation model: {model_type}"))),
+		_ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Unsupported deviation model")),
 	}
 }
 
@@ -83,7 +83,7 @@ pub(crate) fn create_triple_df(
 		middle_name => middle,
 		upper_name => upper,
 	}
-	.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("DataFrame creation failed: {e}")))?;
+	.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
 	Ok(PyDfStubbed(pyo3_polars::PyDataFrame(df)))
 }

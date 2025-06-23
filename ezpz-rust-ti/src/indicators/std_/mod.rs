@@ -28,7 +28,7 @@ impl StandardTI {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < period {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least period ({})", values.len(), period)));
+			return Err(pyo3::exceptions::PyValueError::new_err("Series length must be at least the specified period"));
 		}
 
 		let sma_result = rust_ti::standard_indicators::bulk::simple_moving_average(&values, &period);
@@ -49,7 +49,7 @@ impl StandardTI {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < period {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least period ({})", values.len(), period)));
+			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series length must be at least the specified period"));
 		}
 
 		let smma_result = rust_ti::standard_indicators::bulk::smoothed_moving_average(&values, &period);
@@ -70,7 +70,7 @@ impl StandardTI {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < period {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least period ({})", values.len(), period)));
+			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series length must be at least the specified period"));
 		}
 
 		let ema_result = rust_ti::standard_indicators::bulk::exponential_moving_average(&values, &period);
@@ -94,7 +94,7 @@ impl StandardTI {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < 20 {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least 20 for Bollinger Bands", values.len())));
+			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series length must be at least 20 for Bollinger Bands"));
 		}
 
 		let bb_result = rust_ti::standard_indicators::bulk::bollinger_bands(&values);
@@ -123,7 +123,7 @@ impl StandardTI {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < 34 {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least 34 for MACD", values.len())));
+			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series length must be at least 34 for MACD"));
 		}
 
 		let macd_result = rust_ti::standard_indicators::bulk::macd(&values);
@@ -148,7 +148,7 @@ impl StandardTI {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() < 14 {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Series length ({}) must be at least 14 for RSI", values.len())));
+			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series length must be at least 14 for RSI"));
 		}
 
 		let rsi_result = rust_ti::standard_indicators::bulk::rsi(&values);
@@ -230,10 +230,7 @@ impl StandardTI {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() != 20 {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-				"Series length must be exactly 20 for single Bollinger Bands calculation, got {}",
-				values.len()
-			)));
+			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series length must be exactly 20 for single Bollinger Bands calculation"));
 		}
 
 		let result = rust_ti::standard_indicators::single::bollinger_bands(&values);
@@ -255,10 +252,7 @@ impl StandardTI {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() != 34 {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-				"Series length must be exactly 34 for single MACD calculation, got {}",
-				values.len()
-			)));
+			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series length must be exactly 34 for single MACD calculation"));
 		}
 
 		let result = rust_ti::standard_indicators::single::macd(&values);
@@ -277,10 +271,7 @@ impl StandardTI {
 		let values: Vec<f64> = extract_f64_values(prices)?;
 
 		if values.len() != 14 {
-			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-				"Series length must be exactly 14 for single RSI calculation, got {}",
-				values.len()
-			)));
+			return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Series length must be exactly 14 for single RSI calculation"));
 		}
 
 		let result = rust_ti::standard_indicators::single::rsi(&values);
