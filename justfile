@@ -32,3 +32,7 @@ stub-gen:
   set -euo pipefail
   cargo run -p ezpz-rust-ti stub_gen
 
+examples:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  rye run python3 examples/ezpz_ta/ezpz_rust_ti.py

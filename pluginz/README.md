@@ -163,19 +163,6 @@ ezplugins unmount
 - **Multi-syntax Support**: Flexible plugin definition patterns for different coding styles
 - **Robust Error Handling**: Graceful handling of malformed plugin definitions
 
-## Example Project Structure
-
-```
-my-polars-project/
-├── ezpz.toml
-├── src/
-│   └── plugins/
-│       ├── dataframe_ops.py
-│       └── series_extensions.py
-├── tests/
-└── README.md
-```
-
 ## Contributing
 
 We welcome contributions! Please see our contributing guidelines for details on how to submit improvements, bug reports, and feature requests.

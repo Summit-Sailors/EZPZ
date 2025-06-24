@@ -118,7 +118,7 @@ class PolarsPluginCollector(MacroMetadataCollector[PolarsPluginMacroMetadataPD, 
         )
 ```
 
-### 3. Enhanced Function Call Support
+### 3. Function Call Support
 
 The collector also handles function call syntax:
 
@@ -177,7 +177,7 @@ class MacroMetadataCollector[T: BaseModel, TMacroKwargs: Any](m.MatcherDecoratab
 
 ## Usage Patterns
 
-### Basic Plugin Registration (EZPZ-Pluginz Pattern)
+### Plugin Registration (EZPZ-Pluginz Pattern)
 
 ```python
 from ezpz_pluginz.register_plugin_macro import ezpz_plugin_collect
