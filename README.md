@@ -14,6 +14,7 @@ A powerful tool that provides comprehensive type hinting and IDE support for Pol
 
 - Full type safety for Polars plugins
 - Hot reloading with automatic type hint updates pointing directly to plugin implementations
+- **Plugin registry**: Discover and install ecosystem plugins with ease
 - **Site-packages integration**: Seamlessly load and manage plugins from installed packages
 - **IDE support**: Autocompletion, inline documentation and error detection
 - **Multiple syntax support**: Decorator and function call patterns for plugin discovery
@@ -58,10 +59,11 @@ A comprehensive technical analysis library showcasing the EZPZ plugin system wit
 
 ```bash
 pip install ezpz-rust-ti
-ezplugins mount
+# or use the registry
+ezplugins add rust-ti
 ```
 
-## 📦 Suppoting Libraries
+## 📦 Supporting Libraries
 
 ### 🔧 [Painlezz Macroz](./macroz/)
 
@@ -84,7 +86,7 @@ pip install painlezz-macroz
 
 ## 🏗️ Architecture Overview
 
-EZPZ follows a modular architecture designed aroung the Polars ecosystem:
+EZPZ follows a modular architecture designed around the Polars ecosystem:
 
 ```table
 ┌──────────────────────────────────────────────┐
@@ -166,6 +168,89 @@ df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 result = df.my_operations.custom_transform(2.0)  # Full IDE support!
 ```
 
+### 5. Discover and Install Ecosystem Plugins
+
+```bash
+# List all available plugins in the EZPZ ecosystem
+ezplugins list
+
+# Search for specific plugins
+ezplugins find technical
+
+# Install a plugin (automatically mounts by default)
+ezplugins add rust-ti
+```
+
+## 🔍 Plugin Discovery
+
+The EZPZ ecosystem includes a plugin registry that makes it easy to discover and install plugins.
+
+### For Users
+
+```bash
+# List all available plugins
+ezplugins list
+
+# Search for plugins by keyword
+ezplugins find analysis
+ezplugins find rust
+
+# Install a plugin
+ezplugins add rust-ti
+ezplugins add ta  # Same plugin, using alias
+
+# Install without auto-mounting
+ezplugins add rust-ti --no-auto-mount
+```
+
+### For Plugin Devs
+
+To register your plugin in the EZPZ ecosystem:
+
+1. **Add the registration function** to your plugin's `__init__.py`:
+
+```python
+def register_plugin():
+    """Register plugin with EZPZ registry."""
+    return {
+        "name": "my-plugin",
+        "package_name": "ezpz-my-plugin",
+        "description": "My awesome EZPZ plugin",
+        "aliases": ["mp", "awesome"],
+        "version": "1.0.0",
+        "author": "Your Name",
+        "homepage": "https://github.com/you/ezpz-my-plugin"
+    }
+```
+
+2. **Add entry point** in your `pyproject.toml`:
+
+```toml
+[project.entry-points."ezpz.plugins"]
+my-plugin = "my_plugin:register_plugin"
+```
+
+3. **Add ezpz-pluginz as dependency**:
+
+```toml
+dependencies = [
+    "ezpz-pluginz>=0.1.0",
+    # ... other deps
+]
+```
+
+That's it! Your plugin will automatically appear when users run `ezplugins list`.
+
+## 🖥️ CLI Commands
+
+| Command                    | Purpose                          | Example                 |
+| -------------------------- | -------------------------------- | ----------------------- |
+| `ezplugins mount`          | Enable plugin type hints         | `ezplugins mount`       |
+| `ezplugins unmount`        | Disable plugin type hints        | `ezplugins unmount`     |
+| `ezplugins list`           | List available ecosystem plugins | `ezplugins list`        |
+| `ezplugins find <keyword>` | Search plugins by keyword        | `ezplugins find rust`   |
+| `ezplugins add <plugin>`   | Install and mount a plugin       | `ezplugins add rust-ti` |
+
 ## 🎯 Use Cases
 
 ### For Plugin Developers
@@ -173,10 +258,12 @@ result = df.my_operations.custom_transform(2.0)  # Full IDE support!
 - **Type-Safe Development**: Build Polars plugins with type checking
 - **Amazing IDE Experience**: Enjoy autocompletion and error detection
 - **Easy Distribution**: Publish plugins that integrate seamlessly with the ecosystem
+- **Plugin Registry**: Register your plugins for easy discovery by users
 
 ### For Data Scientists
 
 - **Extended Functionality**: Access powerful extensions like technical analysis
+- **Plugin Discovery**: Easily find and install community plugins
 - **Familiar Interface**: Work with enhanced Polars using the same API patterns
 - **Performance**: Benefit from Rust-powered implementations
 
@@ -188,12 +275,12 @@ result = df.my_operations.custom_transform(2.0)  # Full IDE support!
 
 ## 📋 Installation Matrix
 
-| Component           | Purpose            | Installation                  |
-| ------------------- | ------------------ | ----------------------------- |
-| **EZPZ-Pluginz**    | Core plugin system | `pip install ezpz_pluginz`    |
-| **EZPZ-Rust-TI**    | Technical analysis | `pip install ezpz-rust-ti`    |
-| **EZPZ-Stubz**      | PyO3 type wrappers | `cargo add ezpz-stubz`        |
-| **Painlezz-Macroz** | Macro system       | `pip install painlezz-macroz` |
+| Component           | Purpose            | Installation                  | Discovery        |
+| ------------------- | ------------------ | ----------------------------- | ---------------- |
+| **EZPZ-Pluginz**    | Core plugin system | `pip install ezpz_pluginz`    | N/A              |
+| **EZPZ-Rust-TI**    | Technical analysis | `ezplugins add rust-ti`       | `ezplugins list` |
+| **EZPZ-Stubz**      | PyO3 type wrappers | `cargo add ezpz-stubz`        | N/A              |
+| **Painlezz-Macroz** | Macro system       | `pip install painlezz-macroz` | N/A              |
 
 ## 🔧 Development Setup
 
@@ -214,19 +301,19 @@ pytest pluginz/tests/
 cargo test --workspace
 ```
 
+## 🎯 Roadmap
+
+- Official Polars team blessing ([tracking issue](https://github.com/pola-rs/polars/issues/14475))
+- Plugin marketplace and discovery ✅
+- More showcase plugins
+- Advanced debugging tools
+
 ### Component-Specific Guidelines
 
 - **Pluginz**: Focus on type safety and IDE integration
 - **Rust-TI**: Maintain performance while expanding indicator coverage
 - **Stubz**: Ensure zero-cost abstractions and complete type coverage
 - **Macroz**: Consider future static analysis tool compatibility
-
-### 🎯 Roadmap
-
-- Official Polars team blessing ([tracking issue](https://github.com/pola-rs/polars/issues/14475))
-- Plugin marketplace and discovery
-- More showcase plugins
-- Advanced debugging tools
 
 ## 🤝 Contributing
 

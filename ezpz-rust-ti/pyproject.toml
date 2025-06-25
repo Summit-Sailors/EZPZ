@@ -17,3 +17,7 @@ manifest-path = "Cargo.toml"
 module-name = "ezpz_rust_ti._ezpz_rust_ti"
 python-packages = ["ezpz_rust_ti._ezpz_rust_ti"]
 python-source = "python"
+
+
+[project.entry-points."ezpz.plugins"]
+ezpz-rust-ti = "ezpz_rust_ti:register_plugin"
