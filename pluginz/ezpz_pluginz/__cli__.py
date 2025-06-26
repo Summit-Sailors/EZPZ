@@ -126,9 +126,9 @@ def is_package_installed(package_name: str) -> bool:
 
 def detect_package_manager() -> tuple[list[str], str]:
   package_managers = [
-    # uv (fastest Python package installer)
+    # uv
     (["uv", "pip", "install"], "uv"),
-    # rye (modern Python project management)
+    # rye
     (["rye", "add"], "rye"),
     # poetry (if pyproject.toml with poetry config exists)
     (["poetry", "add"], "poetry"),
@@ -152,16 +152,16 @@ def detect_package_manager() -> tuple[list[str], str]:
       # poetry project
       elif "[tool.poetry" in content and _command_available("poetry"):
         return (["poetry", "add"], "poetry")
-    except Exception as exc:
-      logger.exception(f"Exception occurred while checking for rye project files: {exc}")
+    except Exception:
+      logger.exception("Exception occurred while checking for rye project files")
 
   # for rye-specific files
   if Path(".python-version").exists() and _command_available("rye"):
     try:
       if Path("requirements.lock").exists() or Path("requirements-dev.lock").exists():
         return (["rye", "add"], "rye")
-    except Exception as exc:
-      logger.exception(f"Exception occurred while checking for rye project files: {exc}")
+    except Exception:
+      logger.exception("Exception occurred while checking for rye project files")
 
   if Path("Pipfile").exists() and _command_available("pipenv"):
     return (["pipenv", "install"], "pipenv")
