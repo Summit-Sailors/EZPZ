@@ -36,3 +36,16 @@ examples:
   #!/usr/bin/env bash
   set -euo pipefail
   rye run python3 examples/ezpz_ta/ezpz_rust_ti.py
+
+
+registry-gen message:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cd registry/ezpz_registry/migrations
+  rye run alembic revision --autogenerate -m "{{message}}"
+
+registry-bump:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cd registry/ezpz_registry/migrations
+  rye run alembic upgrade head
