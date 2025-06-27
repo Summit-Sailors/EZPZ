@@ -17,9 +17,9 @@ class Settings(BaseSettings):
 
   db_host: str = Field(default="localhost", description="Database host")
   db_port: int = Field(default=5432, description="Database port")
-  db_user: str = Field(default="postgres", description="Database user")
-  db_password: str = Field(default="postgres", description="Database password")
-  db_name: str = Field(default="postgres", description="Database name")
+  db_user: str = Field(default="", description="Database user")
+  db_password: str = Field(default="", description="Database password")
+  db_name: str = Field(default="", description="Database name")
 
   admin_api_key: str = Field(default="", description="API key for administrative operations.")
   github_webhook_secret: str = Field(default="", description="Secret for GitHub webhook verification.")

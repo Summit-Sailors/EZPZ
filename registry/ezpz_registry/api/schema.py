@@ -1,15 +1,19 @@
+from uuid import UUID
+from typing import ClassVar
 from datetime import datetime
 
 from pydantic import Field, HttpUrl, BaseModel, field_validator
 
+from ezpz_registry.db.models import PermissionType
+
 
 class PluginBase(BaseModel):
-  INVALID_PACKAGE_NAME = "Invalid package name format"
-  UNIQUE_ALIAS_ERROR = "Aliases must be unique"
+  INVALID_PACKAGE_NAME: ClassVar[str] = "Invalid package name format"
+  UNIQUE_ALIAS_ERROR: ClassVar[str] = "Aliases must be unique"
 
   name: str = Field(..., min_length=1, max_length=100, description="Plugin display name")
   package_name: str = Field(..., min_length=1, max_length=100, description="PyPI package name")
-  description: str = Field(..., min_length=1, max_length=500, description="Plugin description")
+  description: str = Field(..., min_length=1, description="Plugin description")
   aliases: list[str] = Field(default_factory=list, description="Alternative names")
   author: str | None = Field(None, max_length=100, description="Plugin author")
   homepage: HttpUrl | None = Field(None, description="Plugin homepage URL")
@@ -29,23 +33,27 @@ class PluginBase(BaseModel):
     return [alias.strip() for alias in v if alias.strip()]
 
 
-class PluginCreate(PluginBase): ...
+class PluginCreate(PluginBase):
+  metadata_: dict[str, any] | None = Field(default_factory=dict, description="Plugin metadata")
 
 
 class PluginUpdate(BaseModel):
   name: str | None = Field(None, min_length=1, max_length=100)
-  description: str | None = Field(None, min_length=1, max_length=500)
+  description: str | None = Field(None, min_length=1)  # Removed max_length
   aliases: list[str] | None = Field(None)
   author: str | None = Field(None, max_length=100)
   homepage: HttpUrl | None = Field(None)
+  metadata_: dict[str, any] | None = Field(None, description="Plugin metadata")
 
 
 class PluginResponse(PluginBase):
-  id: int
+  id: UUID
   version: str | None = Field(None, description="Latest version from PyPI")
   verified: bool = Field(description="Whether plugin is verified on PyPI")
   created_at: datetime
   updated_at: datetime
+  submitted_by: str | None = Field(None, description="Who submitted the plugin")
+  is_deleted: bool = Field(default=False, description="Soft delete flag")
 
   class Config:
     from_attributes = True
@@ -72,18 +80,19 @@ class PluginSearchResponse(BaseModel):
 
 class ApiKeyCreate(BaseModel):
   name: str = Field(..., min_length=1, max_length=100, description="Key name")
-  permissions: list[str] = Field(default_factory=list, description="Key permissions")
+  permissions: list[PermissionType] = Field(default_factory=list, description="Key permissions")
   expires_at: datetime | None = Field(None, description="Expiration date")
 
 
 class ApiKeyResponse(BaseModel):
-  id: int
+  id: UUID
   name: str
-  permissions: list[str]
+  permissions: list[PermissionType]
   active: bool
   created_at: datetime
   expires_at: datetime | None
   last_used_at: datetime | None
+  is_expired: bool = Field(description="Whether the key is expired")
 
   class Config:
     from_attributes = True

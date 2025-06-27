@@ -11,7 +11,7 @@ import sqlalchemy as sa
 import sqlmodel.sql.sqltypes
 from alembic import op
 
-import painlezz_sqlmodelz.typez.http_url
+import ezpz_registry.db.types.http_url
 ${imports if imports else ""}
 
 # revision identifiers, used by Alembic.

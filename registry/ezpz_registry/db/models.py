@@ -8,10 +8,12 @@ from pydantic import (
   HttpUrl,
   field_validator,
 )
-from sqlmodel import Field, Column, MetaData, SQLModel, Relationship, UniqueConstraint, inspect
+from sqlmodel import Field, Column, MetaData, SQLModel, Relationship, UniqueConstraint, func, inspect
 from sqlalchemy import Text, String, Boolean, Integer, DateTime, ForeignKey
 from sqlalchemy.sql import expression
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+
+from ezpz_registry.db.types.http_url import HttpUrlType
 
 
 class PermissionType(StrEnum):
@@ -33,7 +35,7 @@ class BaseDBModel(SQLModel):
     return tuple(col.name for col in inspect(type(self)).primary_key)
 
 
-# Main tables - ONLY these should have table=True
+# Main tables
 class Plugins(BaseDBModel, table=True):
   __tablename__: str = "plugins"
 
@@ -47,14 +49,20 @@ class Plugins(BaseDBModel, table=True):
   aliases: list[str] = Field(default_factory=list, sa_column=Column(ARRAY(String), default=list, nullable=False))
   version: str | None = Field(default=None, max_length=50, sa_column=Column(String(50), nullable=True))
   author: str | None = Field(default=None, max_length=100, sa_column=Column(String(100), nullable=True))
-  homepage: HttpUrl | None = Field(default=None, sa_column=Column(String(500), nullable=True))
+  homepage: HttpUrl | None = Field(default=None, sa_column=Column(HttpUrlType(500), nullable=True))
   verified: bool = Field(default=False, sa_column=Column(Boolean, default=False, nullable=False, index=True))
   submitted_by: str | None = Field(default=None, max_length=100, sa_column=Column(String(100), nullable=True))
   verification_token: str | None = Field(default=None, max_length=32, sa_column=Column(String(32), nullable=True))
 
   # Timestamps
-  created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-  updated_at: datetime | None = Field(default=None, sa_column=Column(DateTime, onupdate=datetime.now(timezone.utc)))
+  created_at: datetime = Field(
+    default_factory=lambda: datetime.now(timezone.utc),
+    sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now()),
+  )
+  updated_at: datetime = Field(
+    default_factory=lambda: datetime.now(timezone.utc),
+    sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()),
+  )
 
   # Soft delete
   deleted_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
@@ -115,8 +123,14 @@ class ApiKeys(BaseDBModel, table=True):
   last_used_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
 
   # Timestamps
-  created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-  updated_at: datetime | None = Field(default=None, sa_column=Column(DateTime, onupdate=datetime.now(timezone.utc)))
+  created_at: datetime = Field(
+    default_factory=lambda: datetime.now(timezone.utc),
+    sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now()),
+  )
+  updated_at: datetime = Field(
+    default_factory=lambda: datetime.now(timezone.utc),
+    sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()),
+  )
 
   # Soft delete
   deleted_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
@@ -159,7 +173,7 @@ class PluginDownloads(BaseDBModel, table=True):
   NEGATIVE_DOWNLOADS_ERROR: ClassVar[str] = "Downloads count must be non-negative"
 
   id: UUID = Field(primary_key=True, default_factory=uuid4, nullable=False, unique=True)
-  plugin_id: UUID = Field(sa_column=Column(String, ForeignKey("plugins.id"), nullable=False, index=True))
+  plugin_id: UUID = Field(sa_column=Column(ForeignKey("plugins.id"), nullable=False, index=True))
   date: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False, index=True))
   downloads: int = Field(default=0, sa_column=Column(Integer, default=0, nullable=False))
 
@@ -184,7 +198,7 @@ class PluginDownloads(BaseDBModel, table=True):
     return cls(plugin_id=plugin_id, date=date.replace(hour=0, minute=0, second=0, microsecond=0), downloads=downloads)
 
 
-# Response models - these should NOT have table=True
+# Response models
 class PluginResponse(SQLModel):
   id: UUID
   name: str
@@ -230,7 +244,7 @@ class PluginDownloadResponse(SQLModel):
     from_attributes = True
 
 
-# Create/Update models - these should NOT have table=True
+# Create/Update models
 class PluginCreate(SQLModel):
   name: str = Field(max_length=100)
   package_name: str = Field(max_length=100)

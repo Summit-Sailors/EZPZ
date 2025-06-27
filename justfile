@@ -42,10 +42,22 @@ registry-gen message:
   #!/usr/bin/env bash
   set -euo pipefail
   cd registry/ezpz_registry/migrations
-  rye run alembic revision --autogenerate -m "{{message}}"
+  alembic revision --autogenerate -m "{{message}}"
 
 registry-bump:
   #!/usr/bin/env bash
   set -euo pipefail
   cd registry/ezpz_registry/migrations
-  rye run alembic upgrade head
+  alembic upgrade head
+
+registry-run-dev:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cd registry
+  rye run uvicorn ezpz_registry.main:app --host 0.0.0.0 --port 8000 --reload
+
+registry-run-prod:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cd registry
+  rye run gunicorn ezpz_registry.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000

@@ -1,5 +1,3 @@
-"""API dependencies for authentication and database access."""
-
 import hmac
 import hashlib
 from typing import TYPE_CHECKING, Annotated

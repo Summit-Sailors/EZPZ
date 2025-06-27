@@ -7,17 +7,20 @@ from fastapi import Query, APIRouter, HTTPException
 from sqlalchemy.exc import IntegrityError
 
 from ezpz_registry.api.schema import HealthResponse, PluginResponse, WebhookResponse, PluginListResponse, PluginSearchResponse
+from ezpz_registry.db.connection import db_manager
 from ezpz_registry.services.pypi import PyPIService
 from ezpz_registry.services.plugins import PluginService
 
 if TYPE_CHECKING:
+  from uuid import UUID
+
   from fastapi import Request, BackgroundTasks
 
   from ezpz_registry.api.deps import ApiKeyVerified, DatabaseSession, WebhookVerified
   from ezpz_registry.api.schema import PluginRegistrationRequest
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(prefix="/api/v1/")
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -48,13 +51,18 @@ async def search_plugins(
   page: int = Query(1, ge=1, description="Page number"),
   page_size: int = Query(50, ge=1, le=100, description="Items per page"),
 ) -> PluginSearchResponse:
-  plugins, total = await PluginService.search_plugins(session, query=q, page=page, page_size=page_size)
+  plugins, total = await PluginService.search_plugins(
+    session,
+    query_text=q,
+    page=page,
+    page_size=page_size,
+  )
 
   return PluginSearchResponse(plugins=[PluginResponse.model_validate(plugin) for plugin in plugins], query=q, total=total)
 
 
 @router.get("/plugins/{plugin_id}", response_model=PluginResponse)
-async def get_plugin(session: "DatabaseSession", plugin_id: int) -> PluginResponse:
+async def get_plugin(session: "DatabaseSession", plugin_id: "UUID") -> PluginResponse:
   plugin = await PluginService.get_plugin_by_id(session, plugin_id)
 
   if not plugin:
@@ -66,7 +74,7 @@ async def get_plugin(session: "DatabaseSession", plugin_id: int) -> PluginRespon
 @router.post("/plugins/register", response_model=dict[str, str])
 async def register_plugin(
   request: "PluginRegistrationRequest", session: "DatabaseSession", background_tasks: "BackgroundTasks", api_key: "ApiKeyVerified"
-) -> dict[str, str]:
+) -> dict[str, Any]:
   try:
     plugin = await PluginService.create_plugin(session, request.plugin, submitted_by="api")
 
@@ -74,7 +82,7 @@ async def register_plugin(
     background_tasks.add_task(verify_plugin_background, plugin.package_name)
 
     return {
-      "success": "true",
+      "success": True,
       "message": f"Plugin '{request.plugin.name}' registered successfully",
       "plugin_id": str(plugin.id),
       "note": "Plugin will be verified automatically when published to PyPI",
@@ -90,7 +98,11 @@ async def register_plugin(
 
 
 @router.post("/admin/plugins/{plugin_id}/verify", response_model=dict[str, str])
-async def admin_verify_plugin(plugin_id: int, session: "DatabaseSession", api_key: "ApiKeyVerified") -> dict[str, str]:
+async def admin_verify_plugin(
+  plugin_id: "UUID",
+  session: "DatabaseSession",
+  api_key: "ApiKeyVerified",
+) -> dict[str, str]:
   """Manually verify a plugin (admin only)."""
   plugin = await PluginService.get_plugin_by_id(session, plugin_id)
 
@@ -105,7 +117,11 @@ async def admin_verify_plugin(plugin_id: int, session: "DatabaseSession", api_ke
 
 
 @router.delete("/admin/plugins/{plugin_id}", response_model=dict[str, str])
-async def admin_delete_plugin(plugin_id: int, session: "DatabaseSession", api_key: "ApiKeyVerified") -> dict[str, str]:
+async def admin_delete_plugin(
+  plugin_id: "UUID",
+  session: "DatabaseSession",
+  api_key: "ApiKeyVerified",
+) -> dict[str, str]:
   """Delete a plugin (admin only)."""
   success = await PluginService.delete_plugin(session, plugin_id)
 
@@ -137,11 +153,8 @@ async def github_webhook(request: "Request", background_tasks: "BackgroundTasks"
 async def verify_plugin_background(package_name: str) -> None:
   """Background task to verify a plugin package."""
   try:
-    async with PyPIService() as pypi_service:
-      from ezpz_registry.db.connection import db_manager
-
-      async with db_manager.aget_sa_session() as session:
-        await pypi_service.verify_single_plugin(session, package_name)
+    async with PyPIService() as pypi_service, db_manager.aget_sa_session() as session:
+      await pypi_service.verify_single_plugin(session, package_name)
   except Exception as e:
     logger.exception(f"Background verification failed for {package_name}: {e}")
 
@@ -149,8 +162,6 @@ async def verify_plugin_background(package_name: str) -> None:
 async def handle_release_webhook(webhook_data: dict[str, Any]) -> None:
   """Handle GitHub release webhook."""
   try:
-    from ezpz_registry.db.connection import db_manager
-
     # Safely extract release and repository data
     release: dict[str, Any] = webhook_data.get("release") or {}
     repository: dict[str, Any] = webhook_data.get("repository") or {}
@@ -193,8 +204,6 @@ async def handle_release_webhook(webhook_data: dict[str, Any]) -> None:
 
 async def handle_push_webhook(webhook_data: dict[str, Any]) -> None:
   try:
-    from ezpz_registry.db.connection import db_manager
-
     repository: dict[str, Any] = webhook_data.get("repository") or {}
     commits: list[dict[str, Any]] = webhook_data.get("commits") or []
     pusher: dict[str, Any] = webhook_data.get("pusher") or {}

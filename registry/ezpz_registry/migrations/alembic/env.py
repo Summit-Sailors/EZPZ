@@ -1,11 +1,23 @@
+from typing import Any
+from pathlib import Path
 from logging.config import fileConfig
 
 import alembic_postgresql_enum  # noqa: F401
+from dotenv import load_dotenv
 from alembic import context
-from sqlmodel import SQLModel
 from sqlalchemy import pool, engine_from_config
-from ezpz_registry.db.models import *
+from alembic.script import write_hooks
+from ezpz_registry.db.models import ApiKeys, Plugins, PluginDownloads, metadata_obj  # type: ignore # noqa: F401
+from ezpz_registry.db.formatter import Formatter
 from ezpz_registry.db.connection import db_manager
+
+load_dotenv()
+
+
+@write_hooks.register("formatter")  # type: ignore
+def formatter(filename: str, _options: Any) -> None:
+  Formatter.format_file(Path(filename))
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -20,7 +32,7 @@ config.set_main_option("sqlalchemy.url", db_manager.get_db_url())
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-target_metadata = SQLModel.metadata
+target_metadata = metadata_obj
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

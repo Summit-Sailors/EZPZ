@@ -71,9 +71,10 @@ class DatabaseManager:
       await session.close()
       reset_session(token)
 
-  def get_db_url(self, protocol: str = "postgresql+psycopg") -> str:
+  def get_db_url(self, protocol: str = "postgresql+psycopg", *, sync: bool = False) -> str:
+    driver = "postgresql+psycopg2" if sync else protocol
     return URL.create(
-      drivername=protocol,
+      drivername=driver,
       username=settings.db_user,
       password=settings.db_password,
       host=settings.db_host,
