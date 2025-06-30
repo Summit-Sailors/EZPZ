@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any, Iterable, Generator
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Generator
 from pathlib import Path
 from operator import attrgetter
 from itertools import chain, groupby
@@ -55,6 +55,11 @@ class EzpzPluginConfig(BaseModel):
   name: str
   include: list[Path]
   site_customize: bool | None = Field(default=None)
+  package_manager: str
+
+  @property
+  def include_str_paths(self) -> list[str]:
+    return [str(path) for path in self.include]
 
   @staticmethod
   def from_toml_path(path: Path) -> "EzpzPluginConfig":
@@ -68,3 +73,37 @@ class EzpzPluginConfig(BaseModel):
 
 class EzpzPluginToml(BaseModel):
   ezpz_pluginz: EzpzPluginConfig
+
+
+def load_config(config_path: str | Path | None = None) -> Optional[EzpzPluginConfig]:
+  if config_path is None:
+    config_path = find_ezpz_toml()
+    if config_path is None:
+      logger.warning("Could not find ezpz.toml file")
+      return None
+
+  config_path = Path(config_path)
+  if not config_path.exists():
+    logger.error(f"Config file does not exist: {config_path}")
+    return None
+
+  try:
+    return EzpzPluginConfig.from_toml_path(config_path)
+  except Exception as e:
+    logger.exception(f"Error loading config from {config_path}: {e}")
+    return None
+
+
+def find_ezpz_toml(start_path: Path | None = None) -> Optional[Path]:
+  if start_path is None:
+    start_path = Path.cwd()
+
+  current_dir = Path(start_path).resolve()
+
+  for parent in [current_dir, *list(current_dir.parents)]:
+    config_file = parent / EZPZ_TOML_FILENAME
+    if config_file.exists():
+      logger.debug(f"Found ezpz.toml at: {config_file}")
+      return config_file
+
+  return None

@@ -8,16 +8,16 @@ import subprocess
 import importlib.metadata
 from typing import Any
 from pathlib import Path
+from datetime import datetime
 from dataclasses import asdict, dataclass
+from urllib.parse import quote
 from importlib.util import module_from_spec, spec_from_file_location
 
 import httpx
-import typer
 
-app = typer.Typer(name="ezplugins", pretty_exceptions_show_locals=False, pretty_exceptions_short=True)
 logger = logging.getLogger(__name__)
 
-DEFAULT_REGISTRY_URL = "http://localhost:8080"
+DEFAULT_REGISTRY_URL = "http://localhost:8000"
 REGISTRY_URL = os.getenv("EZPZ_REGISTRY_URL", DEFAULT_REGISTRY_URL)
 
 
@@ -58,65 +58,148 @@ class PluginRegistryAPI:
           response = client.put(url, json=data)
         else:
           raise ValueError(f"Unsupported HTTP method: {method}")
+
         response.raise_for_status()
-        return response.json()
+
+        # empty responses
+        if not response.content:
+          logger.warning(f"Empty response from {url}")
+          return {}
+
+        try:
+          return response.json()
+        except json.JSONDecodeError as e:
+          logger.warning(f"Invalid JSON response from {url}: {e}")
+          return {}
+
     except (httpx.RequestError, httpx.HTTPStatusError, ValueError) as e:
-      logger.warning(f"Registry API request failed: {e}")
+      logger.warning(f"Registry API request failed for {url}: {e}")
       return {}
 
   def fetch_plugins(self) -> list[PluginInfo]:
     try:
       response = self._make_request("/api/v1/plugins")
+
+      if not response:
+        logger.warning("Invalid or empty response from plugins API")
+        return []
+
+      plugins_data: list[PluginInfo] = response.get("plugins", [])
+
       plugins = list[PluginInfo]()
-      for plugin_data in response.get("plugins", []):
-        plugins.append(PluginInfo(**plugin_data))
+      for plugin_data in plugins_data:
+        if not isinstance(plugin_data, dict):
+          logger.warning(f"Invalid plugin data format: {plugin_data}")
+          continue
+
+        plugin = safe_deserialize_plugin(plugin_data)
+        if plugin:
+          plugins.append(plugin)
+
+      logger.debug(f"Successfully fetched {len(plugins)} plugins from registry")
+
     except Exception as e:
       logger.warning(f"Failed to fetch plugins from registry: {e}")
       return []
     return plugins
 
   def search_plugins(self, keyword: str) -> list[PluginInfo]:
+    if not keyword:
+      logger.warning("Invalid search keyword provided")
+      return []
+
     try:
-      response = self._make_request(f"/api/v1/plugins/search?q={keyword}")
+      encoded_keyword = quote(keyword)
+      response = self._make_request(f"/api/v1/plugins/search?q={encoded_keyword}")
+
+      if not response:
+        logger.warning("Invalid or empty response from search API")
+        return []
+
+      plugins_data: list[PluginInfo] = response.get("plugins", [])
+
       plugins = list[PluginInfo]()
-      for plugin_data in response.get("plugins", []):
-        plugins.append(PluginInfo(**plugin_data))
+      for plugin_data in plugins_data:
+        if not isinstance(plugin_data, dict):
+          continue
+
+        plugin = safe_deserialize_plugin(plugin_data)
+        if plugin:
+          plugins.append(plugin)
+
+      logger.debug(f"Search returned {len(plugins)} plugins for keyword '{keyword}'")
+
     except Exception as e:
       logger.warning(f"Failed to search plugins: {e}")
       return []
     return plugins
 
-  def register_plugin(self, plugin_info: PluginInfo, api_key: str) -> bool:
+  def register_plugin(self, plugin_info: PluginInfo, api_key: str | None) -> bool:
+    # if not plugin_info or not api_key:
+    #   logger.error("Plugin info and API key are required for registration")
+    #   return False
+
     try:
       data = {"plugin": asdict(plugin_info)}
+      # headers = {"Authorization": f"Bearer {api_key}"}
+
+      logger.info(f"data: {data}")
+
       with httpx.Client(timeout=self.timeout) as client:
-        response = client.post(f"{self.base_url}/api/v1/plugins/register", json=data, headers={"Authorization": f"Bearer {api_key}"})
+        response = client.post(f"{self.base_url}/api/v1/plugins/register", json=data)
         response.raise_for_status()
+
+        if not response.content:
+          return False
+
         result = response.json()
         return result.get("success", False)
+
     except Exception as e:
       logger.exception(f"Failed to register plugin: {e}")
       return False
 
   def update_plugin(self, plugin_info: PluginInfo, api_key: str) -> bool:
+    if not plugin_info or not api_key:
+      logger.error("Plugin info and API key are required for update")
+      return False
+
     try:
-      data = {"plugin": asdict(plugin_info)}
+      data = {"plugin": safe_serialize_plugin(plugin_info)}
+      headers = {"Authorization": f"Bearer {api_key}"}
+
       with httpx.Client(timeout=self.timeout) as client:
-        response = client.put(f"{self.base_url}/api/v1/plugins/{plugin_info.name}", json=data, headers={"Authorization": f"Bearer {api_key}"})
+        response = client.put(f"{self.base_url}/api/v1/plugins/{plugin_info.name}", json=data, headers=headers)
         response.raise_for_status()
+
+        if not response.content:
+          return False
+
         result = response.json()
         return result.get("success", False)
+
     except Exception as e:
       logger.exception(f"Failed to update plugin: {e}")
       return False
 
   def delete_plugin(self, plugin_name: str, api_key: str) -> bool:
+    if not plugin_name or not api_key:
+      logger.error("Plugin name and API key are required for deletion")
+      return False
+
     try:
+      headers = {"Authorization": f"Bearer {api_key}"}
+
       with httpx.Client(timeout=self.timeout) as client:
-        response = client.delete(f"{self.base_url}/api/v1/plugins/{plugin_name}", headers={"Authorization": f"Bearer {api_key}"})
+        response = client.delete(f"{self.base_url}/api/v1/plugins/{plugin_name}", headers=headers)
         response.raise_for_status()
+
+        if not response.content:
+          return False
+
         result = response.json()
         return result.get("success", False)
+
     except Exception as e:
       logger.exception(f"Failed to delete plugin: {e}")
       return False
@@ -165,18 +248,25 @@ class LocalPluginRegistry:
 
   def fetch_and_update_registry(self) -> bool:
     logger.debug("Fetching plugins from remote registry...")
-    remote_plugins = self._api.fetch_plugins()
+    try:
+      remote_plugins = self._api.fetch_plugins()
 
-    if remote_plugins:
+      # Clear existing plugins and update with remote data
       self._plugins.clear()
       for plugin in remote_plugins:
         self._register_plugin(plugin)
 
       self._save_local_registry(remote_plugins)
-      logger.info(f"Updated local registry with {len(remote_plugins)} plugins")
-      return True
-    logger.warning("Failed to fetch from remote registry")
-    return False
+
+      if len(remote_plugins) == 0:
+        logger.info("Updated local registry - remote registry is empty")
+      else:
+        logger.info(f"Updated local registry with {len(remote_plugins)} plugins")
+
+    except Exception as e:
+      logger.warning(f"Failed to update registry: {e}")
+      return False
+    return True
 
   def get_plugin(self, name: str) -> PluginInfo | None:
     return self._plugins.get(name.lower())
@@ -191,6 +281,27 @@ class LocalPluginRegistry:
         seen.add(plugin.name)
 
     return unique_plugins
+
+  def is_plugin_registered(self, plugin_name: str) -> bool:
+    try:
+      plugin_name_lower = plugin_name.lower()
+
+      if plugin_name_lower in self._plugins:
+        return True
+
+      # check if it exists as an alias or package name
+      for plugin in self.list_plugins():  # list_plugins to get unique plugins
+        if (
+          plugin.name.lower() == plugin_name_lower
+          or plugin.package_name.lower() == plugin_name_lower
+          or plugin_name_lower in [alias.lower() for alias in plugin.aliases]
+        ):
+          return True
+
+    except Exception as e:
+      logger.warning(f"Error checking plugin registration for '{plugin_name}': {e}")
+      return False
+    return False
 
   def search_plugins(self, keyword: str) -> list[PluginInfo]:
     keyword_lower = keyword.lower()
@@ -237,31 +348,27 @@ def discover_local_plugins() -> list[PluginInfo]:
   return plugins
 
 
-def find_plugins_in_directory(directory: Path) -> list[PluginInfo]:
+def find_plugins_in_directory(group: str = "ezpz.plugins") -> list[PluginInfo]:
   plugins = list[PluginInfo]()
 
-  if not directory.exists():
-    return plugins
+  try:
+    eps = importlib.metadata.entry_points(group=group)
+    for ep in eps:
+      try:
+        register_func = ep.load()
+        plugin_data = register_func()
 
-  for python_file in directory.rglob("*.py"):
-    if python_file.name.startswith("__") and python_file.name.endswith("__.py"):
-      continue
+        if isinstance(plugin_data, dict):
+          plugin = PluginInfo(**plugin_data)
+          plugins.append(plugin)
+        elif isinstance(plugin_data, PluginInfo):
+          plugins.append(plugin_data)
 
-    try:
-      spec = spec_from_file_location(python_file.stem, python_file)
-      if spec and spec.loader:
-        module = module_from_spec(spec)
-        spec.loader.exec_module(module)
+      except Exception as e:
+        logger.warning(f"Error loading plugin {ep.name}: {e}")
 
-        if hasattr(module, "register_plugin"):
-          plugin_data = module.register_plugin()
-          if isinstance(plugin_data, dict):
-            plugin = PluginInfo(**plugin_data)
-            plugins.append(plugin)
-          elif isinstance(plugin_data, PluginInfo):
-            plugins.append(plugin_data)
-    except Exception as e:
-      logger.warning(f"Error loading plugin from {python_file}: {e}")
+  except Exception as e:
+    logger.warning(f"Error discovering entry points: {e}")
 
   return plugins
 
@@ -435,6 +542,150 @@ def setup_local_registry() -> None:
     logger.info("Local registry setup completed successfully")
   else:
     logger.warning("Failed to setup local registry from remote")
+
+
+def find_plugin_in_path(plugin_path: str, include_paths: list[str]) -> PluginInfo | None:
+  plugin_path_obj = Path(plugin_path)
+
+  logger.info(f"Searching for plugin in: {plugin_path_obj}")
+
+  if plugin_path_obj.exists():
+    plugin_info = _load_plugin_from_path(plugin_path_obj)
+    if plugin_info:
+      return plugin_info
+
+  for include_path in include_paths:
+    search_path = Path(include_path)
+
+    full_path = search_path / plugin_path
+    if full_path.exists():
+      plugin_info = _load_plugin_from_path(full_path)
+      if plugin_info:
+        return plugin_info
+
+    if search_path.exists():
+      for subdir in search_path.iterdir():
+        if subdir.is_dir() and subdir.name == plugin_path:
+          plugin_info = _load_plugin_from_path(subdir)
+          if plugin_info:
+            return plugin_info
+
+  return None
+
+
+def _load_plugin_from_path(plugin_path: Path) -> PluginInfo | None:
+  try:
+    # Common patterns for plugin entry points
+    entry_point_patterns = [
+      # plugins/plugin-name/python/package_name/__init__.py
+      plugin_path / "python" / _extract_package_name(plugin_path.name) / "__init__.py",
+      # plugins/plugin-name/src/package_name/__init__.py
+      plugin_path / "src" / _extract_package_name(plugin_path.name) / "__init__.py",
+      # plugins/plugin-name/package_name/__init__.py
+      plugin_path / _extract_package_name(plugin_path.name) / "__init__.py",
+      # plugins/plugin-name/__init__.py
+      plugin_path / "__init__.py",
+    ]
+
+    logger.debug(f"Checking entry point patterns: {[str(p) for p in entry_point_patterns]}")
+
+    for entry_point_path in entry_point_patterns:
+      if entry_point_path.exists():
+        logger.debug(f"Found entry point: {entry_point_path}")
+        plugin_info = _load_plugin_from_file(entry_point_path)
+        if plugin_info:
+          return plugin_info
+
+    # If no standard patterns work, search recursively for __init__.py files
+    # that contain register_plugin function
+    logger.debug(f"Searching recursively in {plugin_path}")
+    for init_file in plugin_path.rglob("__init__.py"):
+      logger.debug(f"Trying {init_file}")
+      plugin_info = _load_plugin_from_file(init_file)
+      if plugin_info:
+        return plugin_info
+
+  except Exception as e:
+    logger.warning(f"Error loading plugin from {plugin_path}: {e}")
+
+  return None
+
+
+def _extract_package_name(plugin_dir_name: str) -> str:
+  return plugin_dir_name.replace("-", "_")
+
+
+def _load_plugin_from_file(file_path: Path) -> PluginInfo | None:
+  try:
+    parent_dir = str(file_path.parent)
+    if parent_dir not in sys.path:
+      sys.path.insert(0, parent_dir)
+      path_added = True
+    else:
+      path_added = False
+
+    try:
+      spec = spec_from_file_location("temp_plugin_module", file_path)
+      if spec is None or spec.loader is None:
+        return None
+
+      module = module_from_spec(spec)
+      spec.loader.exec_module(module)
+
+      if hasattr(module, "register_plugin"):
+        register_func = module.register_plugin
+        plugin_data = register_func()
+
+        if isinstance(plugin_data, dict):
+          return PluginInfo(**plugin_data)
+        if isinstance(plugin_data, PluginInfo):
+          return plugin_data
+    finally:
+      # Clean up sys.path
+      if path_added:
+        sys.path.remove(parent_dir)
+
+  except Exception as e:
+    logger.debug(f"Could not load plugin from {file_path}: {e}")
+
+  return None
+
+
+def safe_deserialize_plugin(plugin_data: dict[str, Any]) -> PluginInfo | None:
+  try:
+    plugin_data.setdefault("name", "")
+    plugin_data.setdefault("package_name", "")
+    plugin_data.setdefault("description", "")
+    plugin_data.setdefault("aliases", [])
+
+    if not isinstance(plugin_data.get("aliases"), list):
+      plugin_data["aliases"] = []
+
+    if not plugin_data.get("name") or not plugin_data.get("package_name"):
+      logger.warning(f"Plugin data missing required fields: {plugin_data}")
+      return None
+
+    return PluginInfo(**plugin_data)
+  except (TypeError, ValueError) as e:
+    logger.warning(f"Failed to deserialize plugin data {plugin_data}: {e}")
+    return None
+
+
+def safe_serialize_plugin(plugin: PluginInfo) -> dict[str, Any]:
+  plugin_dict = asdict(plugin)
+
+  for field in ["created_at", "updated_at"]:
+    value = plugin_dict.get(field)
+    if value is not None:
+      if isinstance(value, datetime):
+        plugin_dict[field] = value.isoformat()
+      elif not isinstance(value, str):
+        plugin_dict[field] = str(value)
+
+  if not isinstance(plugin_dict.get("aliases"), list):
+    plugin_dict["aliases"] = []
+
+  return plugin_dict
 
 
 def register_plugin() -> dict[str, Any]:

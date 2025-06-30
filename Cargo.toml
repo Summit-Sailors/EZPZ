@@ -7,7 +7,7 @@ repository = ""
 
 
 [workspace]
-members = ["api", "app", "ezpz-rust-ti", "stubz"]
+members = ["api", "app", "plugins/*", "stubz"]
 resolver = "2"
 
 [profile.dev.package."*"]

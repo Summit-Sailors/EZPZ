@@ -9,11 +9,7 @@ requires = ["hatchling"]
 
 [project]
 authors = []
-dependencies = [
-    "maturin>=1.8.7",
-    "psycopg2-binary>=2.9.10",
-    "psycopg>=3.2.9",
-]
+dependencies = ["maturin>=1.8.7", "psycopg2-binary>=2.9.10", "psycopg>=3.2.9"]
 description = ''
 name = "pysilo"
 readme = "README.md"
@@ -21,7 +17,7 @@ requires-python = ">=3.13,<3.14"
 version = "0.0.1"
 
 [tool.rye.workspace]
-members = ["ezpz-rust-ti", "macroz", "pluginz", "registry"]
+members = ["core/*", "examples", "plugins/*"]
 
 [tool.rye]
 dev-dependencies = [

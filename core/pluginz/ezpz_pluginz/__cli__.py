@@ -1,7 +1,6 @@
 import os
 import time
 import logging
-from pathlib import Path
 
 import typer
 
@@ -13,11 +12,12 @@ from ezpz_pluginz.registry import (
   LocalPluginRegistry,
   install_package,
   check_ezpz_config,
+  find_plugin_in_path,
   is_package_installed,
   setup_local_registry,
-  find_plugins_in_directory,
   create_default_ezpz_config,
 )
+from ezpz_pluginz.toml_schema import load_config
 
 app = typer.Typer(name="ezplugins", pretty_exceptions_show_locals=False, pretty_exceptions_short=True)
 logger = logging.getLogger(__name__)
@@ -41,41 +41,40 @@ def unmount() -> None:
 
 @app.command()
 def register(
-  plugin_directory: str = typer.Argument(".", help="Directory to search for plugins"),
+  plugin_path: str = typer.Argument(..., help="Path to the plugin to register"),
   api_key: str | None = typer.Option(None, "--api-key", help="Registry API key"),
 ) -> None:
-  if not api_key:
-    api_key = os.getenv("EZPZ_REGISTRY_API_KEY")
-    if not api_key:
-      logger.error("API key required. Set EZPZ_REGISTRY_API_KEY or use --api-key")
-      raise typer.Exit(1)
-
-  plugin_dir = Path(plugin_directory)
-  if not plugin_dir.exists():
-    logger.error(f"Directory {plugin_directory} does not exist")
+  config = load_config()
+  if not config:
+    logger.error("Could not load ezpz.toml configuration")
     raise typer.Exit(1)
 
-  # Find plugins using entry point approach
-  plugins = find_plugins_in_directory(plugin_dir)
+  local_registry = LocalPluginRegistry()
+  if not local_registry.fetch_and_update_registry():
+    logger.warning("Failed to refresh local plugin registry, continuing with cached data")
 
-  if not plugins:
-    logger.info(f"No plugins found in {plugin_directory}")
-    logger.info("Make sure your plugins have a register_plugin() function that returns plugin info")
+  plugin_info = find_plugin_in_path(plugin_path, config.include_str_paths)
+  if not plugin_info:
+    logger.error(f"No plugin found at path: {plugin_path}")
+    logger.info("Make sure the path contains a plugin with a register_plugin() function")
+    logger.info(f"Searched in configured include paths: {config.include_str_paths}")
+    raise typer.Exit(1)
+
+  if local_registry.is_plugin_registered(plugin_info.name):
+    logger.info(f"Plugin '{plugin_info.name}' is already registered")
+    logger.info("Skipping registration to avoid duplicates")
     return
 
   api = PluginRegistryAPI()
-  success_count = 0
+  logger.info(f"Registering plugin: {plugin_info.name}")
+  success = api.register_plugin(plugin_info, api_key)
 
-  for plugin in plugins:
-    logger.info(f"Registering plugin: {plugin.name}")
-    success = api.register_plugin(plugin, api_key)
-    if success:
-      logger.info(f"Successfully registered '{plugin.name}'")
-      success_count += 1
-    else:
-      logger.error(f"Failed to register '{plugin.name}'")
-
-  logger.info(f"Registration complete: {success_count}/{len(plugins)} plugins registered")
+  if success:
+    logger.info(f"Successfully registered '{plugin_info.name}'")
+    local_registry.fetch_and_update_registry()
+  else:
+    logger.error(f"Failed to register '{plugin_info.name}'")
+    raise typer.Exit(1)
 
 
 @app.command()
@@ -110,7 +109,6 @@ def refresh() -> None:
   if registry.fetch_and_update_registry():
     logger.info("Local plugin registry refreshed successfully")
   else:
-    logger.error("Failed to refresh local plugin registry")
     raise typer.Exit(1)
 
 

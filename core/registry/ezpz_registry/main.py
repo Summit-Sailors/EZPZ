@@ -1,3 +1,4 @@
+import time
 import logging
 from typing import TYPE_CHECKING, Callable, Awaitable, AsyncGenerator
 from contextlib import asynccontextmanager
@@ -81,7 +82,7 @@ app.add_middleware(
 async def http_exception_handler(request: "Request", exc: HTTPException) -> JSONResponse:
   logger.error("HTTP exception occurred", status_code=exc.status_code, detail=exc.detail, path=request.url.path, method=request.method)
 
-  return JSONResponse(status_code=exc.status_code, content=ErrorResponse(error=exc.detail, timestamp=datetime.now(timezone.utc)).model_dump())
+  return JSONResponse(status_code=exc.status_code, content=ErrorResponse(error=exc.detail).model_dump())
 
 
 @app.exception_handler(Exception)
@@ -90,7 +91,7 @@ async def general_exception_handler(request: "Request", exc: Exception) -> JSONR
 
   return JSONResponse(
     status_code=500,
-    content=ErrorResponse(error="Internal server error", detail=str(exc) if settings.debug else None, timestamp=datetime.now(timezone.utc)).model_dump(),
+    content=ErrorResponse(error="Internal server error", detail=str(exc) if settings.debug else None).model_dump(),
   )
 
 
@@ -124,9 +125,6 @@ async def root() -> dict[str, str]:
 
 
 if __name__ == "__main__":
-  import time
-  from datetime import datetime, timezone
-
   import uvicorn
 
   uvicorn.run(

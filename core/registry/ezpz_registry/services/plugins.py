@@ -34,7 +34,7 @@ class PluginService:
 
   @staticmethod
   async def get_plugin_by_id(session: "AsyncSession", plugin_id: "UUID") -> Plugins | None:
-    result = await session.execute(select(Plugins).where(Plugins.id == plugin_id, ~Plugins.is_deleted))
+    result = await session.execute(select(Plugins).where(Plugins.id == plugin_id, Plugins.is_deleted))
     return result.scalar_one_or_none()
 
   @staticmethod
@@ -132,15 +132,6 @@ class PluginService:
     plugins = result.scalars().all()
 
     return list(plugins), total
-
-  @staticmethod
-  async def delete_plugin(session: "AsyncSession", plugin_id: "UUID") -> bool:
-    plugin = await PluginService.get_plugin_by_id(session, plugin_id)
-    if plugin:
-      plugin.soft_delete()
-      await session.flush()
-      return True
-    return False
 
   @staticmethod
   def _generate_verification_token(package_name: str) -> str:

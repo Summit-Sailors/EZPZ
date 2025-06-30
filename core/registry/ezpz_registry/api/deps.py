@@ -1,6 +1,6 @@
 import hmac
 import hashlib
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING, Annotated, AsyncGenerator
 
 from fastapi import Header, Depends, HTTPException
 from fastapi.security import HTTPBearer
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 security = HTTPBearer()
 
 
-async def get_database_session():
+async def get_database_session() -> AsyncGenerator[AsyncSession, None]:
   async with db_manager.aget_sa_session() as session:
     yield session
 

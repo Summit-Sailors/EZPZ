@@ -326,10 +326,10 @@ We welcome contributions to any part of the EZPZ ecosystem! Each component has i
 
 ## 📚 Documentation
 
-- [EZPZ-Pluginz Documentation](./pluginz/README.md)
-- [Painlezz Macroz Documentation](./macroz/README.md)
+- [EZPZ-Pluginz Documentation](./core/pluginz/README.md)
+- [Painlezz Macroz Documentation](./core/macroz/README.md)
 - [EZPZ Stubz Documentation](./stubz/README.md)
-- [Technical Analysis Plugin](./ezpz-rust-ti/README.md)
+- [Technical Analysis Plugin](./plugins/ezpz-rust-ti/README.md)
 - [Examples and Tutorials](./examples/README.md)
 
 ## 🙏 Acknowledgments
