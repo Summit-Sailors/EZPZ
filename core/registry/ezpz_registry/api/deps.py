@@ -1,7 +1,12 @@
+# type: ignore[B008]
+
+import os
 import hmac
 import hashlib
+import logging
 from typing import TYPE_CHECKING, Annotated, AsyncGenerator
 
+import structlog
 from fastapi import Header, Depends, HTTPException
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,9 +16,14 @@ from ezpz_registry.db.connection import db_manager
 
 if TYPE_CHECKING:
   from fastapi import Request
-  from fastapi.security import HTTPAuthorizationCredentials
+
+
+logging.basicConfig(level=getattr(logging, settings.log_level.upper()), format="%(message)s")
+logger = structlog.get_logger()
 
 security = HTTPBearer()
+
+EXPECTED_GITHUB_PAT = os.getenv("GITHUB_PAT", "")
 
 
 async def get_database_session() -> AsyncGenerator[AsyncSession, None]:
@@ -21,10 +31,24 @@ async def get_database_session() -> AsyncGenerator[AsyncSession, None]:
     yield session
 
 
-async def verify_api_key(credentials: "HTTPAuthorizationCredentials" = Depends(security)) -> str:
-  if not settings.admin_api_key or credentials.credentials != settings.admin_api_key:
-    raise HTTPException(status_code=401, detail="Invalid API key", headers={"WWW-Authenticate": "Bearer"})
-  return credentials.credentials
+def verify_github_pat(authorization: str = Header(None)) -> bool:
+  if not authorization:
+    raise HTTPException(status_code=401, detail="Authorization header required")
+
+  if not EXPECTED_GITHUB_PAT:
+    raise HTTPException(status_code=500, detail="Server configuration error: GitHub PAT not configured")
+
+  try:
+    scheme, token = authorization.split(" ", 1)
+    if scheme.lower() != "bearer":
+      raise HTTPException(status_code=401, detail="Invalid authorization scheme")
+  except ValueError:
+    raise HTTPException(status_code=401, detail="Invalid authorization header format") from None
+
+  if token != EXPECTED_GITHUB_PAT:
+    raise HTTPException(status_code=403, detail="Invalid GitHub PAT")
+
+  return True
 
 
 async def verify_webhook_signature(request: "Request", x_hub_signature_256: str = Header(None)) -> bytes:
@@ -46,5 +70,4 @@ async def verify_webhook_signature(request: "Request", x_hub_signature_256: str 
 
 # Type aliases for dependency injection
 DatabaseSession = Annotated[AsyncSession, Depends(get_database_session)]
-ApiKeyVerified = Annotated[str, Depends(verify_api_key)]
 WebhookVerified = Annotated[bytes, Depends(verify_webhook_signature)]

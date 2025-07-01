@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Any, Generator
+from typing import Any, Generator, LiteralString
 
 
 class EPolarsNS(StrEnum):
@@ -21,6 +21,6 @@ class EPolarsNS(StrEnum):
         return "register_series_namespace"
 
   @classmethod
-  def get_api_decorators(cls) -> Generator[str, Any, None]:
+  def get_api_decorators(cls) -> Generator[LiteralString, Any, None]:
     for e_pl_ns in EPolarsNS:
       yield f"register_{e_pl_ns.value.lower()}_namespace"

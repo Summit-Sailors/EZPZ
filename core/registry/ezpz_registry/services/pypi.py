@@ -49,8 +49,8 @@ class PyPIService:
           "project_urls": info.get("project_urls", {}),
         }
 
-    except Exception as e:
-      logger.exception(f"Error fetching PyPI info for {package_name}: {e}")
+    except Exception:
+      logger.exception("Error fetching PyPI info for")
       return None
     return None
 
@@ -73,8 +73,8 @@ class PyPIService:
         logger.info(f"Verified plugin: {package_name} v{package_info.get('version', 'unknown')}")
         return True
 
-    except Exception as e:
-      logger.exception(f"Error verifying plugin {package_name}: {e}")
+    except Exception:
+      logger.exception("Error verifying plugin")
       return False
     return False
 
@@ -109,8 +109,8 @@ class PyPIVerificationService:
       try:
         await self._verify_unverified_plugins()
         await asyncio.sleep(settings.pypi_check_interval)
-      except Exception as e:
-        logger.exception(f"Error in PyPI verification loop: {e}")
+      except Exception:
+        logger.exception("Error in PyPI verification loop")
         await asyncio.sleep(60)
 
   async def _verify_unverified_plugins(self) -> None:
@@ -136,8 +136,8 @@ class PyPIVerificationService:
 
             await asyncio.sleep(1)
 
-          except Exception as e:
-            logger.exception(f"Error verifying plugin {plugin.package_name}: {e}")
+          except Exception:
+            logger.exception("Error verifying plugin")
             await session.rollback()
 
 

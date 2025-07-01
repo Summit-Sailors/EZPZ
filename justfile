@@ -38,25 +38,25 @@ examples:
   rye run python3 examples/ezpz_ta/ezpz_rust_ti.py
 
 
-registry-gen message:
+reg-gen message:
   #!/usr/bin/env bash
   set -euo pipefail
   cd core/registry/ezpz_registry/migrations
   alembic revision --autogenerate -m "{{message}}"
 
-registry-bump:
+reg-bump:
   #!/usr/bin/env bash
   set -euo pipefail
   cd core/registry/ezpz_registry/migrations
   alembic upgrade head
 
-registry-run-dev:
+reg-dev:
   #!/usr/bin/env bash
   set -euo pipefail
   cd core/registry
   rye run uvicorn ezpz_registry.main:app --host 0.0.0.0 --port 8000 --reload
 
-registry-run-prod:
+reg-prod:
   #!/usr/bin/env bash
   set -euo pipefail
   cd core/registry

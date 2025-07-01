@@ -56,7 +56,7 @@ class Formatter:
       cmd = f"{cmd_stem} {file_path!s}"
       if formatter.cfg and formatter.cfg.exists():
         cmd += f" --config {formatter.cfg}"
-      p = subprocess.run(cmd, shell=True, check=False, capture_output=True)
+      p = subprocess.run(cmd, check=False, capture_output=True)
       print(p.stdout)
       print(p.stderr)
 

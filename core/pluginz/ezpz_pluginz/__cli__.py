@@ -1,9 +1,12 @@
+# type: ignore[B008]
+
 import os
 import time
 import logging
 
 import typer
 
+from ezpz_pluginz import mount_plugins, unmount_plugins
 from ezpz_pluginz.registry import (
   REGISTRY_URL,
   LOCAL_REGISTRY_DIR,
@@ -23,26 +26,27 @@ app = typer.Typer(name="ezplugins", pretty_exceptions_show_locals=False, pretty_
 logger = logging.getLogger(__name__)
 
 
+def get_github_pat() -> str:
+  pat = os.getenv("GITHUB_PAT")
+  if not pat:
+    logger.error("GitHub PAT required. Set GITHUB_PAT or GITHUB_TOKEN environment variable")
+    raise typer.Exit(1)
+  return pat
+
+
 @app.command(name="mount")
 def mount() -> None:
-  """Mount your plugins type hints"""
-  from ezpz_pluginz import mount_plugins
-
   mount_plugins()
 
 
-@app.command()
+@app.command(name="unmount")
 def unmount() -> None:
-  """Unmount your plugins type hints"""
-  from ezpz_pluginz import unmount_plugins
-
   unmount_plugins()
 
 
-@app.command()
+@app.command(name="register")
 def register(
   plugin_path: str = typer.Argument(..., help="Path to the plugin to register"),
-  api_key: str | None = typer.Option(None, "--api-key", help="Registry API key"),
 ) -> None:
   config = load_config()
   if not config:
@@ -65,9 +69,9 @@ def register(
     logger.info("Skipping registration to avoid duplicates")
     return
 
+  github_pat = get_github_pat()
   api = PluginRegistryAPI()
-  logger.info(f"Registering plugin: {plugin_info.name}")
-  success = api.register_plugin(plugin_info, api_key)
+  success = api.register_plugin(plugin_info, github_pat)
 
   if success:
     logger.info(f"Successfully registered '{plugin_info.name}'")
@@ -77,32 +81,64 @@ def register(
     raise typer.Exit(1)
 
 
-@app.command()
-def unregister(
-  plugin_name: str = typer.Argument(help="Name of the plugin to unregister"),
-  api_key: str | None = typer.Option(None, "--api-key", help="Registry API key"),
+@app.command(name="update")
+def update_plugin(
+  plugin_name: str = typer.Argument(help="Name of the plugin to update"),
+  plugin_path: str = typer.Argument(..., help="Path to the updated plugin"),
 ) -> None:
-  if not api_key:
-    api_key = os.getenv("EZPZ_REGISTRY_API_KEY")
-    if not api_key:
-      logger.error("API key required. Set EZPZ_REGISTRY_API_KEY or use --api-key")
-      raise typer.Exit(1)
+  github_pat = get_github_pat()
 
+  config = load_config()
+  if not config:
+    logger.error("Could not load ezpz.toml configuration")
+    raise typer.Exit(1)
+
+  # Find the updated plugin info
+  plugin_info = find_plugin_in_path(plugin_path, config.include_str_paths)
+  if not plugin_info:
+    logger.error(f"No plugin found at path: {plugin_path}")
+    raise typer.Exit(1)
+
+  # Get the plugin ID from the registry
+  local_registry = LocalPluginRegistry()
+  existing_plugin = local_registry.get_plugin(plugin_name)
+
+  if not existing_plugin:
+    logger.error(f"Plugin '{plugin_name}' not found in local registry")
+    logger.info("Try running 'ezplugins refresh' to update the local registry")
+    raise typer.Exit(1)
+
+  # Search for plugin ID via API
   api = PluginRegistryAPI()
-  success = api.delete_plugin(plugin_name, api_key)
+  plugins = api.search_plugins(plugin_name)
+  matching_plugin = None
+
+  for p in plugins:
+    if p.name == plugin_name:
+      matching_plugin = p
+      break
+
+  if not matching_plugin:
+    logger.error(f"Plugin '{plugin_name}' not found in remote registry")
+    raise typer.Exit(1)
+
+  plugin_id = getattr(matching_plugin, "id", None)
+  if not plugin_id:
+    logger.error("Could not determine plugin ID for update")
+    raise typer.Exit(1)
+
+  logger.info(f"Updating plugin: {plugin_info.name}")
+  success = api.update_plugin(plugin_id, plugin_info, github_pat)
 
   if success:
-    logger.info(f"Successfully unregistered plugin '{plugin_name}' from EZPZ registry")
-
-    # Refresh local cache to reflect changes
-    registry = LocalPluginRegistry()
-    registry.fetch_and_update_registry()
+    logger.info(f"Successfully updated '{plugin_info.name}'")
+    local_registry.fetch_and_update_registry()
   else:
-    logger.error(f"Failed to unregister plugin '{plugin_name}'")
+    logger.error(f"Failed to update '{plugin_info.name}'")
     raise typer.Exit(1)
 
 
-@app.command()
+@app.command(name="refresh")
 def refresh() -> None:
   logger.info("Refreshing local plugin registry...")
   registry = LocalPluginRegistry()
@@ -112,7 +148,7 @@ def refresh() -> None:
     raise typer.Exit(1)
 
 
-@app.command()
+@app.command(name="status")
 def status() -> None:
   registry = LocalPluginRegistry()
 
@@ -135,9 +171,10 @@ def status() -> None:
   logger.info(f"Verified plugins: {verified_count}")
 
 
-@app.command()
+@app.command(name="add")
 def add(
   plugin_name: str = typer.Argument(help="Name of the plugin to install"),
+  *,
   auto_mount: bool = typer.Option(True, "--auto-mount/--no-auto-mount", help="Automatically mount plugins after installation"),
 ) -> None:
   registry = LocalPluginRegistry()
@@ -151,7 +188,6 @@ def add(
   logger.info(f"Installing {plugin.name} ({plugin.package_name})...")
   logger.info(f"Description: {plugin.description}")
 
-  # Check if already installed
   if is_package_installed(plugin.package_name):
     logger.info(f"Package {plugin.package_name} is already installed")
   else:
@@ -160,7 +196,6 @@ def add(
       raise typer.Exit(1)
     logger.info(f"Successfully installed {plugin.package_name}")
 
-  # Check for ezpz.toml and create if needed
   if not check_ezpz_config():
     if typer.confirm("No ezpz.toml found. Create default configuration?"):
       project_name = typer.prompt("Project name", default="my-ezpz-project")
@@ -170,7 +205,6 @@ def add(
       logger.info("Cannot auto-mount without ezpz.toml")
       auto_mount = False
 
-  # Auto-mount if requested
   if auto_mount:
     logger.info("Mounting plugins...")
     mount()
@@ -230,7 +264,7 @@ def list_plugins() -> None:
     logger.info("")
 
 
-@app.command()
+@app.command(name="find")
 def find(
   keyword: str = typer.Argument(help="Keyword to search for in plugins"),
 ) -> None:
@@ -250,11 +284,6 @@ def find(
     logger.info(f"   Package: {plugin.package_name}")
     logger.info(f"   Description: {plugin.description}")
     logger.info("")
-
-
-def post_install_setup() -> None:
-  logger.info("Setting up EZPZ Plugin Registry...")
-  setup_local_registry()
 
 
 if __name__ == "__main__":

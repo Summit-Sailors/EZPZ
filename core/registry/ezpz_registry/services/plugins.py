@@ -23,6 +23,7 @@ class PluginService:
       description=plugin_data.description,
       aliases=plugin_data.aliases or [],
       author=plugin_data.author,
+      category=plugin_data.category,
       homepage=plugin_data.homepage,
       submitted_by=submitted_by,
       verification_token=PluginService._generate_verification_token(plugin_data.package_name),
@@ -80,6 +81,17 @@ class PluginService:
     plugin = result.scalar_one_or_none()
     if plugin:
       plugin.verified = True
+      plugin.updated_at = datetime.now(timezone.utc)
+      await session.flush()
+      return True
+    return False
+
+  @staticmethod
+  async def delete_plugin(session: "AsyncSession", plugin_id: "UUID") -> bool:
+    result = await session.execute(select(Plugins).where(Plugins.id == plugin_id, ~Plugins.is_deleted))
+    plugin = result.scalar_one_or_none()
+    if plugin:
+      plugin.is_deleted = True
       plugin.updated_at = datetime.now(timezone.utc)
       await session.flush()
       return True

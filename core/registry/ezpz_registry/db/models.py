@@ -1,6 +1,6 @@
 from enum import StrEnum
 from uuid import UUID, uuid4
-from typing import Any, ClassVar, Iterable, cast
+from typing import Any, ClassVar
 from datetime import datetime, timezone
 from functools import cached_property
 
@@ -49,6 +49,7 @@ class Plugins(BaseDBModel, table=True):
   aliases: list[str] = Field(default_factory=list, sa_column=Column(ARRAY(String), default=list, nullable=False))
   version: str | None = Field(default=None, max_length=50, sa_column=Column(String(50), nullable=True))
   author: str | None = Field(default=None, max_length=100, sa_column=Column(String(100), nullable=True))
+  category: str = Field(max_length=50, sa_column=Column(String(50), nullable=False, index=True))
   homepage: HttpUrl | None = Field(default=None, sa_column=Column(HttpUrlType(500), nullable=True))
   verified: bool = Field(default=False, sa_column=Column(Boolean, default=False, nullable=False, index=True))
   submitted_by: str | None = Field(default=None, max_length=100, sa_column=Column(String(100), nullable=True))
@@ -109,63 +110,6 @@ class Plugins(BaseDBModel, table=True):
     self.deleted_at = None
 
 
-class ApiKeys(BaseDBModel, table=True):
-  __tablename__: str = "api_keys"
-
-  INVALID_PERMISSION_ERROR: ClassVar[str] = "Invalid permission. Please use valid permission types."
-
-  id: UUID = Field(primary_key=True, default_factory=uuid4, nullable=False, unique=True)
-  key_hash: str = Field(max_length=64, sa_column=Column(String(64), unique=True, nullable=False, index=True))
-  name: str = Field(max_length=100, sa_column=Column(String(100), nullable=False))
-  permissions: list[PermissionType] = Field(default_factory=list, sa_column=Column(ARRAY(String), default=list, nullable=False))
-  active: bool = Field(default=True, sa_column=Column(Boolean, default=True, nullable=False))
-  expires_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
-  last_used_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
-
-  # Timestamps
-  created_at: datetime = Field(
-    default_factory=lambda: datetime.now(timezone.utc),
-    sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now()),
-  )
-  updated_at: datetime = Field(
-    default_factory=lambda: datetime.now(timezone.utc),
-    sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()),
-  )
-
-  # Soft delete
-  deleted_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
-  is_deleted: bool = Field(default=False, sa_column=Column(Boolean, server_default=expression.false(), nullable=False))
-
-  @field_validator("permissions")
-  def validate_permissions(cls, v: Iterable[Any] | None) -> list[PermissionType]:
-    if v is None:
-      return list[PermissionType]()
-    valid_permissions = [perm.value for perm in PermissionType]
-    for perm in v:
-      if perm not in valid_permissions:
-        raise ValueError(cls.INVALID_PERMISSION_ERROR)
-    return cast("list[PermissionType]", v)
-
-  def __repr__(self) -> str:
-    return f"<ApiKey(name='{self.name}', active={self.active})>"
-
-  @property
-  def is_expired(self) -> bool:
-    if self.expires_at is None:
-      return False
-    return datetime.now(timezone.utc) > self.expires_at
-
-  @property
-  def is_usable(self) -> bool:
-    return self.active and not self.is_expired and not self.is_deleted
-
-  def update_last_used(self) -> None:
-    self.last_used_at = datetime.now(timezone.utc)
-
-  def has_permission(self, permission: PermissionType) -> bool:
-    return permission.value in self.permissions or PermissionType.ADMIN.value in self.permissions
-
-
 class PluginDownloads(BaseDBModel, table=True):
   __tablename__: str = "plugin_downloads"
   __table_args__ = (UniqueConstraint("plugin_id", "date", name="unique_plugin_date"),)
@@ -218,20 +162,6 @@ class PluginResponse(SQLModel):
     from_attributes = True
 
 
-class ApiKeyResponse(SQLModel):
-  id: UUID
-  name: str
-  permissions: list[PermissionType]
-  active: bool
-  created_at: datetime
-  expires_at: datetime | None = None
-  last_used_at: datetime | None = None
-  is_expired: bool = False
-
-  class Config:
-    from_attributes = True
-
-
 class PluginDownloadResponse(SQLModel):
   id: UUID
   plugin_id: UUID
@@ -253,7 +183,7 @@ class PluginCreate(SQLModel):
   version: str | None = Field(default=None, max_length=50)
   author: str | None = Field(default=None, max_length=100)
   homepage: HttpUrl | None = None
-  submitted_by: str | None = Field(default=None, max_length=100)
+  category: str = Field(max_length=50)
   metadata_: dict[str, Any] | None = Field(default_factory=dict)
 
 
@@ -267,16 +197,4 @@ class PluginUpdate(SQLModel):
   homepage: HttpUrl | None = None
   verified: bool | None = None
   metadata_: dict[str, Any] | None = None
-
-
-class ApiKeyCreate(SQLModel):
-  name: str = Field(max_length=100)
-  permissions: list[PermissionType] = Field(default_factory=list)
-  expires_at: datetime | None = None
-
-
-class ApiKeyUpdate(SQLModel):
-  name: str | None = Field(default=None, max_length=100)
-  permissions: list[PermissionType] | None = None
-  active: bool | None = None
-  expires_at: datetime | None = None
+  category: str | None = Field(default=None, max_length=50)

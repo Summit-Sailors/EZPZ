@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from alembic import context
 from sqlalchemy import pool, engine_from_config
 from alembic.script import write_hooks
-from ezpz_registry.db.models import ApiKeys, Plugins, PluginDownloads, metadata_obj  # type: ignore # noqa: F401
+from ezpz_registry.db.models import Plugins, PluginDownloads, metadata_obj  # type: ignore # noqa: F401
 from ezpz_registry.db.formatter import Formatter
 from ezpz_registry.db.connection import db_manager
 

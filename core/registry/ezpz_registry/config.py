@@ -1,4 +1,5 @@
 import logging
+import secrets
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -47,8 +48,6 @@ class Settings(BaseSettings):
   @classmethod
   def validate_secret_key(cls, v: str) -> str:
     if not v:
-      import secrets
-
       generated_key = secrets.token_urlsafe(32)
       logger.warning("SECRET_KEY environment variable not set. Generating a random key.")
       return generated_key

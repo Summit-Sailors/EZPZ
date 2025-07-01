@@ -4,8 +4,6 @@ from datetime import UTC, datetime
 
 from pydantic import Field, HttpUrl, BaseModel, ConfigDict, field_validator
 
-from ezpz_registry.db.models import PermissionType
-
 
 class PluginBase(BaseModel):
   INVALID_PACKAGE_NAME: ClassVar[str] = "Invalid package name format"
@@ -17,6 +15,9 @@ class PluginBase(BaseModel):
   aliases: list[str] = Field(default_factory=list, description="Alternative names")
   author: str | None = Field(None, max_length=100, description="Plugin author")
   homepage: HttpUrl | None = Field(None, description="Plugin homepage URL")
+  category: str = Field(..., min_length=1, max_length=50, description="Plugin category")
+  version: str = Field(default="0.1.0", max_length=50, description="Plugin version")
+  verified: bool = Field(default=False, description="Whether plugin is verified")
 
   @field_validator("package_name")
   @classmethod
@@ -37,7 +38,7 @@ class PluginBase(BaseModel):
 
 class PluginCreate(PluginBase):
   metadata_: dict[str, Any] | None = Field(default_factory=dict, description="Plugin metadata")
-  verified: bool = Field(default=False, description="Whether plugin is verified on PyPI")
+  category: str = Field(max_length=50)
   created_at: datetime | None = Field(None, description="Creation timestamp")
   updated_at: datetime | None = Field(None, description="Update timestamp")
 
@@ -45,6 +46,7 @@ class PluginCreate(PluginBase):
 class PluginUpdate(BaseModel):
   name: str | None = Field(None, min_length=1, max_length=100)
   description: str | None = Field(None, min_length=1)
+  category: str | None = Field(default=None, max_length=50)
   aliases: list[str] | None = Field(None)
   author: str | None = Field(None, max_length=100)
   homepage: HttpUrl | None = Field(None)
@@ -55,12 +57,12 @@ class PluginResponse(PluginBase):
   model_config = ConfigDict(from_attributes=True)
 
   id: UUID
-  version: str | None = Field(None, description="Latest version from PyPI")
-  verified: bool = Field(description="Whether plugin is verified on PyPI")
+  category: str
   created_at: datetime
   updated_at: datetime
   submitted_by: str | None = Field(None, description="Who submitted the plugin")
   is_deleted: bool = Field(default=False, description="Soft delete flag")
+  category: str = Field(description="Plugin category")
 
 
 class PluginRegistrationRequest(BaseModel):
@@ -80,25 +82,6 @@ class PluginSearchResponse(BaseModel):
   plugins: list[PluginResponse]
   query: str
   total: int
-
-
-class ApiKeyCreate(BaseModel):
-  name: str = Field(..., min_length=1, max_length=100, description="Key name")
-  permissions: list[PermissionType] = Field(default_factory=list, description="Key permissions")
-  expires_at: datetime | None = Field(None, description="Expiration date")
-
-
-class ApiKeyResponse(BaseModel):
-  model_config = ConfigDict(from_attributes=True)
-
-  id: UUID
-  name: str
-  permissions: list[PermissionType]
-  active: bool
-  created_at: datetime
-  expires_at: datetime | None
-  last_used_at: datetime | None
-  is_expired: bool = Field(description="Whether the key is expired")
 
 
 class HealthResponse(BaseModel):
