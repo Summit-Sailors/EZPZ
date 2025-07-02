@@ -1,0 +1,200 @@
+name: Main Package CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "core/pluginz/**"
+      - "core/macroz/**"
+      - "core/registry/**"
+      - "stubz/**"
+      - "pyproject.toml"
+      - ".github/workflows/main-package.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "core/pluginz/**"
+      - "core/macroz/**"
+      - "core/registry/**"
+      - "stubz/**"
+      - "pyproject.toml"
+
+env:
+  PYTHON_VERSION: "3.11"
+  RUST_VERSION: "1.75"
+
+jobs:
+  test-core-components:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          default: true
+          override: true
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./core/pluginz[dev]
+          pip install -e ./core/macroz[dev]
+          pip install -e ./core/registry[dev]
+
+      - name: Build Rust components
+        run: |
+          cargo build --workspace --exclude ezpz-rust-ti
+
+      - name: Run Python tests
+        run: |
+          pytest core/pluginz/tests/ -v
+          pytest core/macroz/tests/ -v --if-present
+          pytest core/registry/tests/ -v --if-present
+
+      - name: Run Rust tests
+        run: |
+          cargo test --workspace --exclude ezpz-rust-ti
+
+      - name: Test CLI commands
+        run: |
+          # Test basic CLI functionality
+          ezplugins --help
+          ezplugins list --help
+          ezplugins add --help
+          # Test registry connection (if available)
+          ezplugins list || echo "Registry connection test skipped"
+
+      - name: Test plugin discovery
+        run: |
+          # Test local plugin discovery
+          python -c "
+          from ezpz_pluginz.registry import discover_plugins
+          plugins = discover_plugins()
+          print(f'Discovered {len(plugins)} plugins')
+          "
+
+  build-and-publish:
+    needs: test-core-components
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          default: true
+          override: true
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip build twine
+
+      - name: Build Python packages
+        run: |
+          # Build pluginz (main package)
+          cd core/pluginz
+          python -m build
+          cd ../..
+
+          # Build macroz
+          cd core/macroz  
+          python -m build
+          cd ../..
+
+          # Build registry
+          cd core/registry
+          python -m build
+          cd ../..
+
+      - name: Build Rust packages
+        run: |
+          # Build stubz
+          cd stubz
+          cargo build --release
+          cd ..
+
+      - name: Check package integrity
+        run: |
+          twine check core/pluginz/dist/*
+          twine check core/macroz/dist/*
+          twine check core/registry/dist/*
+
+      - name: Publish to PyPI
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          twine upload core/pluginz/dist/*
+          twine upload core/macroz/dist/*
+          twine upload core/registry/dist/*
+
+      - name: Publish Rust crates
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
+        run: |
+          cd stubz
+          cargo publish
+          cd ..
+
+  update-registry:
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install ezpz-pluginz
+        run: |
+          pip install -e ./core/pluginz
+
+      - name: Update plugin registry
+        env:
+          REGISTRY_API_KEY: ${{ secrets.REGISTRY_API_KEY }}
+        run: |
+          # This will scan for plugins and update the registry
+          ezplugins admin refresh-registry
+          echo "Registry updated successfully"

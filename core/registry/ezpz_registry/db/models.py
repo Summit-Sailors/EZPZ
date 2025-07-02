@@ -1,4 +1,3 @@
-from enum import StrEnum
 from uuid import UUID, uuid4
 from typing import Any, ClassVar
 from datetime import datetime, timezone
@@ -14,14 +13,6 @@ from sqlalchemy.sql import expression
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 
 from ezpz_registry.db.types.http_url import HttpUrlType
-
-
-class PermissionType(StrEnum):
-  READ = "read"
-  WRITE = "write"
-  DELETE = "delete"
-  ADMIN = "admin"
-
 
 metadata_obj = MetaData()
 
@@ -52,8 +43,6 @@ class Plugins(BaseDBModel, table=True):
   category: str = Field(max_length=50, sa_column=Column(String(50), nullable=False, index=True))
   homepage: HttpUrl | None = Field(default=None, sa_column=Column(HttpUrlType(500), nullable=True))
   verified: bool = Field(default=False, sa_column=Column(Boolean, default=False, nullable=False, index=True))
-  submitted_by: str | None = Field(default=None, max_length=100, sa_column=Column(String(100), nullable=True))
-  verification_token: str | None = Field(default=None, max_length=32, sa_column=Column(String(32), nullable=True))
 
   # Timestamps
   created_at: datetime = Field(
@@ -149,14 +138,16 @@ class PluginResponse(SQLModel):
   package_name: str
   description: str
   aliases: list[str]
-  version: str | None = None
-  author: str | None = None
-  homepage: HttpUrl | None = None
+  version: str
+  author: str
+  category: str
+  homepage: HttpUrl
+  downloads: int = 0
   verified: bool = False
-  submitted_by: str | None = None
   created_at: datetime
   updated_at: datetime | None = None
   is_deleted: bool = False
+  metadata_: dict[str, Any]
 
   class Config:
     from_attributes = True

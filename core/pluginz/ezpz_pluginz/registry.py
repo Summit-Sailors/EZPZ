@@ -2,16 +2,15 @@ import os
 import sys
 import json
 import time
-import uuid
 import logging
 import tomllib
 import subprocess
+import importlib.util
 import importlib.metadata
 from typing import Any, ClassVar
 from pathlib import Path
 from dataclasses import asdict, dataclass
 from urllib.parse import quote
-from importlib.util import module_from_spec, spec_from_file_location
 
 import httpx
 
@@ -41,28 +40,30 @@ LOCAL_REGISTRY_DIR = Path.home() / ".ezpz" / "registry"
 LOCAL_REGISTRY_FILE = LOCAL_REGISTRY_DIR / "plugins.json"
 
 
-class PluginRegistryError(Exception): ...
+class PluginRegistryError(Exception):
+  def __init__(self, message: str) -> None:
+    super().__init__(message)
 
 
-class PluginRegistryConnectionError(PluginRegistryError):
+class PluginRegistryConnectionError(Exception):
   def __init__(self, base_url: str, reason: str = "connection failed") -> None:
     super().__init__(f"Unable to connect to registry at {base_url}: {reason}")
     self.base_url = base_url
     self.reason = reason
 
 
-class PluginRegistryAuthError(PluginRegistryError):
+class PluginRegistryAuthError(Exception):
   def __init__(self, message: str = "Authentication failed - invalid or expired token") -> None:
     super().__init__(message)
 
 
-class PluginNotFoundError(PluginRegistryError):
+class PluginNotFoundError(Exception):
   def __init__(self, resource: str) -> None:
     super().__init__(f"Resource not found: {resource}")
     self.resource = resource
 
 
-class PluginOperationError(PluginRegistryError):
+class PluginOperationError(Exception):
   def __init__(self, operation: str, plugin_name: str, reason: str) -> None:
     super().__init__(f"Failed to {operation} plugin '{plugin_name}': {reason}")
     self.operation = operation
@@ -70,8 +71,13 @@ class PluginOperationError(PluginRegistryError):
     self.reason = reason
 
 
+class PluginValidationError(Exception):
+  def __init__(self, message: str) -> None:
+    super().__init__(message)
+
+
 @dataclass
-class PluginInfo:
+class PluginCreate:
   name: str
   package_name: str
   description: str
@@ -79,13 +85,46 @@ class PluginInfo:
   category: str
   author: str
   metadata_: dict[str, Any] | None
-  version: str = DEFAULT_VERSION
-  homepage: str = DEFAULT_HOMEPAGE
+  version: str
+  homepage: str
+
+  def __post_init__(self) -> None:
+    self._validate()
+
+  def _validate(self) -> None:
+    if not self.name or not self.name.strip():
+      raise PluginValidationError("Plugin name cannot be empty")
+    if not self.package_name or not self.package_name.strip():
+      raise PluginValidationError("Package name cannot be empty")
+    if not self.description or not self.description.strip():
+      raise PluginValidationError("Description cannot be empty")
+    if not self.author or not self.author.strip():
+      raise PluginValidationError("Author cannot be empty")
 
 
-def safe_deserialize_plugin(plugin_data: dict[str, Any]) -> PluginInfo | None:
+@dataclass(frozen=True)
+class PluginResponse:
+  id: str
+  name: str
+  package_name: str
+  description: str
+  aliases: list[str]
+  version: str
+  author: str
+  category: str
+  homepage: str
+  created_at: str
+  updated_at: str
+  metadata_: dict[str, Any]
+  downloads: int = 0
+  verified: bool = False
+  is_deleted: bool = False
+
+
+def safe_deserialize_plugin(plugin_data: dict[str, Any]) -> PluginResponse | None:
   try:
-    return PluginInfo(
+    return PluginResponse(
+      id=plugin_data.get("id", ""),
       name=plugin_data.get("name", ""),
       package_name=plugin_data.get("package_name", ""),
       description=plugin_data.get("description", ""),
@@ -95,6 +134,10 @@ def safe_deserialize_plugin(plugin_data: dict[str, Any]) -> PluginInfo | None:
       version=plugin_data.get("version", DEFAULT_VERSION),
       homepage=plugin_data.get("homepage", ""),
       metadata_=plugin_data.get("metadata_", {}),
+      created_at=plugin_data.get("created_at", ""),
+      updated_at=plugin_data.get("updated_at", ""),
+      verified=plugin_data.get("verified", False),
+      is_deleted=plugin_data.get("is_deleted", False),
     )
   except Exception:
     logger.exception("Failed to deserialize plugin data")
@@ -155,8 +198,8 @@ class PluginRegistryAPI:
     except (ValueError, json.JSONDecodeError) as exc:
       raise PluginRegistryError(f"Invalid response format: {exc}") from exc
 
-  def fetch_plugins(self, *, verified_only: bool = False) -> list[PluginInfo]:
-    all_plugins = list[PluginInfo]()
+  def fetch_plugins(self, *, verified_only: bool = False) -> list[PluginResponse]:
+    all_plugins = list[PluginResponse]()
     batch_size = DEFAULT_BATCH_SIZE
     page = DEFAULT_PAGE_START
 
@@ -170,7 +213,7 @@ class PluginRegistryAPI:
       if not plugins_data:
         break
 
-      batch_plugins = list[PluginInfo]()
+      batch_plugins = list[PluginResponse]()
       for plugin_data in plugins_data:
         if not isinstance(plugin_data, dict):
           logger.warning(f"Skipping invalid plugin data: {plugin_data}")
@@ -192,7 +235,7 @@ class PluginRegistryAPI:
     logger.info(f"Successfully fetched {len(all_plugins)} plugins")
     return all_plugins
 
-  def search_plugins(self, keyword: str) -> list[PluginInfo]:
+  def search_plugins(self, keyword: str) -> list[PluginResponse]:
     if not keyword.strip():
       raise ValueError(self.EMPTY_SEARCH_KEYWORD_ERROR)
 
@@ -203,7 +246,7 @@ class PluginRegistryAPI:
     response = self._make_request(f"/plugins/search{params}")
 
     plugins_data = response.get("plugins", [])
-    plugins = list[PluginInfo]()
+    plugins = list[PluginResponse]()
 
     for plugin_data in plugins_data:
       if not isinstance(plugin_data, dict):
@@ -217,7 +260,7 @@ class PluginRegistryAPI:
     logger.info(f"Search returned {len(plugins)} plugins")
     return plugins
 
-  def get_plugin(self, plugin_id: str) -> PluginInfo:
+  def get_plugin(self, plugin_id: str) -> PluginResponse:
     if not plugin_id.strip():
       raise ValueError(self.EMPTY_PLUGIN_ID_ERROR)
 
@@ -235,7 +278,7 @@ class PluginRegistryAPI:
     logger.info(f"Successfully retrieved plugin: {plugin.name}")
     return plugin
 
-  def register_plugin(self, plugin_info: PluginInfo, github_token: str) -> bool:
+  def register_plugin(self, plugin_info: PluginCreate, github_token: str) -> bool:
     if not github_token.strip():
       raise ValueError(self.GITHUB_TOKEN_REQUIRED_ERROR)
 
@@ -243,8 +286,6 @@ class PluginRegistryAPI:
 
     data = {"plugin": asdict(plugin_info)}
     headers = {"Authorization": f"Bearer {github_token}"}
-
-    logger.info(f"here is the data and headers: {data}: {headers}")
 
     response = self._make_request("/plugins/register", method="POST", data=data, headers=headers)
 
@@ -256,7 +297,7 @@ class PluginRegistryAPI:
     logger.info(f"Successfully registered plugin: {plugin_info.name}")
     return success
 
-  def update_plugin(self, plugin_id: str, plugin_info: PluginInfo, github_token: str) -> bool:
+  def update_plugin(self, plugin_id: str, plugin_info: PluginCreate, github_token: str) -> bool:
     if not plugin_id.strip():
       raise ValueError(self.EMPTY_PLUGIN_ID_ERROR)
     if not github_token.strip():
@@ -284,9 +325,7 @@ class PluginRegistryAPI:
       raise ValueError(self.GITHUB_TOKEN_REQUIRED_ERROR)
 
     logger.info(f"Deleting plugin: {plugin_id}")
-
     headers = {"Authorization": f"Bearer {github_token}"}
-
     response = self._make_request(f"/plugins/{plugin_id}", method="DELETE", headers=headers)
 
     success = response.get("success", False)
@@ -299,10 +338,8 @@ class PluginRegistryAPI:
 
 
 class LocalPluginRegistry:
-  """Local registry for EZPZ ecosystem plugins."""
-
   def __init__(self) -> None:
-    self._plugins: dict[str, PluginInfo] = {}
+    self._plugins: dict[str, PluginResponse] = {}
     self._api = PluginRegistryAPI()
     self._ensure_registry_dir()
     self._load_local_registry()
@@ -318,13 +355,13 @@ class LocalPluginRegistry:
       with LOCAL_REGISTRY_FILE.open("r") as f:
         data = json.load(f)
         for plugin_data in data.get("plugins", []):
-          plugin = PluginInfo(**plugin_data)
+          plugin = PluginResponse(**plugin_data)
           self._register_plugin(plugin)
       logger.debug(f"Loaded {len(data.get('plugins', []))} plugins from local registry")
     except Exception:
       logger.warning("Failed to load local registry")
 
-  def _save_local_registry(self, plugins: list[PluginInfo]) -> None:
+  def _save_local_registry(self, plugins: list[PluginResponse]) -> None:
     try:
       registry_data = {"timestamp": time.time(), "plugins": [asdict(plugin) for plugin in plugins]}
       with LOCAL_REGISTRY_FILE.open("w") as f:
@@ -333,7 +370,7 @@ class LocalPluginRegistry:
     except Exception:
       logger.warning("Failed to save local registry")
 
-  def _register_plugin(self, plugin: PluginInfo) -> None:
+  def _register_plugin(self, plugin: PluginResponse) -> None:
     self._plugins[plugin.name.lower()] = plugin
     # Also register aliases
     for alias in plugin.aliases:
@@ -343,7 +380,6 @@ class LocalPluginRegistry:
     logger.debug("Fetching plugins from remote registry...")
     try:
       remote_plugins = self._api.fetch_plugins()
-
       if remote_plugins:
         self._plugins.clear()
         for plugin in remote_plugins:
@@ -358,12 +394,12 @@ class LocalPluginRegistry:
       return False
     return True
 
-  def get_plugin(self, name: str) -> PluginInfo | None:
+  def get_plugin(self, name: str) -> PluginResponse | None:
     return self._plugins.get(name.lower())
 
-  def list_plugins(self) -> list[PluginInfo]:
+  def list_plugins(self) -> list[PluginResponse]:
     seen: set[str] = set()
-    unique_plugins: list[PluginInfo] = []
+    unique_plugins: list[PluginResponse] = []
 
     for plugin in self._plugins.values():
       if plugin.name not in seen:
@@ -393,9 +429,9 @@ class LocalPluginRegistry:
       return False
     return False
 
-  def search_plugins(self, keyword: str) -> list[PluginInfo]:
+  def search_plugins(self, keyword: str) -> list[PluginResponse]:
     keyword_lower = keyword.lower()
-    matching_plugins = list[PluginInfo]()
+    matching_plugins = list[PluginResponse]()
     seen: set[str] = set()
 
     for plugin in self._plugins.values():
@@ -416,8 +452,8 @@ class LocalPluginRegistry:
     return matching_plugins
 
 
-def discover_local_plugins() -> list[PluginInfo]:
-  plugins = list[PluginInfo]()
+def discover_local_plugins() -> list[PluginResponse]:
+  plugins = list[PluginResponse]()
 
   try:
     for dist in importlib.metadata.distributions():
@@ -428,37 +464,12 @@ def discover_local_plugins() -> list[PluginInfo]:
         try:
           plugin_info_func = entry_point.load()
           plugin_info_data = plugin_info_func()
-          plugin_info = PluginInfo(**plugin_info_data) if isinstance(plugin_info_data, dict) else plugin_info_data
+          plugin_info = PluginResponse(**plugin_info_data) if isinstance(plugin_info_data, dict) else plugin_info_data
           plugins.append(plugin_info)
         except Exception:
           logger.warning(f"Failed to load plugin from {entry_point.name}")
   except ImportError:
     logger.debug("importlib.metadata not available")
-
-  return plugins
-
-
-def find_plugins_in_directory(group: str = "ezpz.plugins") -> list[PluginInfo]:
-  plugins = list[PluginInfo]()
-
-  try:
-    eps = importlib.metadata.entry_points(group=group)
-    for ep in eps:
-      try:
-        register_func = ep.load()
-        plugin_data = register_func()
-
-        if isinstance(plugin_data, dict):
-          plugin = PluginInfo(**plugin_data)
-          plugins.append(plugin)
-        elif isinstance(plugin_data, PluginInfo):
-          plugins.append(plugin_data)
-
-      except Exception:
-        logger.warning(f"Error loading plugin {ep.name}")
-
-  except Exception:
-    logger.warning("Error discovering entry points")
 
   return plugins
 
@@ -634,7 +645,7 @@ def setup_local_registry() -> None:
     logger.warning("Failed to setup local registry from remote")
 
 
-def find_plugin_in_path(plugin_path: str, include_paths: list[str]) -> PluginInfo | None:
+def find_plugin_in_path(plugin_path: str, include_paths: list[str]) -> PluginCreate | None:
   plugin_path_obj = Path(plugin_path)
 
   logger.info(f"Searching for plugin in: {plugin_path_obj}")
@@ -663,7 +674,7 @@ def find_plugin_in_path(plugin_path: str, include_paths: list[str]) -> PluginInf
   return None
 
 
-def _load_plugin_from_path(plugin_path: Path) -> PluginInfo | None:
+def _load_plugin_from_path(plugin_path: Path) -> PluginCreate | None:
   try:
     # Common patterns for plugin entry points
     entry_point_patterns = [
@@ -701,31 +712,20 @@ def _extract_package_name(plugin_dir_name: str) -> str:
   return plugin_dir_name.replace("-", "_")
 
 
-def _load_plugin_from_file(file_path: Path) -> PluginInfo | None:
-  parent_dir = str(file_path.parent)
-  module_name_base = file_path.stem
-  unique_module_name = f"ezpz_plugin_loader_{uuid.uuid4().hex}_{module_name_base}"
-
-  path_added = False
-  if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
-    path_added = True
-
-  module = None
+def _load_plugin_from_file(file_path: Path) -> "PluginCreate | None":
   try:
-    if module_name_base in sys.modules:
-      del sys.modules[module_name_base]
-
-    if unique_module_name in sys.modules:
-      del sys.modules[unique_module_name]
-
-    spec = spec_from_file_location(unique_module_name, file_path)
-    if spec is None or spec.loader is None:
-      logger.warning(f"Could not get spec or loader for {file_path}")
+    if not file_path.exists():
+      logger.warning(f"Plugin file does not exist: {file_path}")
       return None
 
-    module = module_from_spec(spec)
-    sys.modules[unique_module_name] = module
+    # spec directly from file path
+    spec = importlib.util.spec_from_file_location(f"plugin_{file_path.stem}", file_path)
+
+    if spec is None or spec.loader is None:
+      logger.warning(f"Could not create spec for {file_path}")
+      return None
+
+    module = importlib.util.module_from_spec(spec)
 
     spec.loader.exec_module(module)
 
@@ -733,23 +733,11 @@ def _load_plugin_from_file(file_path: Path) -> PluginInfo | None:
       register_func = module.register_plugin
       plugin_data = register_func()
 
-      if isinstance(plugin_data, dict):
-        return PluginInfo(**plugin_data)
-      if isinstance(plugin_data, PluginInfo):
-        return plugin_data
-      logger.warning(f"register_plugin returned unexpected type: {type(plugin_data)}")
-      return None
-    logger.warning(f"Module {file_path} does not have a 'register_plugin' function.")
-
+      return PluginCreate(**plugin_data)
+    logger.warning(f"No register_plugin function in {file_path}")
   except Exception as e:
-    logger.debug(f"Could not load plugin from {file_path}: {e}", exc_info=True)
+    logger.error(f"Failed to load plugin {file_path}: {e}", exc_info=True)
     return None
-  finally:
-    if path_added:
-      sys.path.remove(parent_dir)
-    if unique_module_name in sys.modules:
-      del sys.modules[unique_module_name]
-  return None
 
 
 def register_plugin() -> dict[str, Any]:
@@ -761,7 +749,7 @@ def register_plugin() -> dict[str, Any]:
   and modify for their specific plugin.
 
   # Returns:
-      dict containing plugin information that will be converted to PluginInfo
+      dict containing plugin information that will be converted to PluginCreate
 
   **Example usage in plugin developer's setup.py or pyproject.toml:**
 
@@ -784,15 +772,20 @@ def register_plugin() -> dict[str, Any]:
   ```
   """
   return {
-    "name": "example-plugin",
-    "package_name": "ezpz-example-plugin",
-    "description": "An example EZPZ plugin",
-    "aliases": ["example", "demo"],
+    "name": "My Awesome Plugin",
+    "package_name": "my-awesome-plugin",
+    "description": "A comprehensive plugin that does amazing things",
+    "category": "utility",
     "version": "1.0.0",
-    "author": "Plugin Developer",
-    "category": "technical analysis",
-    "verified": False,
-    "homepage": "https://github.com/developer/ezpz-example-plugin",
-    "created_at": "",
-    "updated_at": "",
+    "author": "John Doe",
+    "homepage": "https://github.com/johndoe/my-awesome-plugin",
+    "aliases": ["awesome", "my-plugin"],
+    "metadata_": {
+      "tags": ["testing", "development", "api"],
+      "license": "MIT",
+      "python_version": ">=3.8",
+      "dependencies": ["requests", "pydantic"],
+      "documentation": "https://docs.example.com/plugin",
+      "support_email": "support@example.com",
+    },
   }

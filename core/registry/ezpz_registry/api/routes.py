@@ -1,26 +1,34 @@
 # type: ignore[B008]
 # ruff: noqa: B008
+from __future__ import annotations
+
 import json
 import logging
+from uuid import UUID
 from typing import TYPE_CHECKING, Any
 from datetime import datetime, timezone
 
-from fastapi import Query, Depends, APIRouter, HTTPException
+from fastapi import Query, Depends, APIRouter, HTTPException, BackgroundTasks
 from sqlalchemy.exc import IntegrityError
 
 from ezpz_registry.api.deps import verify_github_pat, get_database_session
-from ezpz_registry.api.schema import HealthResponse, PluginResponse, WebhookResponse, PluginListResponse, PluginSearchResponse
+from ezpz_registry.api.schema import (
+  PluginUpdate,
+  HealthResponse,
+  PluginResponse,
+  WebhookResponse,
+  PluginListResponse,
+  PluginSearchResponse,
+  PluginRegistrationRequest,
+)
 from ezpz_registry.db.connection import db_manager
 from ezpz_registry.services.pypi import PyPIService
 from ezpz_registry.services.plugins import PluginService
 
 if TYPE_CHECKING:
-  from uuid import UUID
-
-  from fastapi import Request, BackgroundTasks
+  from fastapi import Request
 
   from ezpz_registry.api.deps import DatabaseSession
-  from ezpz_registry.api.schema import PluginUpdate, PluginRegistrationRequest
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -86,8 +94,8 @@ def validate_plugin_exists(plugin: "PluginResponse | None") -> PluginResponse:
 
 @router.put("/plugins/{plugin_id}", response_model=dict[str, Any])
 async def update_plugin(
-  plugin_id: "UUID",
-  update_data: "PluginUpdate",
+  plugin_id: UUID,
+  update_data: PluginUpdate,
   session: "DatabaseSession" = Depends(get_database_session),
   *,
   verified: bool = Depends(verify_github_pat),
@@ -96,7 +104,7 @@ async def update_plugin(
     existing_plugin = await PluginService.get_plugin_by_id(session, plugin_id)
     validate_existing_plugin(existing_plugin)
 
-    updated_plugin = await PluginService.update_plugin(session, plugin_id, update_data)
+    updated_plugin = await PluginService.update_plugin(session, existing_plugin, update_data)
     validate_update_success(updated_plugin)
 
     logger.info(f"Plugin '{existing_plugin.name}' (ID: {plugin_id}) updated successfully")
@@ -130,14 +138,14 @@ def validate_update_success(updated_plugin: "PluginUpdate | None") -> None:
 
 @router.post("/plugins/register", response_model=dict[str, Any])
 async def register_plugin(
-  request: "PluginRegistrationRequest",
-  background_tasks: "BackgroundTasks",
+  request: PluginRegistrationRequest,
+  background_tasks: BackgroundTasks,
   session: "DatabaseSession" = Depends(get_database_session),
   *,
   verified: bool = Depends(verify_github_pat),
 ) -> dict[str, Any]:
   try:
-    plugin = await PluginService.create_plugin(session, request.plugin, submitted_by="api")
+    plugin = await PluginService.create_plugin(session, request.plugin)
     background_tasks.add_task(verify_plugin_background, plugin.package_name)
 
     logger.info(f"Plugin '{request.plugin.name}' registered successfully with ID: {plugin.id}")

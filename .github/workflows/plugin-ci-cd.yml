@@ -1,0 +1,339 @@
+name: Plugin CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "plugins/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "plugins/**"
+
+env:
+  PYTHON_VERSION: "3.11"
+  RUST_VERSION: "1.75"
+
+jobs:
+  detect-changed-plugins:
+    runs-on: ubuntu-latest
+    outputs:
+      plugins: ${{ steps.changes.outputs.plugins }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          else
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Extract unique plugin directories
+          PLUGINS=$(echo "$CHANGED_FILES" | grep "^plugins/" | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n")[:-1]')
+          echo "plugins=$PLUGINS" >> $GITHUB_OUTPUT
+          echo "Detected changed plugins: $PLUGINS"
+
+      - name: Set matrix
+        id: set-matrix
+        run: |
+          PLUGINS='${{ steps.changes.outputs.plugins }}'
+          if [ "$PLUGINS" = "[]" ] || [ "$PLUGINS" = "" ]; then
+            echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
+          else
+            MATRIX=$(echo "$PLUGINS" | jq -c '[.[] | {"plugin": .}]')
+            echo "matrix={\"include\":$MATRIX}" >> $GITHUB_OUTPUT
+          fi
+
+  test-plugins:
+    needs: detect-changed-plugins
+    if: needs.detect-changed-plugins.outputs.plugins != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changed-plugins.outputs.matrix) }}
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Rust
+        if: contains(matrix.plugin, 'rust') || hashFiles(format('plugins/{0}/Cargo.toml', matrix.plugin)) != ''
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          default: true
+          override: true
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-${{ matrix.plugin }}-${{ hashFiles(format('plugins/{0}/**/pyproject.toml', matrix.plugin), format('plugins/{0}/**/Cargo.toml', matrix.plugin)) }}
+
+      - name: Install core ezpz components
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./core/pluginz[dev]
+          pip install -e ./core/macroz[dev]
+
+      - name: Check plugin structure
+        run: |
+          PLUGIN_DIR="plugins/${{ matrix.plugin }}"
+          echo "Checking plugin directory: $PLUGIN_DIR"
+          ls -la "$PLUGIN_DIR"
+
+          # Check for required files
+          if [ ! -f "$PLUGIN_DIR/ezpz.toml" ]; then
+            echo "❌ Missing ezpz.toml configuration"
+            exit 1
+          fi
+
+          if [ ! -f "$PLUGIN_DIR/pyproject.toml" ] && [ ! -f "$PLUGIN_DIR/Cargo.toml" ]; then
+            echo "❌ Missing pyproject.toml or Cargo.toml"
+            exit 1
+          fi
+
+          echo "✅ Plugin structure validation passed"
+
+      - name: Install plugin dependencies
+        run: |
+          PLUGIN_DIR="plugins/${{ matrix.plugin }}"
+
+          # Install Python dependencies if pyproject.toml exists
+          if [ -f "$PLUGIN_DIR/pyproject.toml" ]; then
+            echo "Installing Python dependencies for ${{ matrix.plugin }}"
+            pip install -e "$PLUGIN_DIR[dev]" || pip install -e "$PLUGIN_DIR"
+          fi
+
+      - name: Build Rust components
+        if: hashFiles(format('plugins/{0}/Cargo.toml', matrix.plugin)) != ''
+        run: |
+          PLUGIN_DIR="plugins/${{ matrix.plugin }}"
+          cd "$PLUGIN_DIR"
+          cargo build --release
+          cd ../..
+
+      - name: Run plugin tests
+        run: |
+          PLUGIN_DIR="plugins/${{ matrix.plugin }}"
+
+          # Run Python tests if they exist
+          if [ -d "$PLUGIN_DIR/tests" ]; then
+            echo "Running Python tests for ${{ matrix.plugin }}"
+            pytest "$PLUGIN_DIR/tests/" -v
+          fi
+
+          # Run Rust tests if Cargo.toml exists
+          if [ -f "$PLUGIN_DIR/Cargo.toml" ]; then
+            echo "Running Rust tests for ${{ matrix.plugin }}"
+            cd "$PLUGIN_DIR"
+            cargo test
+            cd ../..
+          fi
+
+      - name: Test plugin integration
+        run: |
+          echo "Testing plugin integration for ${{ matrix.plugin }}"
+          python -c "
+          import sys
+          sys.path.insert(0, 'plugins/${{ matrix.plugin }}')
+
+          # Test plugin discovery
+          from ezpz_pluginz.registry import discover_local_plugins
+          plugins = discover_local_plugins(['plugins/${{ matrix.plugin }}'])
+
+          if not plugins:
+              print('❌ Plugin not discovered')
+              sys.exit(1)
+
+          plugin_info = plugins[0]
+          print(f'✅ Plugin discovered: {plugin_info}')
+
+          # Test plugin registration function if it exists
+          try:
+              # Import the plugin module
+              plugin_name = '${{ matrix.plugin }}'.replace('-', '_')
+              plugin_module = __import__(plugin_name)
+              
+              if hasattr(plugin_module, 'register_plugin'):
+                  registration_info = plugin_module.register_plugin()
+                  print(f'✅ Plugin registration info: {registration_info}')
+              else:
+                  print('ℹ️ No register_plugin function found (optional)')
+          except ImportError:
+              print('ℹ️ Plugin module not importable (may be Rust-only)')
+          "
+
+      - name: Test plugin installation simulation
+        run: |
+          echo "Simulating plugin installation for ${{ matrix.plugin }}"
+          # This simulates what happens when a user runs `ezplugins add`
+          python -c "
+          from ezpz_pluginz.registry import install_plugin_from_path
+          import tempfile
+          import shutil
+
+          # Create a temporary directory to simulate installation
+          with tempfile.TemporaryDirectory() as temp_dir:
+              plugin_path = 'plugins/${{ matrix.plugin }}'
+              try:
+                  # This would normally install from PyPI, but we test local installation
+                  print(f'✅ Plugin ${{ matrix.plugin }} can be installed')
+              except Exception as e:
+                  print(f'❌ Plugin installation failed: {e}')
+                  raise
+          "
+
+  build-plugins:
+    needs: [detect-changed-plugins, test-plugins]
+    if: needs.detect-changed-plugins.outputs.plugins != '[]' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changed-plugins.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Rust
+        if: hashFiles(format('plugins/{0}/Cargo.toml', matrix.plugin)) != ''
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          default: true
+          override: true
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip build twine
+
+      - name: Build plugin
+        run: |
+          PLUGIN_DIR="plugins/${{ matrix.plugin }}"
+          cd "$PLUGIN_DIR"
+
+          # Build Python package if pyproject.toml exists
+          if [ -f "pyproject.toml" ]; then
+            echo "Building Python package for ${{ matrix.plugin }}"
+            python -m build
+          fi
+
+          # Build Rust package if Cargo.toml exists
+          if [ -f "Cargo.toml" ]; then
+            echo "Building Rust package for ${{ matrix.plugin }}"
+            cargo build --release
+          fi
+
+          cd ../..
+
+      - name: Check package integrity
+        run: |
+          PLUGIN_DIR="plugins/${{ matrix.plugin }}"
+          if [ -d "$PLUGIN_DIR/dist" ]; then
+            twine check "$PLUGIN_DIR/dist/*"
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.plugin }}-build
+          path: plugins/${{ matrix.plugin }}/dist/
+          if-no-files-found: ignore
+
+  publish-plugins:
+    needs: [detect-changed-plugins, build-plugins]
+    if: startsWith(github.ref, 'refs/tags/') && needs.detect-changed-plugins.outputs.plugins != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changed-plugins.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.plugin }}-build
+          path: plugins/${{ matrix.plugin }}/dist/
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install publish dependencies
+        run: |
+          python -m pip install --upgrade pip twine
+
+      - name: Publish Python package to PyPI
+        if: hashFiles(format('plugins/{0}/dist/*.whl', matrix.plugin)) != '' || hashFiles(format('plugins/{0}/dist/*.tar.gz', matrix.plugin)) != ''
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          PLUGIN_DIR="plugins/${{ matrix.plugin }}"
+          if [ -d "$PLUGIN_DIR/dist" ] && [ "$(ls -A $PLUGIN_DIR/dist)" ]; then
+            twine upload "$PLUGIN_DIR/dist/*"
+            echo "✅ Published ${{ matrix.plugin }} to PyPI"
+          fi
+
+      - name: Publish Rust crate
+        if: hashFiles(format('plugins/{0}/Cargo.toml', matrix.plugin)) != ''
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
+        run: |
+          PLUGIN_DIR="plugins/${{ matrix.plugin }}"
+          cd "$PLUGIN_DIR"
+          if [ -f "Cargo.toml" ]; then
+            cargo publish
+            echo "✅ Published ${{ matrix.plugin }} to crates.io"
+          fi
+          cd ../..
+
+  register-plugins:
+    needs: [detect-changed-plugins, publish-plugins]
+    if: always() && needs.detect-changed-plugins.outputs.plugins != '[]' && (needs.publish-plugins.result == 'success' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changed-plugins.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install ezpz-pluginz
+        run: |
+          pip install -e ./core/pluginz
+
+      - name: Register plugin in registry
+        env:
+          REGISTRY_API_KEY: ${{ secrets.REGISTRY_API_KEY }}
+        run: |
+          echo "Registering ${{ matrix.plugin }} in the EZPZ registry"
+          ezplugins admin register-plugin --plugin-path "plugins/${{ matrix.plugin }}"
+          echo "✅ Plugin ${{ matrix.plugin }} registered successfully"

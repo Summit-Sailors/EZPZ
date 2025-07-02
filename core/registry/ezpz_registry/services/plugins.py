@@ -1,4 +1,3 @@
-import hashlib
 from typing import TYPE_CHECKING
 from datetime import datetime, timezone
 
@@ -16,7 +15,7 @@ from ezpz_registry.db.models import Plugins
 
 class PluginService:
   @staticmethod
-  async def create_plugin(session: "AsyncSession", plugin_data: "PluginCreate", submitted_by: str | None = None) -> Plugins:
+  async def create_plugin(session: "AsyncSession", plugin_data: "PluginCreate") -> Plugins:
     plugin = Plugins(
       name=plugin_data.name,
       package_name=plugin_data.package_name,
@@ -25,17 +24,18 @@ class PluginService:
       author=plugin_data.author,
       category=plugin_data.category,
       homepage=plugin_data.homepage,
-      submitted_by=submitted_by,
-      verification_token=PluginService._generate_verification_token(plugin_data.package_name),
+      version=plugin_data.version,
+      verified=False,
       metadata_=plugin_data.metadata_ or {},
     )
     session.add(plugin)
-    await session.flush()
+
+    await session.commit()
     return plugin
 
   @staticmethod
   async def get_plugin_by_id(session: "AsyncSession", plugin_id: "UUID") -> Plugins | None:
-    result = await session.execute(select(Plugins).where(Plugins.id == plugin_id, Plugins.is_deleted))
+    result = await session.execute(select(Plugins).where(Plugins.id == plugin_id, ~Plugins.is_deleted))
     return result.scalar_one_or_none()
 
   @staticmethod
@@ -61,7 +61,8 @@ class PluginService:
 
     # Update the updated_at timestamp
     plugin.updated_at = datetime.now(timezone.utc)
-    await session.flush()
+
+    await session.commit()
     return plugin
 
   @staticmethod
@@ -71,7 +72,8 @@ class PluginService:
     if plugin:
       plugin.version = version
       plugin.updated_at = datetime.now(timezone.utc)
-      await session.flush()
+
+      await session.commit()
       return True
     return False
 
@@ -82,7 +84,8 @@ class PluginService:
     if plugin:
       plugin.verified = True
       plugin.updated_at = datetime.now(timezone.utc)
-      await session.flush()
+
+      await session.commit()
       return True
     return False
 
@@ -93,12 +96,14 @@ class PluginService:
     if plugin:
       plugin.is_deleted = True
       plugin.updated_at = datetime.now(timezone.utc)
-      await session.flush()
+
+      await session.commit()
       return True
     return False
 
   @staticmethod
   async def list_plugins(session: "AsyncSession", page: int = 1, page_size: int = 50, *, verified_only: bool = False) -> tuple[list[Plugins], int]:
+    session.expire_all()
     query = select(Plugins).where(~Plugins.is_deleted)  # Add soft delete check
 
     if verified_only:
@@ -119,6 +124,7 @@ class PluginService:
 
   @staticmethod
   async def search_plugins(session: "AsyncSession", query_text: str, page: int = 1, page_size: int = 50) -> tuple[list[Plugins], int]:
+    session.expire_all()
     search_term = f"%{query_text.lower()}%"
 
     # search query with soft delete check
@@ -144,8 +150,3 @@ class PluginService:
     plugins = result.scalars().all()
 
     return list(plugins), total
-
-  @staticmethod
-  def _generate_verification_token(package_name: str) -> str:
-    data = f"{package_name}:{datetime.now(timezone.utc).isoformat()}"
-    return hashlib.sha256(data.encode()).hexdigest()[:16]

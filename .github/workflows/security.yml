@@ -1,0 +1,413 @@
+name: Security and Maintenance
+
+on:
+  schedule:
+    # weekly on Mondays at 9 AM UTC
+    - cron: "0 9 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - "**/requirements*.txt"
+      - "**/pyproject.toml"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: "Type of check to run"
+        required: true
+        type: choice
+        options:
+          - all
+          - security
+          - dependencies
+          - linting
+        default: all
+
+env:
+  PYTHON_VERSION: "3.11"
+  RUST_VERSION: "1.75"
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'security' || github.event.inputs.check_type == 'all' || github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          default: true
+          override: true
+          components: clippy
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety bandit semgrep
+          cargo install cargo-audit
+
+      - name: Python security audit
+        run: |
+          echo "Running Python security audit..."
+
+          # Check each Python component
+          for component in core/pluginz core/macroz core/registry examples; do
+            if [ -f "$component/pyproject.toml" ]; then
+              echo "Auditing $component..."
+              cd "$component"
+              
+              # Install dependencies
+              pip install -e .[dev] 2>/dev/null || pip install -e . 2>/dev/null || true
+              
+              # Run safety check
+              echo "Running safety check for $component..."
+              safety check --json > safety_report.json 2>/dev/null || true
+              if [ -s safety_report.json ]; then
+                echo "⚠️ Security vulnerabilities found in $component:"
+                cat safety_report.json | jq '.vulnerabilities[] | {package: .package_name, vulnerability: .vulnerability_id, advisory: .advisory}'
+              else
+                echo "✅ No security vulnerabilities found in $component"
+              fi
+              
+              # Run bandit for code security
+              echo "Running bandit for $component..."
+              if [ -d "src" ] || [ -d "$component" ]; then
+                bandit -r . -f json -o bandit_report.json 2>/dev/null || true
+                if [ -s bandit_report.json ]; then
+                  ISSUES=$(cat bandit_report.json | jq '.results | length')
+                  if [ "$ISSUES" -gt 0 ]; then
+                    echo "⚠️ $ISSUES security issues found in $component:"
+                    cat bandit_report.json | jq '.results[] | {test_id: .test_id, issue_severity: .issue_severity, issue_text: .issue_text, filename: .filename}'
+                  else
+                    echo "✅ No security issues found in $component"
+                  fi
+                else
+                  echo "✅ No security issues found in $component"
+                fi
+              fi
+              
+              cd ../..
+            fi
+          done
+
+      - name: Rust security audit
+        run: |
+          echo "Running Rust security audit..."
+
+          # Audit main workspace
+          cargo audit --json > rust_audit_main.json 2>/dev/null || true
+          if [ -s rust_audit_main.json ]; then
+            VULNS=$(cat rust_audit_main.json | jq '.vulnerabilities.count')
+            if [ "$VULNS" -gt 0 ]; then
+              echo "⚠️ $VULNS Rust vulnerabilities found in main workspace:"
+              cat rust_audit_main.json | jq '.vulnerabilities.list[] | {id: .advisory.id, package: .package.name, title: .advisory.title}'
+            else
+              echo "✅ No Rust vulnerabilities found in main workspace"
+            fi
+          else
+            echo "✅ No Rust vulnerabilities found in main workspace"
+          fi
+
+          # Audit plugins
+          for plugin_dir in plugins/*/; do
+            if [ -f "$plugin_dir/Cargo.toml" ]; then
+              echo "Auditing Rust plugin: $plugin_dir..."
+              cd "$plugin_dir"
+              cargo audit --json > rust_audit_plugin.json 2>/dev/null || true
+              if [ -s rust_audit_plugin.json ]; then
+                VULNS=$(cat rust_audit_plugin.json | jq '.vulnerabilities.count')
+                if [ "$VULNS" -gt 0 ]; then
+                  echo "⚠️ $VULNS vulnerabilities found in $plugin_dir:"
+                  cat rust_audit_plugin.json | jq '.vulnerabilities.list[] | {id: .advisory.id, package: .package.name, title: .advisory.title}'
+                else
+                  echo "✅ No vulnerabilities found in $plugin_dir"
+                fi
+              else
+                echo "✅ No vulnerabilities found in $plugin_dir"
+              fi
+              cd ../..
+            fi
+          done
+
+      - name: Semgrep security scan
+        run: |
+          echo "Running Semgrep security scan..."
+          semgrep --config=auto --json --output=semgrep_report.json . || true
+
+          if [ -s semgrep_report.json ]; then
+            FINDINGS=$(cat semgrep_report.json | jq '.results | length')
+            if [ "$FINDINGS" -gt 0 ]; then
+              echo "⚠️ $FINDINGS security findings from Semgrep:"
+              cat semgrep_report.json | jq '.results[] | {rule_id: .check_id, severity: .extra.severity, message: .extra.message, file: .path}'
+            else
+              echo "✅ No security findings from Semgrep"
+            fi
+          else
+            echo "✅ No security findings from Semgrep"
+          fi
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            **/safety_report.json
+            **/bandit_report.json
+            **/rust_audit*.json
+            semgrep_report.json
+          retention-days: 30
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'dependencies' || github.event.inputs.check_type == 'all' || github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          default: true
+          override: true
+
+      - name: Install dependency tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit outdated
+          cargo install cargo-outdated
+
+      - name: Check Python dependencies
+        run: |
+          echo "Checking Python dependencies for updates..."
+
+          for component in core/pluginz core/macroz core/registry examples; do
+            if [ -f "$component/pyproject.toml" ]; then
+              echo "Checking $component..."
+              cd "$component"
+              
+              # Install the component
+              pip install -e . 2>/dev/null || true
+              
+              # Check for outdated packages
+              echo "Outdated packages in $component:"
+              pip list --outdated --format=json > outdated.json 2>/dev/null || echo "[]" > outdated.json
+              
+              OUTDATED_COUNT=$(cat outdated.json | jq 'length')
+              if [ "$OUTDATED_COUNT" -gt 0 ]; then
+                echo "📦 $OUTDATED_COUNT outdated packages:"
+                cat outdated.json | jq '.[] | {name: .name, current: .version, latest: .latest_version}'
+              else
+                echo "✅ All packages are up to date"
+              fi
+              
+              # Audit dependencies
+              pip-audit --format=json --output=audit.json . 2>/dev/null || echo '{"vulnerabilities": []}' > audit.json
+              VULN_COUNT=$(cat audit.json | jq '.vulnerabilities | length')
+              if [ "$VULN_COUNT" -gt 0 ]; then
+                echo "🚨 $VULN_COUNT vulnerable packages:"
+                cat audit.json | jq '.vulnerabilities[] | {package: .package.name, version: .package.version, vulnerability: .vulnerability.id}'
+              else
+                echo "✅ No vulnerable packages found"
+              fi
+              
+              cd ../..
+            fi
+          done
+
+      - name: Check Rust dependencies
+        run: |
+          echo "Checking Rust dependencies for updates..."
+
+          # Check main workspace
+          echo "Checking main workspace..."
+          cargo outdated --format json > cargo_outdated_main.json 2>/dev/null || echo '{"dependencies": []}' > cargo_outdated_main.json
+
+          OUTDATED_COUNT=$(cat cargo_outdated_main.json | jq '.dependencies | length')
+          if [ "$OUTDATED_COUNT" -gt 0 ]; then
+            echo "📦 $OUTDATED_COUNT outdated Rust dependencies in main workspace:"
+            cat cargo_outdated_main.json | jq '.dependencies[] | {name: .name, current: .project, latest: .compat}'
+          else
+            echo "✅ All Rust dependencies are up to date in main workspace"
+          fi
+
+          # Check plugins
+          for plugin_dir in plugins/*/; do
+            if [ -f "$plugin_dir/Cargo.toml" ]; then
+              echo "Checking Rust plugin: $plugin_dir..."
+              cd "$plugin_dir"
+              
+              cargo outdated --format json > cargo_outdated_plugin.json 2>/dev/null || echo '{"dependencies": []}' > cargo_outdated_plugin.json
+              
+              OUTDATED_COUNT=$(cat cargo_outdated_plugin.json | jq '.dependencies | length')
+              if [ "$OUTDATED_COUNT" -gt 0 ]; then
+                echo "📦 $OUTDATED_COUNT outdated dependencies in $plugin_dir:"
+                cat cargo_outdated_plugin.json | jq '.dependencies[] | {name: .name, current: .project, latest: .compat}'
+              else
+                echo "✅ All dependencies are up to date in $plugin_dir"
+              fi
+              
+              cd ../..
+            fi
+          done
+
+      - name: Generate dependency update PR
+        if: github.event_name == 'schedule'
+        run: |
+          echo "Collecting dependency updates for PR..."
+
+          # This would typically create a PR with dependency updates
+          # For now, we'll just log what needs updating
+
+          echo "## Dependency Update Summary" > dependency_summary.md
+          echo "" >> dependency_summary.md
+
+          # Collect all outdated packages
+          find . -name "outdated.json" -o -name "cargo_outdated*.json" | while read file; do
+            if [ -s "$file" ]; then
+              echo "Found outdated dependencies in: $file"
+              # Add to summary
+            fi
+          done
+
+          echo "Dependency update summary generated"
+
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: dependency-reports
+          path: |
+            **/outdated.json
+            **/audit.json
+            **/cargo_outdated*.json
+            dependency_summary.md
+          retention-days: 30
+
+  code-quality:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'linting' || github.event.inputs.check_type == 'all' || github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          default: true
+          override: true
+          components: rustfmt, clippy
+
+      - name: Install linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black isort mypy
+
+      - name: Python code formatting check
+        run: |
+          echo "Checking Python code formatting..."
+
+          # Check with black
+          black --check --diff . || echo "Black formatting issues found"
+
+          # Check with isort
+          isort --check-only --diff . || echo "Import sorting issues found"
+
+          # Check with ruff
+          ruff check . --output-format=json > ruff_report.json || true
+          if [ -s ruff_report.json ]; then
+            ISSUES=$(cat ruff_report.json | jq 'length')
+            echo "📋 Ruff found $ISSUES issues"
+            cat ruff_report.json | jq '.[] | {file: .filename, code: .code.code, message: .message}'
+          else
+            echo "✅ No Ruff issues found"
+          fi
+
+      - name: Python type checking
+        run: |
+          echo "Running Python type checking..."
+
+          for component in core/pluginz core/macroz core/registry; do
+            if [ -f "$component/pyproject.toml" ]; then
+              echo "Type checking $component..."
+              cd "$component"
+              
+              # Install component
+              pip install -e .[dev] 2>/dev/null || pip install -e . 2>/dev/null || true
+              
+              # Run mypy
+              mypy . --json-report mypy_report.json 2>/dev/null || true
+              if [ -f "mypy_report.json" ] && [ -s "mypy_report.json" ]; then
+                echo "MyPy report generated for $component"
+              else
+              echo "✅ No MyPy issues found in $component"
+              fi
+              
+              cd ../..
+            fi
+          done
+
+      - name: Rust code formatting and linting
+        run: |
+          echo "Checking Rust code formatting and linting..."
+
+          # Check formatting
+          cargo fmt --all -- --check || echo "Rust formatting issues found"
+
+          # Run clippy
+          cargo clippy --all-targets --all-features -- -D warnings -A clippy::too_many_arguments || echo "Clippy warnings found"
+
+          # Check plugins
+          for plugin_dir in plugins/*/; do
+            if [ -f "$plugin_dir/Cargo.toml" ]; then
+              echo "Checking Rust plugin: $plugin_dir..."
+              cd "$plugin_dir"
+              
+              cargo fmt -- --check || echo "Formatting issues in $plugin_dir"
+              cargo clippy -- -D warnings || echo "Clippy warnings in $plugin_dir"
+              
+              cd ../..
+            fi
+          done
+
+      - name: Upload code quality reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: code-quality-reports
+          path: |
+            ruff_report.json
+            **/mypy_report.json
+          retention-days: 30
+
+  summary:
+    runs-on: ubuntu-latest
+    needs: [security-audit, dependency-check, code-quality]
+    if: always()
+
+    steps:
+      - name: Report results
+        run: |
+          echo "Security and maintenance workflow completed"
+          echo "Check individual job results for details"

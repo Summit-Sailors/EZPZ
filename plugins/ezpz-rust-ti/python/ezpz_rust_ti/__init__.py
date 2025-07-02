@@ -11,4 +11,12 @@ def register_plugin() -> dict[str, Any]:
     "author": "Summit Sailors",
     "category": "Technical analysis",
     "homepage": "https://github.com/Summit-Sailors/EZPZ/tree/main/ezpz-rust-ti",
+    "metadata_": {
+      "tags": ["testing", "development", "api"],
+      "license": "MIT",
+      "python_version": ">=3.8",
+      "dependencies": ["requests", "pydantic"],
+      "documentation": "https://docs.example.com/plugin",
+      "support_email": "support@example.com",
+    },
   }

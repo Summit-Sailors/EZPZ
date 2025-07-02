@@ -1,3 +1,4 @@
 [ezpz_pluginz]
 include = ["python/ezpz_rust_ti"]
 name = "ez-rust-ti-test"
+package_manager = "rye"

@@ -17,7 +17,7 @@ class PluginBase(BaseModel):
   homepage: HttpUrl | None = Field(None, description="Plugin homepage URL")
   category: str = Field(..., min_length=1, max_length=50, description="Plugin category")
   version: str = Field(default="0.1.0", max_length=50, description="Plugin version")
-  verified: bool = Field(default=False, description="Whether plugin is verified")
+  metadata_: dict[str, Any] | None = Field(None, description="Plugin metadata")
 
   @field_validator("package_name")
   @classmethod
@@ -38,7 +38,6 @@ class PluginBase(BaseModel):
 
 class PluginCreate(PluginBase):
   metadata_: dict[str, Any] | None = Field(default_factory=dict, description="Plugin metadata")
-  category: str = Field(max_length=50)
   created_at: datetime | None = Field(None, description="Creation timestamp")
   updated_at: datetime | None = Field(None, description="Update timestamp")
 
@@ -55,19 +54,16 @@ class PluginUpdate(BaseModel):
 
 class PluginResponse(PluginBase):
   model_config = ConfigDict(from_attributes=True)
-
   id: UUID
-  category: str
+  verified: bool = Field(default=False, description="Whether plugin is verified")
   created_at: datetime
   updated_at: datetime
-  submitted_by: str | None = Field(None, description="Who submitted the plugin")
+  author: str | None = Field(None, description="Who submitted the plugin")
   is_deleted: bool = Field(default=False, description="Soft delete flag")
-  category: str = Field(description="Plugin category")
 
 
 class PluginRegistrationRequest(BaseModel):
   plugin: PluginCreate
-  verification_token: str | None = Field(None, description="Optional verification token")
 
 
 class PluginListResponse(BaseModel):

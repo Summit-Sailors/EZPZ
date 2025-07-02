@@ -1,3 +1,4 @@
 [ezpz_pluginz]
 include = ["ezpz_pluginz"]
 name = "ezpz-test"
+package_manager = "rye"
