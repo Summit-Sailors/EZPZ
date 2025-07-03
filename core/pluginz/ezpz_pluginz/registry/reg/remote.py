@@ -1,0 +1,220 @@
+import json
+from typing import Any, ClassVar
+from dataclasses import asdict
+from urllib.parse import quote
+
+import httpx
+
+from ezpz_pluginz.logger import setup_logger
+from ezpz_pluginz.registry.config import (
+  API_VERSION,
+  REGISTRY_URL,
+  HTTP_NOT_FOUND,
+  REQUEST_TIMEOUT,
+  HTTP_SERVER_ERROR,
+  HTTP_UNAUTHORIZED,
+  DEFAULT_BATCH_SIZE,
+  DEFAULT_PAGE_START,
+)
+from ezpz_pluginz.registry.models import PluginCreate, PluginResponse, safe_deserialize_plugin
+from ezpz_pluginz.registry.exceptions import (
+  PluginNotFoundError,
+  PluginRegistryError,
+  PluginOperationError,
+  PluginRegistryAuthError,
+  PluginRegistryConnectionError,
+)
+
+logger = setup_logger("Registry")
+
+
+class PluginRegistryAPI:
+  UNSUPPORTED_HTTP_METHOD_ERROR: ClassVar[str] = "Unsupported HTTP method: {method}"
+  EMPTY_SEARCH_KEYWORD_ERROR: ClassVar[str] = "Search keyword cannot be empty"
+  EMPTY_PLUGIN_ID_ERROR: ClassVar[str] = "Plugin ID cannot be empty"
+  GITHUB_TOKEN_REQUIRED_ERROR: ClassVar[str] = "GitHub token is required"  # noqa: S105
+
+  def __init__(self, base_url: str = REGISTRY_URL) -> None:
+    self.base_url = base_url.rstrip("/")
+    self.timeout = REQUEST_TIMEOUT
+
+  def _make_request(self, endpoint: str, method: str = "GET", data: dict[str, Any] | None = None, headers: dict[str, str] | None = None) -> dict[str, Any]:
+    url = f"{self.base_url}/api/{API_VERSION}{endpoint}"
+
+    try:
+      with httpx.Client(timeout=self.timeout) as client:
+        if method == "GET":
+          response = client.get(url, headers=headers)
+        elif method == "POST":
+          response = client.post(url, json=data, headers=headers)
+        elif method == "DELETE":
+          response = client.delete(url, headers=headers)
+        elif method == "PUT":
+          response = client.put(url, json=data, headers=headers)
+        else:
+          raise ValueError(self.UNSUPPORTED_HTTP_METHOD_ERROR.format(method=method))
+
+        if response.status_code == HTTP_UNAUTHORIZED:
+          raise PluginRegistryAuthError()
+        if response.status_code == HTTP_NOT_FOUND:
+          raise PluginNotFoundError(endpoint)
+        if response.status_code >= HTTP_SERVER_ERROR:
+          raise PluginRegistryError(f"Server error (HTTP {response.status_code})")
+
+        response.raise_for_status()
+
+        # Handle empty responses
+        if not response.content.strip():
+          logger.debug(f"Empty response from {url}")
+          return {}
+
+        return response.json()
+
+    except httpx.ConnectError as exc:
+      raise PluginRegistryConnectionError(self.base_url, "connection refused") from exc
+    except httpx.TimeoutException as exc:
+      raise PluginRegistryConnectionError(self.base_url, f"timeout after {self.timeout}s") from exc
+    except httpx.HTTPStatusError as exc:
+      if exc.response.status_code not in [HTTP_UNAUTHORIZED, HTTP_NOT_FOUND]:
+        raise PluginRegistryError(f"HTTP error {exc.response.status_code}: {exc.response.text}") from exc
+      raise
+    except (ValueError, json.JSONDecodeError) as exc:
+      raise PluginRegistryError(f"Invalid response format: {exc}") from exc
+
+  def fetch_plugins(self, *, verified_only: bool = False) -> list[PluginResponse]:
+    all_plugins = list[PluginResponse]()
+    batch_size = DEFAULT_BATCH_SIZE
+    page = DEFAULT_PAGE_START
+
+    logger.info(f"Fetching plugins from registry (verified_only={verified_only})")
+
+    while True:
+      params = f"?page={page}&page_size={batch_size}&verified_only={verified_only}"
+      response = self._make_request(f"/plugins{params}")
+
+      plugins_data = response.get("plugins", [])
+      if not plugins_data:
+        break
+
+      batch_plugins = list[PluginResponse]()
+      for plugin_data in plugins_data:
+        if not isinstance(plugin_data, dict):
+          logger.warning(f"Skipping invalid plugin data: {plugin_data}")
+          continue
+
+        plugin = safe_deserialize_plugin(plugin_data)
+        if plugin:
+          batch_plugins.append(plugin)
+
+      all_plugins.extend(batch_plugins)
+      logger.debug(f"Fetched page {page}: {len(batch_plugins)} plugins")
+
+      total_pages = response.get("total_pages", DEFAULT_PAGE_START)
+      if page >= total_pages:
+        break
+
+      page += 1
+
+    logger.info(f"Successfully fetched {len(all_plugins)} plugins")
+    return all_plugins
+
+  def search_plugins(self, keyword: str) -> list[PluginResponse]:
+    if not keyword.strip():
+      raise ValueError(self.EMPTY_SEARCH_KEYWORD_ERROR)
+
+    logger.info(f"Searching plugins for keyword: '{keyword}'")
+
+    encoded_keyword = quote(keyword)
+    params = f"?q={encoded_keyword}"
+    response = self._make_request(f"/plugins/search{params}")
+
+    plugins_data = response.get("plugins", [])
+    plugins = list[PluginResponse]()
+
+    for plugin_data in plugins_data:
+      if not isinstance(plugin_data, dict):
+        logger.warning("Skipping invalid plugin data in search results")
+        continue
+
+      plugin = safe_deserialize_plugin(plugin_data)
+      if plugin:
+        plugins.append(plugin)
+
+    logger.info(f"Search returned {len(plugins)} plugins")
+    return plugins
+
+  def get_plugin(self, plugin_id: str) -> PluginResponse:
+    if not plugin_id.strip():
+      raise ValueError(self.EMPTY_PLUGIN_ID_ERROR)
+
+    logger.info(f"Fetching plugin: {plugin_id}")
+
+    response = self._make_request(f"/plugins/{plugin_id}")
+
+    if not response:
+      raise PluginNotFoundError(plugin_id)
+
+    plugin = safe_deserialize_plugin(response)
+    if not plugin:
+      raise PluginRegistryError(f"Invalid plugin data received for '{plugin_id}'")
+
+    logger.info(f"Successfully retrieved plugin: {plugin.name}")
+    return plugin
+
+  def register_plugin(self, plugin_info: PluginCreate, github_token: str) -> bool:
+    if not github_token.strip():
+      raise ValueError(self.GITHUB_TOKEN_REQUIRED_ERROR)
+
+    logger.info(f"Registering plugin: {plugin_info.name}")
+
+    data = {"plugin": asdict(plugin_info)}
+    headers = {"Authorization": f"Bearer {github_token}"}
+
+    response = self._make_request("/plugins/register", method="POST", data=data, headers=headers)
+
+    success = response.get("success", False)
+    if not success:
+      error_msg = response.get("error", "Unknown registration error")
+      raise PluginOperationError("register", plugin_info.name, error_msg)
+
+    logger.info(f"Successfully registered plugin: {plugin_info.name}")
+    return success
+
+  def update_plugin(self, plugin_id: str, plugin_info: PluginCreate, github_token: str) -> bool:
+    if not plugin_id.strip():
+      raise ValueError(self.EMPTY_PLUGIN_ID_ERROR)
+    if not github_token.strip():
+      raise ValueError(self.GITHUB_TOKEN_REQUIRED_ERROR)
+
+    logger.info(f"Updating plugin: {plugin_id}")
+
+    data = asdict(plugin_info)
+    headers = {"Authorization": f"Bearer {github_token}"}
+
+    response = self._make_request(f"/plugins/{plugin_id}", method="PUT", data=data, headers=headers)
+
+    success = response.get("success", False)
+    if not success:
+      error_msg = response.get("error", "Unknown update error")
+      raise PluginOperationError("update", plugin_id, error_msg)
+
+    logger.info(f"Successfully updated plugin: {plugin_id}")
+    return success
+
+  def delete_plugin(self, plugin_id: str, github_token: str) -> bool:
+    if not plugin_id.strip():
+      raise ValueError(self.EMPTY_PLUGIN_ID_ERROR)
+    if not github_token.strip():
+      raise ValueError(self.GITHUB_TOKEN_REQUIRED_ERROR)
+
+    logger.info(f"Deleting plugin: {plugin_id}")
+    headers = {"Authorization": f"Bearer {github_token}"}
+    response = self._make_request(f"/plugins/{plugin_id}", method="DELETE", headers=headers)
+
+    success = response.get("success", False)
+    if not success:
+      error_msg = response.get("error", "Unknown deletion error")
+      raise PluginOperationError("delete", plugin_id, error_msg)
+
+    logger.info(f"Successfully deleted plugin: {plugin_id}")
+    return success

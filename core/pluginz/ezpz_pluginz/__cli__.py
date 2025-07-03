@@ -2,12 +2,12 @@
 
 import os
 import time
-import logging
 from typing import Any
 
 import typer
 
 from ezpz_pluginz import mount_plugins, unmount_plugins
+from ezpz_pluginz.logger import setup_logger
 from ezpz_pluginz.registry import (
   REGISTRY_URL,
   LOCAL_REGISTRY_DIR,
@@ -24,7 +24,7 @@ from ezpz_pluginz.registry import (
 from ezpz_pluginz.toml_schema import load_config
 
 app = typer.Typer(name="ezplugins", pretty_exceptions_show_locals=False, pretty_exceptions_short=True)
-logger = logging.getLogger(__name__)
+logger = setup_logger("CLI")
 
 
 def get_github_pat() -> str:

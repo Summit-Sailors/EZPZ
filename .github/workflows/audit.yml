@@ -11,6 +11,8 @@ on:
       - "**/pyproject.toml"
       - "**/Cargo.toml"
       - "**/Cargo.lock"
+      - "ezpz-lock.yaml"
+      - "requirements*.lock"
   workflow_dispatch:
     inputs:
       check_type:
@@ -25,8 +27,8 @@ on:
         default: all
 
 env:
-  PYTHON_VERSION: "3.11"
-  RUST_VERSION: "1.75"
+  PYTHON_VERSION: "3.13"
+  RUST_VERSION: "1.87"
 
 jobs:
   security-audit:
@@ -36,10 +38,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Install Rye
+        uses: eifinger/setup-rye@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          enable-cache: true
+          cache-prefix: "rye-cache"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
@@ -51,48 +54,53 @@ jobs:
 
       - name: Install security tools
         run: |
-          python -m pip install --upgrade pip
-          pip install safety bandit semgrep
+          rye install safety bandit semgrep
           cargo install cargo-audit
 
       - name: Python security audit
         run: |
           echo "Running Python security audit..."
 
-          # Check each Python component
+          rye sync --all-features
+
           for component in core/pluginz core/macroz core/registry examples; do
             if [ -f "$component/pyproject.toml" ]; then
               echo "Auditing $component..."
               cd "$component"
               
-              # Install dependencies
-              pip install -e .[dev] 2>/dev/null || pip install -e . 2>/dev/null || true
+              rye sync --all-features 2>/dev/null || true
               
-              # Run safety check
               echo "Running safety check for $component..."
-              safety check --json > safety_report.json 2>/dev/null || true
+              rye run safety check --json > safety_report.json 2>/dev/null || true
               if [ -s safety_report.json ]; then
                 echo "⚠️ Security vulnerabilities found in $component:"
-                cat safety_report.json | jq '.vulnerabilities[] | {package: .package_name, vulnerability: .vulnerability_id, advisory: .advisory}'
+                cat safety_report.json | jq '.vulnerabilities[] | {package: .package_name, vulnerability: .vulnerability_id, advisory: .advisory}' || cat safety_report.json
               else
                 echo "✅ No security vulnerabilities found in $component"
               fi
               
-              # Run bandit for code security
               echo "Running bandit for $component..."
-              if [ -d "src" ] || [ -d "$component" ]; then
-                bandit -r . -f json -o bandit_report.json 2>/dev/null || true
+              SOURCE_DIRS=""
+              if [ -d "ezpz_pluginz" ]; then SOURCE_DIRS="$SOURCE_DIRS ezpz_pluginz"; fi
+              if [ -d "painlezz_macroz" ]; then SOURCE_DIRS="$SOURCE_DIRS painlezz_macroz"; fi
+              if [ -d "ezpz_registry" ]; then SOURCE_DIRS="$SOURCE_DIRS ezpz_registry"; fi
+              if [ -d "src" ]; then SOURCE_DIRS="$SOURCE_DIRS src"; fi
+              
+              if [ -n "$SOURCE_DIRS" ]; then
+                rye run bandit -r $SOURCE_DIRS -f json -o bandit_report.json 2>/dev/null || true
                 if [ -s bandit_report.json ]; then
-                  ISSUES=$(cat bandit_report.json | jq '.results | length')
+                  ISSUES=$(cat bandit_report.json | jq '.results | length' 2>/dev/null || echo "0")
                   if [ "$ISSUES" -gt 0 ]; then
                     echo "⚠️ $ISSUES security issues found in $component:"
-                    cat bandit_report.json | jq '.results[] | {test_id: .test_id, issue_severity: .issue_severity, issue_text: .issue_text, filename: .filename}'
+                    cat bandit_report.json | jq '.results[] | {test_id: .test_id, issue_severity: .issue_severity, issue_text: .issue_text, filename: .filename}' || cat bandit_report.json
                   else
                     echo "✅ No security issues found in $component"
                   fi
                 else
                   echo "✅ No security issues found in $component"
                 fi
+              else
+                echo "ℹ️ No Python source directories found in $component"
               fi
               
               cd ../..
@@ -106,10 +114,10 @@ jobs:
           # Audit main workspace
           cargo audit --json > rust_audit_main.json 2>/dev/null || true
           if [ -s rust_audit_main.json ]; then
-            VULNS=$(cat rust_audit_main.json | jq '.vulnerabilities.count')
+            VULNS=$(cat rust_audit_main.json | jq '.vulnerabilities.count' 2>/dev/null || echo "0")
             if [ "$VULNS" -gt 0 ]; then
               echo "⚠️ $VULNS Rust vulnerabilities found in main workspace:"
-              cat rust_audit_main.json | jq '.vulnerabilities.list[] | {id: .advisory.id, package: .package.name, title: .advisory.title}'
+              cat rust_audit_main.json | jq '.vulnerabilities.list[] | {id: .advisory.id, package: .package.name, title: .advisory.title}' || cat rust_audit_main.json
             else
               echo "✅ No Rust vulnerabilities found in main workspace"
             fi
@@ -124,10 +132,10 @@ jobs:
               cd "$plugin_dir"
               cargo audit --json > rust_audit_plugin.json 2>/dev/null || true
               if [ -s rust_audit_plugin.json ]; then
-                VULNS=$(cat rust_audit_plugin.json | jq '.vulnerabilities.count')
+                VULNS=$(cat rust_audit_plugin.json | jq '.vulnerabilities.count' 2>/dev/null || echo "0")
                 if [ "$VULNS" -gt 0 ]; then
                   echo "⚠️ $VULNS vulnerabilities found in $plugin_dir:"
-                  cat rust_audit_plugin.json | jq '.vulnerabilities.list[] | {id: .advisory.id, package: .package.name, title: .advisory.title}'
+                  cat rust_audit_plugin.json | jq '.vulnerabilities.list[] | {id: .advisory.id, package: .package.name, title: .advisory.title}' || cat rust_audit_plugin.json
                 else
                   echo "✅ No vulnerabilities found in $plugin_dir"
                 fi
@@ -144,10 +152,10 @@ jobs:
           semgrep --config=auto --json --output=semgrep_report.json . || true
 
           if [ -s semgrep_report.json ]; then
-            FINDINGS=$(cat semgrep_report.json | jq '.results | length')
+            FINDINGS=$(cat semgrep_report.json | jq '.results | length' 2>/dev/null || echo "0")
             if [ "$FINDINGS" -gt 0 ]; then
               echo "⚠️ $FINDINGS security findings from Semgrep:"
-              cat semgrep_report.json | jq '.results[] | {rule_id: .check_id, severity: .extra.severity, message: .extra.message, file: .path}'
+              cat semgrep_report.json | jq '.results[] | {rule_id: .check_id, severity: .extra.severity, message: .extra.message, file: .path}' || cat semgrep_report.json
             else
               echo "✅ No security findings from Semgrep"
             fi
@@ -174,10 +182,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Install Rye
+        uses: eifinger/setup-rye@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          enable-cache: true
+          cache-prefix: "rye-cache"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
@@ -188,42 +197,49 @@ jobs:
 
       - name: Install dependency tools
         run: |
-          python -m pip install --upgrade pip
-          pip install pip-audit outdated
+          rye install pip-audit
           cargo install cargo-outdated
 
       - name: Check Python dependencies
         run: |
           echo "Checking Python dependencies for updates..."
 
+          rye sync --all-features
+
+          # outdated packages in main workspace
+          echo "Checking main workspace dependencies..."
+          rye show --installed-deps --json > main_deps.json 2>/dev/null || echo "[]" > main_deps.json
+
+          # lock file for outdated info
+          if [ -f "ezpz-lock.yaml" ]; then
+            echo "✅ Found ezpz-lock.yaml - dependency versions locked"
+          else
+            echo "⚠️ No lock file found - dependencies may vary between installs"
+          fi
+
           for component in core/pluginz core/macroz core/registry examples; do
             if [ -f "$component/pyproject.toml" ]; then
               echo "Checking $component..."
               cd "$component"
               
-              # Install the component
-              pip install -e . 2>/dev/null || true
               
-              # Check for outdated packages
-              echo "Outdated packages in $component:"
-              pip list --outdated --format=json > outdated.json 2>/dev/null || echo "[]" > outdated.json
+              rye sync --all-features 2>/dev/null || true
               
-              OUTDATED_COUNT=$(cat outdated.json | jq 'length')
-              if [ "$OUTDATED_COUNT" -gt 0 ]; then
-                echo "📦 $OUTDATED_COUNT outdated packages:"
-                cat outdated.json | jq '.[] | {name: .name, current: .version, latest: .latest_version}'
-              else
-                echo "✅ All packages are up to date"
-              fi
-              
-              # Audit dependencies
-              pip-audit --format=json --output=audit.json . 2>/dev/null || echo '{"vulnerabilities": []}' > audit.json
-              VULN_COUNT=$(cat audit.json | jq '.vulnerabilities | length')
+              # Run pip-audit for vulnerabilities
+              echo "Running pip-audit for $component..."
+              rye run pip-audit --format=json --output=audit.json . 2>/dev/null || echo '{"vulnerabilities": []}' > audit.json
+              VULN_COUNT=$(cat audit.json | jq '.vulnerabilities | length' 2>/dev/null || echo "0")
               if [ "$VULN_COUNT" -gt 0 ]; then
                 echo "🚨 $VULN_COUNT vulnerable packages:"
-                cat audit.json | jq '.vulnerabilities[] | {package: .package.name, version: .package.version, vulnerability: .vulnerability.id}'
+                cat audit.json | jq '.vulnerabilities[] | {package: .package.name, version: .package.version, vulnerability: .vulnerability.id}' || cat audit.json
               else
                 echo "✅ No vulnerable packages found"
+              fi
+              
+              # dependency info
+              if [ -f "pyproject.toml" ]; then
+                echo "Dependencies defined in pyproject.toml:"
+                rye show --installed-deps 2>/dev/null | head -20 || echo "Could not list dependencies"
               fi
               
               cd ../..
@@ -234,14 +250,13 @@ jobs:
         run: |
           echo "Checking Rust dependencies for updates..."
 
-          # Check main workspace
           echo "Checking main workspace..."
           cargo outdated --format json > cargo_outdated_main.json 2>/dev/null || echo '{"dependencies": []}' > cargo_outdated_main.json
 
-          OUTDATED_COUNT=$(cat cargo_outdated_main.json | jq '.dependencies | length')
+          OUTDATED_COUNT=$(cat cargo_outdated_main.json | jq '.dependencies | length' 2>/dev/null || echo "0")
           if [ "$OUTDATED_COUNT" -gt 0 ]; then
             echo "📦 $OUTDATED_COUNT outdated Rust dependencies in main workspace:"
-            cat cargo_outdated_main.json | jq '.dependencies[] | {name: .name, current: .project, latest: .compat}'
+            cat cargo_outdated_main.json | jq '.dependencies[] | {name: .name, current: .project, latest: .compat}' || cat cargo_outdated_main.json
           else
             echo "✅ All Rust dependencies are up to date in main workspace"
           fi
@@ -254,10 +269,10 @@ jobs:
               
               cargo outdated --format json > cargo_outdated_plugin.json 2>/dev/null || echo '{"dependencies": []}' > cargo_outdated_plugin.json
               
-              OUTDATED_COUNT=$(cat cargo_outdated_plugin.json | jq '.dependencies | length')
+              OUTDATED_COUNT=$(cat cargo_outdated_plugin.json | jq '.dependencies | length' 2>/dev/null || echo "0")
               if [ "$OUTDATED_COUNT" -gt 0 ]; then
                 echo "📦 $OUTDATED_COUNT outdated dependencies in $plugin_dir:"
-                cat cargo_outdated_plugin.json | jq '.dependencies[] | {name: .name, current: .project, latest: .compat}'
+                cat cargo_outdated_plugin.json | jq '.dependencies[] | {name: .name, current: .project, latest: .compat}' || cat cargo_outdated_plugin.json
               else
                 echo "✅ All dependencies are up to date in $plugin_dir"
               fi
@@ -266,24 +281,24 @@ jobs:
             fi
           done
 
-      - name: Generate dependency update PR
+      - name: Generate dependency update summary
         if: github.event_name == 'schedule'
         run: |
-          echo "Collecting dependency updates for PR..."
-
-          # This would typically create a PR with dependency updates
-          # For now, we'll just log what needs updating
+          echo "Collecting dependency updates for summary..."
 
           echo "## Dependency Update Summary" > dependency_summary.md
+          echo "Generated on: $(date)" >> dependency_summary.md
           echo "" >> dependency_summary.md
 
-          # Collect all outdated packages
-          find . -name "outdated.json" -o -name "cargo_outdated*.json" | while read file; do
-            if [ -s "$file" ]; then
-              echo "Found outdated dependencies in: $file"
-              # Add to summary
-            fi
-          done
+          echo "### Python Dependencies" >> dependency_summary.md
+          echo "- Lock file: ezpz-lock.yaml $([ -f ezpz-lock.yaml ] && echo '✅' || echo '❌')" >> dependency_summary.md
+          echo "- Vulnerable packages found: $(find . -name 'audit.json' -exec cat {} \; | jq '.vulnerabilities | length' 2>/dev/null || echo '0')" >> dependency_summary.md
+          echo "" >> dependency_summary.md
+
+          echo "### Rust Dependencies" >> dependency_summary.md
+          TOTAL_OUTDATED=$(find . -name 'cargo_outdated*.json' -exec cat {} \; | jq '.dependencies | length' 2>/dev/null | paste -sd+ | bc 2>/dev/null || echo "0")
+          echo "- Total outdated Rust dependencies: $TOTAL_OUTDATED" >> dependency_summary.md
+          echo "" >> dependency_summary.md
 
           echo "Dependency update summary generated"
 
@@ -293,9 +308,9 @@ jobs:
         with:
           name: dependency-reports
           path: |
-            **/outdated.json
             **/audit.json
             **/cargo_outdated*.json
+            main_deps.json
             dependency_summary.md
           retention-days: 30
 
@@ -306,10 +321,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Install Rye
+        uses: eifinger/setup-rye@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          enable-cache: true
+          cache-prefix: "rye-cache"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
@@ -319,30 +335,31 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Install linting tools
+      - name: Sync dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install ruff black isort mypy
+          rye sync --all-features
 
       - name: Python code formatting check
         run: |
           echo "Checking Python code formatting..."
 
-          # Check with black
-          black --check --diff . || echo "Black formatting issues found"
-
-          # Check with isort
-          isort --check-only --diff . || echo "Import sorting issues found"
-
-          # Check with ruff
-          ruff check . --output-format=json > ruff_report.json || true
+          # Check with ruff (since it's faster and includes both linting and formatting)
+          echo "Running ruff check..."
+          rye run ruff check . --output-format=json > ruff_report.json 2>/dev/null || true
           if [ -s ruff_report.json ]; then
-            ISSUES=$(cat ruff_report.json | jq 'length')
-            echo "📋 Ruff found $ISSUES issues"
-            cat ruff_report.json | jq '.[] | {file: .filename, code: .code.code, message: .message}'
+            ISSUES=$(cat ruff_report.json | jq 'length' 2>/dev/null || echo "0")
+            if [ "$ISSUES" -gt 0 ]; then
+              echo "📋 Ruff found $ISSUES issues"
+              cat ruff_report.json | jq '.[] | {file: .filename, code: .code.code, message: .message}' || cat ruff_report.json
+            else
+              echo "✅ No Ruff issues found"
+            fi
           else
             echo "✅ No Ruff issues found"
           fi
+
+          echo "Running ruff format check..."
+          rye run ruff format --check --diff . || echo "Ruff formatting issues found"
 
       - name: Python type checking
         run: |
@@ -353,15 +370,20 @@ jobs:
               echo "Type checking $component..."
               cd "$component"
               
-              # Install component
-              pip install -e .[dev] 2>/dev/null || pip install -e . 2>/dev/null || true
               
-              # Run mypy
-              mypy . --json-report mypy_report.json 2>/dev/null || true
-              if [ -f "mypy_report.json" ] && [ -s "mypy_report.json" ]; then
-                echo "MyPy report generated for $component"
+              rye sync --all-features 2>/dev/null || true
+              
+              # mypy if available
+              if rye run mypy --version >/dev/null 2>&1; then
+                echo "Running mypy for $component..."
+                rye run mypy . --json-report mypy_report.json 2>/dev/null || true
+                if [ -f "mypy_report.json" ] && [ -s "mypy_report.json" ]; then
+                  echo "MyPy report generated for $component"
+                else
+                  echo "✅ No MyPy issues found in $component"
+                fi
               else
-              echo "✅ No MyPy issues found in $component"
+                echo "ℹ️ MyPy not available for $component"
               fi
               
               cd ../..
@@ -372,20 +394,19 @@ jobs:
         run: |
           echo "Checking Rust code formatting and linting..."
 
-          # Check formatting
           cargo fmt --all -- --check || echo "Rust formatting issues found"
 
-          # Run clippy
-          cargo clippy --all-targets --all-features -- -D warnings -A clippy::too_many_arguments || echo "Clippy warnings found"
+          # clippy with workspace-aware settings
+          cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::too_many_arguments || echo "Clippy warnings found"
 
-          # Check plugins
+          # individual plugins
           for plugin_dir in plugins/*/; do
             if [ -f "$plugin_dir/Cargo.toml" ]; then
               echo "Checking Rust plugin: $plugin_dir..."
               cd "$plugin_dir"
               
               cargo fmt -- --check || echo "Formatting issues in $plugin_dir"
-              cargo clippy -- -D warnings || echo "Clippy warnings in $plugin_dir"
+              cargo clippy --all-targets --all-features -- -D warnings -A clippy::too_many_arguments || echo "Clippy warnings in $plugin_dir"
               
               cd ../..
             fi
@@ -409,5 +430,16 @@ jobs:
     steps:
       - name: Report results
         run: |
-          echo "Security and maintenance workflow completed"
-          echo "Check individual job results for details"
+          echo "# Security and Maintenance Workflow Summary" 
+          echo ""
+          echo "## Job Results:"
+          echo "- Security Audit: ${{ needs.security-audit.result }}"
+          echo "- Dependency Check: ${{ needs.dependency-check.result }}"
+          echo "- Code Quality: ${{ needs.code-quality.result }}"
+          echo ""
+          echo "Check individual job results and uploaded artifacts for detailed findings."
+          echo ""
+          echo "## Artifacts Available:"
+          echo "- security-reports: Security scan results"
+          echo "- dependency-reports: Dependency analysis results"  
+          echo "- code-quality-reports: Code quality check results"

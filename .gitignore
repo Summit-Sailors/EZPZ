@@ -1,6 +1,6 @@
 .hypothesis
 .pytest_cache
-*.lock
+Cargo.lock
 *-lock.yaml
 
 # Mac stuff:

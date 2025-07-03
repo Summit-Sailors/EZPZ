@@ -1,19 +1,18 @@
 import sys
 import inspect
-import logging
 import importlib
 from pathlib import Path
 from itertools import chain
 
 import libcst as cst
 
+from ezpz_pluginz.logger import setup_logger
 from ezpz_pluginz.lockfile import EZPZ_TOML_FILENAME, EZPZ_LOCKFILE_FILENAME, PolarsPluginLockfilePD
 from ezpz_pluginz.toml_schema import EzpzPluginConfig
 from ezpz_pluginz.e_polars_namespace import EPolarsNS
 from ezpz_pluginz.register_plugin_macro import PluginPatcher
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = setup_logger("ENTRY")
 
 
 def mount_plugins() -> None:
