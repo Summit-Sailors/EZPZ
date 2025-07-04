@@ -34,8 +34,6 @@ anyio==4.9.0
     # via jupyter-server
     # via starlette
     # via watchfiles
-appnope==0.1.4
-    # via ipykernel
 argon2-cffi==25.1.0
     # via jupyter-server
 argon2-cffi-bindings==21.2.0
@@ -82,7 +80,7 @@ comm==0.2.2
     # via ipykernel
 contourpy==1.3.2
     # via matplotlib
-cryptography==45.0.4
+cryptography==45.0.5
     # via python-jose
 cycler==0.12.1
     # via matplotlib
@@ -108,12 +106,13 @@ flake8-plugin-utils==1.3.3
 flake8-type-checking==3.0.0
 flupy==1.2.2
     # via alembic-utils
-fonttools==4.58.4
+fonttools==4.58.5
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
 greenlet==3.2.3
     # via ezpz-registry
+    # via sqlalchemy
 h11==0.16.0
     # via httpcore
     # via uvicorn
@@ -278,10 +277,9 @@ prompt-toolkit==3.0.51
     # via ipython
 psutil==7.0.0
     # via ipykernel
-psycopg==3.2.9
-psycopg2==2.9.10
-    # via ezpz-registry
+psycopg-binary==3.2.9
 psycopg2-binary==2.9.10
+    # via ezpz-registry
 ptyprocess==0.7.0
     # via pexpect
     # via terminado
@@ -361,7 +359,7 @@ rfc3986-validator==0.1.1
     # via jupyter-events
 rich==14.0.0
     # via typer
-rpds-py==0.25.1
+rpds-py==0.26.0
     # via jsonschema
     # via referencing
 rsa==4.9.1

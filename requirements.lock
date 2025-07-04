@@ -45,7 +45,7 @@ cffi==1.17.1
 click==8.2.1
     # via typer
     # via uvicorn
-cryptography==45.0.4
+cryptography==45.0.5
     # via python-jose
 ecdsa==0.19.1
     # via python-jose
@@ -55,6 +55,7 @@ flupy==1.2.2
     # via alembic-utils
 greenlet==3.2.3
     # via ezpz-registry
+    # via sqlalchemy
 h11==0.16.0
     # via httpcore
     # via uvicorn
@@ -87,10 +88,9 @@ parse==1.20.2
 polars==1.30.0
     # via ezpz-rust-ti
     # via ezpz-ta
-psycopg==3.2.9
-psycopg2==2.9.10
-    # via ezpz-registry
+psycopg-binary==3.2.9
 psycopg2-binary==2.9.10
+    # via ezpz-registry
 pyarrow==20.0.0
     # via ezpz-rust-ti
     # via ezpz-ta
