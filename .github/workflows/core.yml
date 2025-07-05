@@ -2,14 +2,14 @@ name: Core Components CI/CD
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, dev]
     paths:
       - "core/pluginz/**"
       - "core/macroz/**"
       - "core/registry/**"
       - "pyproject.toml"
       - "requirements*.lock"
-      - ".github/workflows/core-components.yml"
+      - ".github/workflows/core.yml"
   pull_request:
     branches: [main]
     paths:
@@ -18,7 +18,7 @@ on:
       - "core/registry/**"
       - "pyproject.toml"
       - "requirements*.lock"
-      - ".github/workflows/core-components.yml"
+      - ".github/workflows/core.yml"
   workflow_dispatch:
     inputs:
       deploy_env:
@@ -54,7 +54,7 @@ env:
   PYTHON_VERSION: "3.13"
 
 jobs:
-  test-core-components:
+  test-core:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'push' ||
@@ -133,7 +133,7 @@ jobs:
           rye run ezplugins find rust
 
   build-packages:
-    needs: test-core-components
+    needs: test-core
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' && github.event.inputs.run_build == true
@@ -196,9 +196,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' && github.event.inputs.run_publish == true
-    environment:
-      name: pypi
-      url: https://pypi.org/p/ezpz-pluginz
+
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -222,7 +220,7 @@ jobs:
           echo "Successfully published packages to PyPI"
 
   deploy-registry:
-    needs: test-core-components
+    needs: test-core
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' && github.event.inputs.run_deploy == true
@@ -263,7 +261,7 @@ jobs:
           echo "URL: ${{ steps.deploy.outputs.preview-url }}, NAME: ${{steps.deploy.outputs.preview-name}}"
 
   notify-completion:
-    needs: [test-core-components, build-packages, publish-pypi, deploy-registry]
+    needs: [test-core, build-packages, publish-pypi, deploy-registry]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -272,7 +270,7 @@ jobs:
           echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Tests | ${{ needs.test-core-components.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test-core.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ${{ needs.build-packages.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| PyPI Publish | ${{ needs.publish-pypi.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Registry Deploy | ${{ needs.deploy-registry.result }} |" >> $GITHUB_STEP_SUMMARY
