@@ -6,3 +6,6 @@ name = "ezpz_ta"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 version = "0.0.1"
+
+[tool.rye]
+dev-dependencies = ["pip-audit>=2.9.0"]

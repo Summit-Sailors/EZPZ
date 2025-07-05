@@ -18,7 +18,10 @@ requires-python = ">=3.13,<3.14"
 version = "0.0.1"
 
 [tool.rye]
-dev-dependencies = ["painlezz-macroz"]
+dev-dependencies = [
+    "painlezz-macroz",
+    "pip-audit>=2.9.0",
+]
 
 [project.scripts]
 ezplugins = "ezpz_pluginz.__cli__:app"

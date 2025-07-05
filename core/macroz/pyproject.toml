@@ -15,3 +15,8 @@ requires = ["hatchling"]
 [tool.hatch.build]
 exclude = ["painlezz_macroz/**/test_*.py"]
 include = ["painlezz_macroz/**/*.j2", "painlezz_macroz/**/*.py"]
+
+[tool.rye]
+dev-dependencies = [
+    "pip-audit>=2.9.0",
+]

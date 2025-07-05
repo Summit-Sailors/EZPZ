@@ -4,7 +4,7 @@
 # last locked with the following flags:
 #   pre: false
 #   features: []
-#   all-features: false
+#   all-features: true
 #   with-sources: false
 #   generate-hashes: false
 #   universal: false
@@ -42,7 +42,7 @@ certifi==2025.6.15
     # via httpx
 cffi==1.17.1
     # via cryptography
-click==8.2.1
+click==8.1.8
     # via typer
     # via uvicorn
 cryptography==45.0.5
@@ -55,7 +55,6 @@ flupy==1.2.2
     # via alembic-utils
 greenlet==3.2.3
     # via ezpz-registry
-    # via sqlalchemy
 h11==0.16.0
     # via httpcore
     # via uvicorn
@@ -126,7 +125,7 @@ pyyaml==6.0.2
     # via uvicorn
 pyyaml-ft==8.0.0
     # via libcst
-rich==14.0.0
+rich==13.5.3
     # via typer
 rsa==4.9.1
     # via python-jose
