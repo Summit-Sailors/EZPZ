@@ -16,7 +16,7 @@ polars = { workspace = true }
 pyo3 = { workspace = true }
 pyo3-polars = { workspace = true }
 pyo3-stub-gen = { workspace = true }
-rust_ti = "1.4.2"
+rust_ti = "2.0.1"
 
 [build-dependencies]
 pyo3-build-config = "0.25.1"

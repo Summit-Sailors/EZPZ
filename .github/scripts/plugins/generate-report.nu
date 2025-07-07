@@ -2,7 +2,7 @@
 
 def main [
     operation?: string,
-    dry_run?: string,
+    dry_run?: bool,
     event_name?: string,
     discover_result?: string,
     has_changes?: string,

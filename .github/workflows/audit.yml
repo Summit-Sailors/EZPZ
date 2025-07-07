@@ -1,9 +1,6 @@
-name: Security and Maintenance
+name: Security and Quality
 
 on:
-  schedule:
-    # weekly on Mondays at 9 AM UTC
-    - cron: "0 9 * * 1"
   push:
     branches: [main]
     paths:
@@ -12,200 +9,156 @@ on:
       - "**/Cargo.lock"
       - "ezpz-lock.yaml"
       - "requirements*.lock"
-  workflow_dispatch:
-    inputs:
-      check_type:
-        description: "Type of check to run"
-        required: true
-        type: choice
-        options:
-          - all
-          - security
-          - dependencies
-          - linting
-        default: all
+      - "**/*.py"
+      - "**/*.rs"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/pyproject.toml"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - "ezpz-lock.yaml"
+      - "requirements*.lock"
+      - "**/*.py"
+      - "**/*.rs"
+  schedule:
+    # weekly on Mondays at 9 AM UTC
+    - cron: "0 9 * * 1"
 
 env:
   PYTHON_VERSION: "3.13"
   RUST_VERSION: "1.87"
 
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
 jobs:
-  security-audit:
+  security-scan:
     runs-on: ubuntu-latest
-    if: github.event.inputs.check_type == 'security' || github.event.inputs.check_type == 'all' || github.event_name == 'schedule' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Nushell
-        uses: hustcer/setup-nu@v3
-        with:
-          version: "0.105.1"
-
-      - name: Install Just
-        uses: taiki-e/install-action@v2
-        with:
-          tool: just
 
       - name: Install Rye
         uses: eifinger/setup-rye@v4
         with:
           enable-cache: true
-          cache-prefix: "rye-cache"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ env.RUST_VERSION }}
           default: true
-          override: true
           components: clippy
 
       - name: Install security tools
-        run: just install-tools
+        run: |
+          cargo install cargo-audit
+          just install-tools
 
-      - name: Run security audit
-        run: just ci-security
+      - name: Run Rust security audit
+        run: |
+          cargo audit --json > rust_audit.json > rust_audit.json
 
-      - name: Upload security reports
-        uses: actions/upload-artifact@v4
+      - name: Run Python security checks
+        run: |
+          find . -name "*.py" -path "*/src/*" -o -path "*/ezpz_*/*" -o -path "*/painlezz_*/*" | head -1 > /dev/null && \
+          bandit -r . -f json -o bandit_report.json --skip B101 > bandit_report.json
+
+          # pip-audit on requirements
+          pip-audit --format=json --output=pip_audit_raw.json > pip_audit_raw.json
+
+      - name: Convert to SARIF
+        run: |
+          just convert-sarif
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
         if: always()
         with:
-          name: security-reports
-          path: |
-            **/safety_report.json
-            **/bandit_report.json
-            **/rust_audit*.json
-            semgrep_report.json
-          retention-days: 30
-
-  dependency-check:
-    runs-on: ubuntu-latest
-    if: github.event.inputs.check_type == 'dependencies' || github.event.inputs.check_type == 'all' || github.event_name == 'schedule'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Nushell
-        uses: hustcer/setup-nu@v3
-        with:
-          version: "0.105.1"
-
-      - name: Install Just
-        uses: taiki-e/install-action@v2
-        with:
-          tool: just
-
-      - name: Install Rye
-        uses: eifinger/setup-rye@v4
-        with:
-          enable-cache: true
-          cache-prefix: "rye-cache"
-
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
-          default: true
-          override: true
-
-      - name: Install dependency tools
-        run: just install-tools
-
-      - name: Run dependency checks
-        run: just ci-deps
-
-      - name: Generate dependency summary
-        if: github.event_name == 'schedule'
-        run: just dependency-summary
-
-      - name: Upload dependency reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: dependency-reports
-          path: |
-            **/audit.json
-            **/cargo_outdated*.json
-            main_deps.json
-            dependency_summary.md
-          retention-days: 30
+          sarif_file: security-results.sarif
 
   code-quality:
     runs-on: ubuntu-latest
-    if: github.event.inputs.check_type == 'linting' || github.event.inputs.check_type == 'all' || github.event_name == 'push'
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Nushell
-        uses: hustcer/setup-nu@v3
-        with:
-          version: "0.105.1"
-
-      - name: Install Just
-        uses: taiki-e/install-action@v2
-        with:
-          tool: just
 
       - name: Install Rye
         uses: eifinger/setup-rye@v4
         with:
           enable-cache: true
-          cache-prefix: "rye-cache"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ env.RUST_VERSION }}
           default: true
-          override: true
           components: rustfmt, clippy
 
-      - name: Setup project
-        run: just setup
+      - name: Setup Python project
+        run: rye sync --all-features
 
-      - name: Run code quality checks
-        run: just ci-quality
+      - name: Run Python quality checks
+        run: |
+          rye run ruff check . --output-format=github
+          rye run ruff format --check .
 
-      - name: Upload code quality reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: code-quality-reports
-          path: |
-            ruff_report.json
-            **/mypy_report.json
-          retention-days: 30
+      - name: Run Rust quality checks
+        run: |
+          cargo fmt --all -- --check
 
-  summary:
+          cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::too_many_arguments
+
+  pr-summary:
     runs-on: ubuntu-latest
-    needs: [security-audit, dependency-check, code-quality]
-    if: always()
+    needs: [security-scan, code-quality]
+    if: github.event_name == 'pull_request' && always()
+    permissions:
+      pull-requests: write
+      contents: read
 
     steps:
-      - name: Report results
+      - uses: actions/checkout@v4
+      - name: Generate PR summary
+        id: generate_summary
         run: |
-          echo "# Security and Maintenance Workflow Summary" 
-          echo ""
-          echo "## Job Results:"
-          echo "- Security Audit: ${{ needs.security-audit.result }}"
-          echo "- Dependency Check: ${{ needs.dependency-check.result }}"
-          echo "- Code Quality: ${{ needs.code-quality.result }}"
-          echo ""
-          echo "## Components Audited:"
-          echo "- ✅ core/pluginz (Python)"
-          echo "- ✅ core/macroz (Python)"
-          echo "- ✅ core/registry (Python)"
-          echo "- ✅ examples (Python)"
-          echo "- ✅ plugins/ezpz-rust-ti (Rust + Python)"
-          echo "- ✅ stubz (Rust)"
-          echo "- ❌ api (excluded)"
-          echo "- ❌ app (excluded)"
-          echo "- ❌ formatterz (excluded - not in repository)"
-          echo ""
-          echo "## Artifacts Available:"
-          echo "- security-reports: Security scan results"
-          echo "- dependency-reports: Dependency analysis results"  
-          echo "- code-quality-reports: Code quality check results"
-          echo ""
-          echo "Check individual job results and uploaded artifacts for detailed findings."
+          echo "## 🛡️ Security & Quality Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Security Scan: ${{ needs.security-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Code Quality: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Add PR summary comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync(process.env.GITHUB_STEP_SUMMARY, 'utf8');
+
+            // Check if a previous comment by the bot exists to update it
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.data.find(comment =>
+              comment.user.login === 'github-actions[bot]' &&
+              comment.body.includes('## 🛡️ Security & Quality Summary')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: summary
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary
+              });
+            }

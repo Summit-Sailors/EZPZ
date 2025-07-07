@@ -3,15 +3,10 @@ name: EZPZ Plugin Management
 on:
   push:
     branches: [main, develop]
-    paths:
-      - "plugins/**"
-      - "ezpz.toml"
+    paths: ["plugins/**", "ezpz.toml"]
   pull_request:
     branches: [main]
-    paths:
-      - "plugins/**"
-      - "ezpz.toml"
-
+    paths: ["plugins/**", "ezpz.toml"]
   workflow_dispatch:
     inputs:
       operation:
@@ -19,11 +14,7 @@ on:
         required: true
         default: "test"
         type: choice
-        options:
-          - "test"
-          - "register-and-update"
-          - "publish"
-          - "full-pipeline"
+        options: ["test", "register-and-update", "publish", "full-pipeline"]
       dry_run:
         description: "Dry run (no actual registry changes)"
         required: false
@@ -44,84 +35,53 @@ jobs:
       has-changes: ${{ steps.analyze-plugins.outputs.has-changes }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install Rye
-        uses: eifinger/setup-rye@v4
+      - uses: eifinger/setup-rye@v4
         with:
           enable-cache: true
-
-      - name: Install Nushell
-        uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@v3
         with:
           version: "0.105.1"
-
-      - name: Install Just
-        uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
-
-      - name: Install dependencies
-        run: rye sync
-
-      - name: Refresh local registry
-        run: |
-          echo "Refreshing local registry from remote..."
-          rye run ezplugins refresh
-          echo "Local registry refreshed successfully"
-
-      - name: Analyze plugins and generate lists
-        id: analyze-plugins
+      - run: rye sync
+      - run: rye run ezplugins refresh
+      - id: analyze-plugins
         run: just analyze-plugins
 
   test-plugins:
     runs-on: ubuntu-latest
     needs: discover-plugins
-    if: always() && needs.discover-plugins.outputs.has-changes == 'true'
+    if: needs.discover-plugins.outputs.has-changes == 'true'
+    permissions:
+      security-events: write
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.discover-plugins.outputs.project-plugins) }}
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Set up Rust
+      - uses: actions-rs/toolchain@v1
         if: hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != ''
-        uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ env.RUST_VERSION }}
           default: true
-          override: true
-
-      - name: Install Rye
-        uses: eifinger/setup-rye@v4
+      - uses: eifinger/setup-rye@v4
         with:
           enable-cache: true
-
-      - name: Install Nushell
-        uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@v3
         with:
           version: "0.105.1"
-
-      - name: Install Just
-        uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
-
-      - name: Install dependencies
-        run: rye sync
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/uv
@@ -129,27 +89,20 @@ jobs:
             ~/.cargo/git
             target/
           key: ${{ runner.os }}-${{ matrix.plugin.package_name }}-${{ hashFiles(format('{0}/**/pyproject.toml', matrix.plugin.path), format('{0}/**/Cargo.toml', matrix.plugin.path)) }}
-
-      - name: Validate plugin structure
-        env:
+      - run: rye sync
+      - env:
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just validate-plugin
-
-      - name: Install plugin dependencies
-        run: rye sync
-
-      - name: Build Rust components
-        if: hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != ''
-        env:
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-        run: just build-rust
-
-      - name: Run plugin tests
-        env:
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just run-tests
+        run: |
+          just validate-plugin
+          just build-rust
+          just run-tests
+          just convert-sarif
+      - uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: ${{ matrix.plugin.path }}/security_results.sarif
+        continue-on-error: true
 
   register-update-plugins:
     runs-on: ubuntu-latest
@@ -157,47 +110,31 @@ jobs:
     if: |
       always() && 
       needs.discover-plugins.outputs.has-changes == 'true' &&
-      (needs.test-plugins.result == 'success' || needs.test-plugins.result == 'skipped') &&
+      needs.test-plugins.result == 'success' &&
       (github.event.inputs.operation == 'register-and-update' || github.event.inputs.operation == 'full-pipeline')
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install Rye
-        uses: eifinger/setup-rye@v4
+      - uses: eifinger/setup-rye@v4
         with:
           enable-cache: true
-
-      - name: Install Nushell
-        uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@v3
         with:
           version: "0.105.1"
-
-      - name: Install Just
-        uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
-
-      - name: Install dependencies
-        run: rye sync
-
-      - name: Refresh local registry
-        run: rye run ezplugins refresh
-
-      - name: Register new plugins
-        if: needs.discover-plugins.outputs.plugins-to-register != '[]'
+      - run: rye sync
+      - run: rye run ezplugins refresh
+      - if: needs.discover-plugins.outputs.plugins-to-register != '[]'
         env:
           EZPZ_SERVER_SECRET: ${{ secrets.EZPZ_SERVER_SECRET }}
           PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: just register-plugins
-
-      - name: Update existing plugins
-        if: needs.discover-plugins.outputs.plugins-to-update != '[]'
+      - if: needs.discover-plugins.outputs.plugins-to-update != '[]'
         env:
           EZPZ_SERVER_SECRET: ${{ secrets.EZPZ_SERVER_SECRET }}
           PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
@@ -210,7 +147,7 @@ jobs:
     if: |
       always() && 
       needs.discover-plugins.outputs.has-changes == 'true' &&
-      (needs.test-plugins.result == 'success' || needs.test-plugins.result == 'skipped') &&
+      needs.test-plugins.result == 'success' &&
       (needs.register-update-plugins.result == 'success' || needs.register-update-plugins.result == 'skipped') &&
       (github.event.inputs.operation == 'publish' || github.event.inputs.operation == 'full-pipeline')
     strategy:
@@ -219,72 +156,47 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Set up Rust
+      - uses: actions-rs/toolchain@v1
         if: hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != ''
-        uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ env.RUST_VERSION }}
           default: true
-          override: true
-
-      - name: Install Rye
-        uses: eifinger/setup-rye@v4
+      - uses: eifinger/setup-rye@v4
         with:
           enable-cache: true
-
-      - name: Install Nushell
-        uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@v3
         with:
           version: "0.105.1"
-
-      - name: Install Just
-        uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
-
-      - name: Install build dependencies
-        run: |
+      - run: |
           rye sync
           rye add twine
-
-      - name: Check if plugin needs publishing
-        id: check-publish
+      - id: check-publish
         env:
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
           PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
           PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
         run: just check-publish
-
-      - name: Build plugin
-        if: steps.check-publish.outputs.needs-publishing == 'true'
+      - if: steps.check-publish.outputs.needs-publishing == 'true'
         env:
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just build-plugin
-
-      - name: Validate package
-        if: steps.check-publish.outputs.needs-publishing == 'true'
-        env:
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-        run: just validate-package
-
-      - name: Publish to PyPI
-        if: steps.check-publish.outputs.needs-publishing == 'true' && github.event.inputs.dry_run != 'true'
+        run: |
+          just build-plugin
+          just validate-package
+      - if: steps.check-publish.outputs.needs-publishing == 'true' && github.event.inputs.dry_run != 'true'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
         run: just publish-pypi
-
-      - name: Publish Rust crate
-        if: steps.check-publish.outputs.needs-publishing == 'true' && hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != '' && github.event.inputs.dry_run != 'true'
+      - if: steps.check-publish.outputs.needs-publishing == 'true' && hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != '' && github.event.inputs.dry_run != 'true'
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           PLUGIN_PATH: ${{ matrix.plugin.path }}
@@ -298,19 +210,13 @@ jobs:
     if: always()
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Nushell
-        uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@v3
         with:
           version: "0.105.1"
-
-      - name: Install Just
-        uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
-
-      - name: Generate workflow report
-        env:
+      - env:
           OPERATION: ${{ github.event.inputs.operation }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
           EVENT_NAME: ${{ github.event_name }}

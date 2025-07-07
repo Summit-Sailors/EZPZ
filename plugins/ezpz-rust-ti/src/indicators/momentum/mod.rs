@@ -11,25 +11,27 @@ use {
 #[gen_stub_pyclass]
 #[pyclass]
 #[derive(Clone)]
-pub struct MomentumTI;
+pub struct MomentumTI {
+	pub series: PySeriesStubbed,
+}
 
 #[gen_stub_pymethods]
 #[pymethods]
 impl MomentumTI {
+	#[new]
+	fn new(series: PySeriesStubbed) -> Self {
+		Self { series }
+	}
+
 	/// Aroon Up indicator
 	///
 	/// Calculates the Aroon Up indicator, which measures the time since the highest high
 	/// within a given period as a percentage.
 	///
-	/// # Parameters
-	/// * `highs` - PySeriesStubbed containing high price values
-	///
 	/// # Returns
 	/// * `PyResult<f64>` - The Aroon Up value (0-100), where higher values indicate recent highs
-	#[staticmethod]
-	fn aroon_up_single(highs: PySeriesStubbed) -> PyResult<f64> {
-		let values: Vec<f64> = extract_f64_values(highs)?;
-
+	fn aroon_up_single(&self) -> PyResult<f64> {
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let result = rust_ti::trend_indicators::single::aroon_up(&values);
 		Ok(result)
 	}
@@ -44,10 +46,8 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<f64>` - The Aroon Down value (0-100), where higher values indicate recent lows
-	#[staticmethod]
-	fn aroon_down_single(lows: PySeriesStubbed) -> PyResult<f64> {
+	fn aroon_down_single(&self, lows: PySeriesStubbed) -> PyResult<f64> {
 		let values: Vec<f64> = extract_f64_values(lows)?;
-
 		let result = rust_ti::trend_indicators::single::aroon_down(&values);
 		Ok(result)
 	}
@@ -63,9 +63,8 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<f64>` - The Aroon Oscillator value (-100 to +100)
-	#[staticmethod]
-	fn aroon_oscillator_single(aroon_up: f64, aroon_down: f64) -> PyResult<f64> {
-		let result = rust_ti::trend_indicators::single::aroon_oscillator(&aroon_up, &aroon_down);
+	fn aroon_oscillator_single(&self, aroon_up: f64, aroon_down: f64) -> PyResult<f64> {
+		let result = rust_ti::trend_indicators::single::aroon_oscillator(aroon_up, aroon_down);
 		Ok(result)
 	}
 
@@ -75,16 +74,13 @@ impl MomentumTI {
 	/// in a single function call.
 	///
 	/// # Parameters
-	/// * `highs` - PySeriesStubbed containing high price values
 	/// * `lows` - PySeriesStubbed containing low price values
 	///
 	/// # Returns
 	/// * `PyResult<(f64, f64, f64)>` - Tuple containing (aroon_up, aroon_down, aroon_oscillator)
-	#[staticmethod]
-	fn aroon_indicator_single(highs: PySeriesStubbed, lows: PySeriesStubbed) -> PyResult<(f64, f64, f64)> {
-		let highs_values: Vec<f64> = extract_f64_values(highs)?;
+	fn aroon_indicator_single(&self, lows: PySeriesStubbed) -> PyResult<(f64, f64, f64)> {
+		let highs_values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let lows_values: Vec<f64> = extract_f64_values(lows)?;
-
 		let result = rust_ti::trend_indicators::single::aroon_indicator(&highs_values, &lows_values);
 		Ok(result)
 	}
@@ -102,9 +98,8 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<f64>` - The calculated SAR value for long positions
-	#[staticmethod]
-	fn long_parabolic_time_price_system_single(previous_sar: f64, extreme_point: f64, acceleration_factor: f64, low: f64) -> PyResult<f64> {
-		let result = rust_ti::trend_indicators::single::long_parabolic_time_price_system(&previous_sar, &extreme_point, &acceleration_factor, &low);
+	fn long_parabolic_time_price_system_single(&self, previous_sar: f64, extreme_point: f64, acceleration_factor: f64, low: f64) -> PyResult<f64> {
+		let result = rust_ti::trend_indicators::single::long_parabolic_time_price_system(previous_sar, extreme_point, acceleration_factor, low);
 		Ok(result)
 	}
 
@@ -121,9 +116,8 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<f64>` - The calculated SAR value for short positions
-	#[staticmethod]
-	fn short_parabolic_time_price_system_single(previous_sar: f64, extreme_point: f64, acceleration_factor: f64, high: f64) -> PyResult<f64> {
-		let result = rust_ti::trend_indicators::single::short_parabolic_time_price_system(&previous_sar, &extreme_point, &acceleration_factor, &high);
+	fn short_parabolic_time_price_system_single(&self, previous_sar: f64, extreme_point: f64, acceleration_factor: f64, high: f64) -> PyResult<f64> {
+		let result = rust_ti::trend_indicators::single::short_parabolic_time_price_system(previous_sar, extreme_point, acceleration_factor, high);
 		Ok(result)
 	}
 
@@ -133,16 +127,15 @@ impl MomentumTI {
 	/// to show the relationship between volume and price changes.
 	///
 	/// # Parameters
-	/// * `current_price` - f64 current period's price
 	/// * `previous_price` - f64 previous period's price
 	/// * `volume` - f64 current period's volume
 	/// * `previous_volume_price_trend` - f64 previous VPT value
 	///
 	/// # Returns
 	/// * `PyResult<f64>` - The calculated Volume Price Trend value
-	#[staticmethod]
-	fn volume_price_trend_single(current_price: f64, previous_price: f64, volume: f64, previous_volume_price_trend: f64) -> PyResult<f64> {
-		let result = rust_ti::trend_indicators::single::volume_price_trend(&current_price, &previous_price, &volume, &previous_volume_price_trend);
+	fn volume_price_trend_single(&self, previous_price: f64, volume: f64, previous_volume_price_trend: f64) -> PyResult<f64> {
+		let current_price = extract_f64_values(self.series.clone())?[0]; // Assuming single value for current price
+		let result = rust_ti::trend_indicators::single::volume_price_trend(current_price, previous_price, volume, previous_volume_price_trend);
 		Ok(result)
 	}
 
@@ -152,23 +145,17 @@ impl MomentumTI {
 	/// smoothed by two exponential moving averages.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing price values
 	/// * `first_constant_model` - &str smoothing model for first smoothing ("sma", "ema", etc.)
 	/// * `first_period` - usize period for first smoothing
 	/// * `second_constant_model` - &str smoothing model for second smoothing ("sma", "ema", etc.)
 	///
 	/// # Returns
 	/// * `PyResult<f64>` - The True Strength Index value (typically ranges from -100 to +100)
-	#[staticmethod]
-	fn true_strength_index_single(prices: PySeriesStubbed, first_constant_model: &str, first_period: usize, second_constant_model: &str) -> PyResult<f64> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
-
-		// Convert string parameters to ConstantModelType enums
+	fn true_strength_index_single(&self, first_constant_model: &str, first_period: usize, second_constant_model: &str) -> PyResult<f64> {
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let first_model = parse_constant_model_type(first_constant_model)?;
-
 		let second_model = parse_constant_model_type(second_constant_model)?;
-
-		let result = rust_ti::trend_indicators::single::true_strength_index(&values, &first_model, &first_period, &second_model);
+		let result = rust_ti::trend_indicators::single::true_strength_index(&values, first_model, first_period, second_model);
 		Ok(result)
 	}
 
@@ -178,19 +165,15 @@ impl MomentumTI {
 	/// of price movements, oscillating between 0 and 100.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing price values
 	/// * `constant_model_type` - &str smoothing model ("sma", "ema", etc.)
 	/// * `period` - usize calculation period (commonly 14)
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "rsi" containing RSI values (0-100)
-	#[staticmethod]
-	fn relative_strength_index_bulk(prices: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
-
+	fn relative_strength_index_bulk(&self, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let model_type = parse_constant_model_type(constant_model_type)?;
-
-		let result = rust_ti::momentum_indicators::bulk::relative_strength_index(&values, &model_type, &period);
+		let result = rust_ti::momentum_indicators::bulk::relative_strength_index(&values, model_type, period);
 		let series = Series::new("rsi".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -201,16 +184,13 @@ impl MomentumTI {
 	/// to its price range over a given time period.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing price values
 	/// * `period` - usize lookback period for calculation
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "stochastic" containing oscillator values (0-100)
-	#[staticmethod]
-	fn stochastic_oscillator_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
-
-		let result = rust_ti::momentum_indicators::bulk::stochastic_oscillator(&values, &period);
+	fn stochastic_oscillator_bulk(&self, period: usize) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
+		let result = rust_ti::momentum_indicators::bulk::stochastic_oscillator(&values, period);
 		let series = Series::new("stochastic".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -227,13 +207,10 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "slow_stochastic" containing smoothed values (0-100)
-	#[staticmethod]
-	fn slow_stochastic_bulk(stochastics: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
+	fn slow_stochastic_bulk(&self, stochastics: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
 		let values: Vec<f64> = extract_f64_values(stochastics)?;
-
 		let model_type = parse_constant_model_type(constant_model_type)?;
-
-		let result = rust_ti::momentum_indicators::bulk::slow_stochastic(&values, &model_type, &period);
+		let result = rust_ti::momentum_indicators::bulk::slow_stochastic(&values, model_type, period);
 		let series = Series::new("slow_stochastic".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -250,13 +227,10 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "slowest_stochastic" containing double-smoothed values (0-100)
-	#[staticmethod]
-	fn slowest_stochastic_bulk(slow_stochastics: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
+	fn slowest_stochastic_bulk(&self, slow_stochastics: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
 		let values: Vec<f64> = extract_f64_values(slow_stochastics)?;
-
 		let model_type = parse_constant_model_type(constant_model_type)?;
-
-		let result = rust_ti::momentum_indicators::bulk::slowest_stochastic(&values, &model_type, &period);
+		let result = rust_ti::momentum_indicators::bulk::slowest_stochastic(&values, model_type, period);
 		let series = Series::new("slowest_stochastic".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -269,18 +243,15 @@ impl MomentumTI {
 	/// # Parameters
 	/// * `high` - PySeriesStubbed containing high price values
 	/// * `low` - PySeriesStubbed containing low price values
-	/// * `close` - PySeriesStubbed containing closing price values
 	/// * `period` - usize lookback period for calculation
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "williams_r" containing Williams %R values (-100 to 0)
-	#[staticmethod]
-	fn williams_percent_r_bulk(high: PySeriesStubbed, low: PySeriesStubbed, close: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
+	fn williams_percent_r_bulk(&self, high: PySeriesStubbed, low: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
 		let high_values: Vec<f64> = extract_f64_values(high)?;
 		let low_values: Vec<f64> = extract_f64_values(low)?;
-		let close_values: Vec<f64> = extract_f64_values(close)?;
-
-		let result = rust_ti::momentum_indicators::bulk::williams_percent_r(&high_values, &low_values, &close_values, &period);
+		let close_values: Vec<f64> = extract_f64_values(self.series.clone())?;
+		let result = rust_ti::momentum_indicators::bulk::williams_percent_r(&high_values, &low_values, &close_values, period);
 		let series = Series::new("williams_r".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -291,18 +262,15 @@ impl MomentumTI {
 	/// Values range from 0 to 100, where >80 indicates overbought and <20 indicates oversold.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing typical price values ((high + low + close) / 3)
 	/// * `volume` - PySeriesStubbed containing volume values
 	/// * `period` - usize calculation period (commonly 14)
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "mfi" containing Money Flow Index values (0-100)
-	#[staticmethod]
-	fn money_flow_index_bulk(prices: PySeriesStubbed, volume: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let price_values: Vec<f64> = extract_f64_values(prices)?;
+	fn money_flow_index_bulk(&self, volume: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
+		let price_values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let volume_values: Vec<f64> = extract_f64_values(volume)?;
-
-		let result = rust_ti::momentum_indicators::bulk::money_flow_index(&price_values, &volume_values, &period);
+		let result = rust_ti::momentum_indicators::bulk::money_flow_index(&price_values, &volume_values, period);
 		let series = Series::new("mfi".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -312,15 +280,10 @@ impl MomentumTI {
 	/// Calculates the Rate of Change, which measures the percentage change in price
 	/// from one period to the next.
 	///
-	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing price values
-	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "roc" containing rate of change values as percentages
-	#[staticmethod]
-	fn rate_of_change_bulk(prices: PySeriesStubbed) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
-
+	fn rate_of_change_bulk(&self) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let result = rust_ti::momentum_indicators::bulk::rate_of_change(&values);
 		let series = Series::new("roc".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
@@ -332,18 +295,15 @@ impl MomentumTI {
 	/// and subtracts volume on down days to measure buying and selling pressure.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing price values
 	/// * `volume` - PySeriesStubbed containing volume values
 	/// * `previous_obv` - f64 starting OBV value (typically 0)
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "obv" containing cumulative OBV values
-	#[staticmethod]
-	fn on_balance_volume_bulk(prices: PySeriesStubbed, volume: PySeriesStubbed, previous_obv: f64) -> PyResult<PySeriesStubbed> {
-		let price_values: Vec<f64> = extract_f64_values(prices)?;
+	fn on_balance_volume_bulk(&self, volume: PySeriesStubbed, previous_obv: f64) -> PyResult<PySeriesStubbed> {
+		let price_values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let volume_values: Vec<f64> = extract_f64_values(volume)?;
-
-		let result = rust_ti::momentum_indicators::bulk::on_balance_volume(&price_values, &volume_values, &previous_obv);
+		let result = rust_ti::momentum_indicators::bulk::on_balance_volume(&price_values, &volume_values, previous_obv);
 		let series = Series::new("obv".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -354,7 +314,6 @@ impl MomentumTI {
 	/// from its statistical mean. Values typically range from -100 to +100.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing typical price values
 	/// * `constant_model_type` - &str model for calculating moving average ("sma", "ema", etc.)
 	/// * `deviation_model` - &str model for calculating deviation ("mad", "std", etc.)
 	/// * `constant_multiplier` - f64 multiplier constant (typically 0.015)
@@ -362,21 +321,17 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "cci" containing CCI values
-	#[staticmethod]
 	fn commodity_channel_index_bulk(
-		prices: PySeriesStubbed,
+		&self,
 		constant_model_type: &str,
 		deviation_model: &str,
 		constant_multiplier: f64,
 		period: usize,
 	) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
-
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let model_type = parse_constant_model_type(constant_model_type)?;
-
 		let dev_model = parse_deviation_model(deviation_model)?;
-
-		let result = rust_ti::momentum_indicators::bulk::commodity_channel_index(&values, &model_type, &dev_model, &constant_multiplier, &period);
+		let result = rust_ti::momentum_indicators::bulk::commodity_channel_index(&values, model_type, dev_model, constant_multiplier, period);
 		let series = Series::new("cci".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -387,7 +342,6 @@ impl MomentumTI {
 	/// better than traditional moving averages.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing typical price values
 	/// * `previous_mcginley_dynamic` - f64 initial McGinley Dynamic value
 	/// * `deviation_model` - &str model for calculating deviation ("mad", "std", etc.)
 	/// * `constant_multiplier` - f64 multiplier constant (typically 0.015)
@@ -395,31 +349,20 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<(PySeriesStubbed, PySeriesStubbed)>` - Tuple containing (CCI series, McGinley Dynamic series)
-	#[staticmethod]
 	fn mcginley_dynamic_commodity_channel_index_bulk(
-		prices: PySeriesStubbed,
+		&self,
 		previous_mcginley_dynamic: f64,
 		deviation_model: &str,
 		constant_multiplier: f64,
 		period: usize,
 	) -> PyResult<(PySeriesStubbed, PySeriesStubbed)> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
-
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let dev_model = parse_deviation_model(deviation_model)?;
-
-		let result = rust_ti::momentum_indicators::bulk::mcginley_dynamic_commodity_channel_index(
-			&values,
-			&previous_mcginley_dynamic,
-			&dev_model,
-			&constant_multiplier,
-			&period,
-		);
-
+		let result =
+			rust_ti::momentum_indicators::bulk::mcginley_dynamic_commodity_channel_index(&values, previous_mcginley_dynamic, dev_model, constant_multiplier, period);
 		let (cci_values, mcginley_values): (Vec<f64>, Vec<f64>) = result.into_iter().unzip();
-
 		let cci_series = Series::new("cci".into(), cci_values);
 		let mcginley_series = Series::new("mcginley_dynamic".into(), mcginley_values);
-
 		Ok((PySeriesStubbed(pyo3_polars::PySeries(cci_series)), PySeriesStubbed(pyo3_polars::PySeries(mcginley_series))))
 	}
 
@@ -429,7 +372,6 @@ impl MomentumTI {
 	/// the long-period moving average from the short-period moving average.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing price values
 	/// * `short_period` - usize period for short moving average (commonly 12)
 	/// * `short_period_model` - &str model for short MA ("sma", "ema", etc.)
 	/// * `long_period` - usize period for long moving average (commonly 26)
@@ -437,20 +379,11 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "macd" containing MACD line values
-	#[staticmethod]
-	fn macd_line_bulk(
-		prices: PySeriesStubbed,
-		short_period: usize,
-		short_period_model: &str,
-		long_period: usize,
-		long_period_model: &str,
-	) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
-
+	fn macd_line_bulk(&self, short_period: usize, short_period_model: &str, long_period: usize, long_period_model: &str) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let short_model = parse_constant_model_type(short_period_model)?;
 		let long_model = parse_constant_model_type(long_period_model)?;
-
-		let result = rust_ti::momentum_indicators::bulk::macd_line(&values, &short_period, &short_model, &long_period, &long_model);
+		let result = rust_ti::momentum_indicators::bulk::macd_line(&values, short_period, short_model, long_period, long_model);
 		let series = Series::new("macd".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -467,13 +400,10 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "signal" containing signal line values
-	#[staticmethod]
-	fn signal_line_bulk(macds: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
+	fn signal_line_bulk(&self, macds: PySeriesStubbed, constant_model_type: &str, period: usize) -> PyResult<PySeriesStubbed> {
 		let values: Vec<f64> = extract_f64_values(macds)?;
-
 		let model_type = parse_constant_model_type(constant_model_type)?;
-
-		let result = rust_ti::momentum_indicators::bulk::signal_line(&values, &model_type, &period);
+		let result = rust_ti::momentum_indicators::bulk::signal_line(&values, model_type, period);
 		let series = Series::new("signal".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -484,7 +414,6 @@ impl MomentumTI {
 	/// providing better adaptation to market volatility and reducing lag.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing price values
 	/// * `short_period` - usize period for short McGinley Dynamic
 	/// * `previous_short_mcginley` - f64 initial short McGinley Dynamic value
 	/// * `long_period` - usize period for long McGinley Dynamic
@@ -492,19 +421,16 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<PyDfStubbed>` - DataFrame with columns: "macd", "short_mcginley", "long_mcginley"
-	#[staticmethod]
 	fn mcginley_dynamic_macd_line_bulk(
-		prices: PySeriesStubbed,
+		&self,
 		short_period: usize,
 		previous_short_mcginley: f64,
 		long_period: usize,
 		previous_long_mcginley: f64,
 	) -> PyResult<PyDfStubbed> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
-
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let result =
-			rust_ti::momentum_indicators::bulk::mcginley_dynamic_macd_line(&values, &short_period, &previous_short_mcginley, &long_period, &previous_long_mcginley);
-
+			rust_ti::momentum_indicators::bulk::mcginley_dynamic_macd_line(&values, short_period, previous_short_mcginley, long_period, previous_long_mcginley);
 		let (macd_values, short_mcginley_values, long_mcginley_values): (Vec<f64>, Vec<f64>, Vec<f64>) =
 			result.into_iter().fold((Vec::new(), Vec::new(), Vec::new()), |mut acc, (a, b, c)| {
 				acc.0.push(a);
@@ -512,7 +438,6 @@ impl MomentumTI {
 				acc.2.push(c);
 				acc
 			});
-
 		create_triple_df(macd_values, short_mcginley_values, long_mcginley_values, "macd", "short_mcginley", "long_mcginley")
 	}
 
@@ -524,7 +449,6 @@ impl MomentumTI {
 	/// # Parameters
 	/// * `highs` - PySeriesStubbed containing high price values
 	/// * `lows` - PySeriesStubbed containing low price values
-	/// * `close` - PySeriesStubbed containing closing price values
 	/// * `volume` - PySeriesStubbed containing volume values
 	/// * `short_period` - usize short period for oscillator (commonly 3)
 	/// * `long_period` - usize long period for oscillator (commonly 10)
@@ -534,11 +458,11 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<(PySeriesStubbed, PySeriesStubbed)>` - Tuple containing (Chaikin Oscillator, A/D Line)
-	#[staticmethod]
+	#[allow(clippy::too_many_arguments)]
 	fn chaikin_oscillator_bulk(
+		&self,
 		highs: PySeriesStubbed,
 		lows: PySeriesStubbed,
-		close: PySeriesStubbed,
 		volume: PySeriesStubbed,
 		short_period: usize,
 		long_period: usize,
@@ -548,30 +472,24 @@ impl MomentumTI {
 	) -> PyResult<(PySeriesStubbed, PySeriesStubbed)> {
 		let high_values: Vec<f64> = extract_f64_values(highs)?;
 		let low_values: Vec<f64> = extract_f64_values(lows)?;
-		let close_values: Vec<f64> = extract_f64_values(close)?;
+		let close_values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let volume_values: Vec<f64> = extract_f64_values(volume)?;
-
 		let short_model = parse_constant_model_type(short_period_model)?;
-
 		let long_model = parse_constant_model_type(long_period_model)?;
-
 		let result = rust_ti::momentum_indicators::bulk::chaikin_oscillator(
 			&high_values,
 			&low_values,
 			&close_values,
 			&volume_values,
-			&short_period,
-			&long_period,
-			&previous_accumulation_distribution,
-			&short_model,
-			&long_model,
+			short_period,
+			long_period,
+			previous_accumulation_distribution,
+			short_model,
+			long_model,
 		);
-
 		let (chaikin_values, ad_values): (Vec<f64>, Vec<f64>) = result.into_iter().unzip();
-
 		let chaikin_series = Series::new("chaikin_oscillator".into(), chaikin_values);
 		let ad_series = Series::new("accumulation_distribution".into(), ad_values);
-
 		Ok((PySeriesStubbed(pyo3_polars::PySeries(chaikin_series)), PySeriesStubbed(pyo3_polars::PySeries(ad_series))))
 	}
 
@@ -581,25 +499,16 @@ impl MomentumTI {
 	/// This makes it easier to compare securities with different price levels.
 	///
 	/// # Parameters
-	/// * `prices` - PySeriesStubbed containing price values
 	/// * `short_period` - usize short period for moving average (commonly 12)
 	/// * `long_period` - usize long period for moving average (commonly 26)
 	/// * `constant_model_type` - &str model for moving averages ("sma", "ema", etc.)
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "ppo" containing PPO values as percentages
-	#[staticmethod]
-	fn percentage_price_oscillator_bulk(
-		prices: PySeriesStubbed,
-		short_period: usize,
-		long_period: usize,
-		constant_model_type: &str,
-	) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
-
+	fn percentage_price_oscillator_bulk(&self, short_period: usize, long_period: usize, constant_model_type: &str) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 		let model_type = parse_constant_model_type(constant_model_type)?;
-
-		let result = rust_ti::momentum_indicators::bulk::percentage_price_oscillator(&values, &short_period, &long_period, &model_type);
+		let result = rust_ti::momentum_indicators::bulk::percentage_price_oscillator(&values, short_period, long_period, model_type);
 		let series = Series::new("ppo".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}
@@ -616,11 +525,10 @@ impl MomentumTI {
 	///
 	/// # Returns
 	/// * `PyResult<PySeriesStubbed>` - Series named "chande_momentum_oscillator" containing CMO values (-100 to +100)
-	#[staticmethod]
-	fn chande_momentum_oscillator_bulk(prices: PySeriesStubbed, period: usize) -> PyResult<PySeriesStubbed> {
-		let values: Vec<f64> = extract_f64_values(prices)?;
+	fn chande_momentum_oscillator_bulk(&self, period: usize) -> PyResult<PySeriesStubbed> {
+		let values: Vec<f64> = extract_f64_values(self.series.clone())?;
 
-		let result = rust_ti::momentum_indicators::bulk::chande_momentum_oscillator(&values, &period);
+		let result = rust_ti::momentum_indicators::bulk::chande_momentum_oscillator(&values, period);
 		let series = Series::new("chande_momentum_oscillator".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(series)))
 	}

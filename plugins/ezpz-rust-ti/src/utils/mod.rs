@@ -4,7 +4,7 @@ use {
 	pyo3::prelude::*,
 };
 
-pub(crate) fn parse_constant_model_type(constant_model_type: &str) -> PyResult<rust_ti::ConstantModelType<'_>> {
+pub(crate) fn parse_constant_model_type(constant_model_type: &str) -> PyResult<rust_ti::ConstantModelType> {
 	match constant_model_type.to_lowercase().as_str() {
 		"simple_moving_average" => Ok(rust_ti::ConstantModelType::SimpleMovingAverage),
 		"smoothed_moving_average" => Ok(rust_ti::ConstantModelType::SmoothedMovingAverage),
@@ -46,11 +46,6 @@ pub(crate) fn parse_central_point(central_point: &str) -> PyResult<rust_ti::Cent
 		"mode" => Ok(rust_ti::CentralPoint::Mode),
 		_ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("central_point must be 'mean', 'median', or 'mode'")),
 	}
-}
-
-pub(crate) fn create_result_series(name: &str, values: Vec<f64>) -> PySeriesStubbed {
-	let result_series = Series::new(name.into(), values);
-	PySeriesStubbed(pyo3_polars::PySeries(result_series))
 }
 
 #[inline]

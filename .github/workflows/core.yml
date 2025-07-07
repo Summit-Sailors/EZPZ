@@ -6,7 +6,6 @@ on:
     paths:
       - "core/pluginz/**"
       - "core/macroz/**"
-      - "core/registry/**"
       - "pyproject.toml"
       - "requirements*.lock"
       - ".github/workflows/core.yml"
@@ -15,7 +14,6 @@ on:
     paths:
       - "core/pluginz/**"
       - "core/macroz/**"
-      - "core/registry/**"
       - "pyproject.toml"
       - "requirements*.lock"
       - ".github/workflows/core.yml"
@@ -98,11 +96,6 @@ jobs:
       - name: Test macroz
         run: |
           cd core/macroz
-          rye test
-
-      - name: Test registry
-        run: |
-          cd core/registry
           rye test
 
       - name: Test CLI functionality
@@ -219,49 +212,8 @@ jobs:
           rye run twine upload dist/core/macroz/dist/*
           echo "Successfully published packages to PyPI"
 
-  deploy-registry:
-    needs: test-core
-    runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' && github.event.inputs.run_deploy == true
-    environment:
-      name: ${{ github.event.inputs.deploy_env || 'staging' }}
-      url: ${{ steps.deploy.outputs.preview-url }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rye
-        uses: eifinger/setup-rye@v4
-        with:
-          version: "latest"
-
-      - name: Pin Python version
-        run: rye pin ${{ env.PYTHON_VERSION }}
-
-      - name: Prepare registry for deployment
-        run: |
-          cd core/registry
-          rye sync --no-dev
-
-      - name: Deploy to Vercel
-        id: deploy
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./core/registry
-          vercel-args: "--prod"
-
-      - name: Update deployment status
-        run: |
-          echo "Registry deployed successfully"
-          echo "Environment: ${{ github.event.inputs.deploy_env || 'staging' }}"
-          echo "URL: ${{ steps.deploy.outputs.preview-url }}, NAME: ${{steps.deploy.outputs.preview-name}}"
-
   notify-completion:
-    needs: [test-core, build-packages, publish-pypi, deploy-registry]
+    needs: [test-core, build-packages, publish-pypi]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -273,7 +225,6 @@ jobs:
           echo "| Tests | ${{ needs.test-core.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ${{ needs.build-packages.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| PyPI Publish | ${{ needs.publish-pypi.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Registry Deploy | ${{ needs.deploy-registry.result }} |" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ needs.build-packages.result }}" == "success" ]; then
             echo "### Built Versions" >> $GITHUB_STEP_SUMMARY

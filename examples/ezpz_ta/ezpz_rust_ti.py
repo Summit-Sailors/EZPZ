@@ -232,13 +232,11 @@ def main() -> None:  # noqa: PLR0915
 
     # Compare Original Python vs Optimized Python (Accuracy Check)
     compare_results_accuracy(python_orig_result, python_opt_result, title="ORIGINAL VS OPTIMIZED PYTHON ACCURACY")
-
     # Benchmark Rust implementation
     logger.info("Benchmarking Rust SMA...")
     try:
       rust_benchmark, rust_result = benchmark_rust_function(
-        pl.Series.standard_ti.sma_bulk,
-        close_series,
+        close_series.standard_ti.sma_bulk,
         period,
         num_runs=num_runs,
       )

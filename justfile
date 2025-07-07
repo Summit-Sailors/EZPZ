@@ -1,6 +1,26 @@
 set shell := ["bash", "-uc"]
 set export
-set dotenv-load
+set dotenv-load := true
+
+# =============================================================================
+# ENVIRONMENT VARIABLES (For Workflows)
+# =============================================================================
+
+# Plugin-specific environment variables
+PACKAGE_NAME := env_var("PACKAGE_NAME")
+PLUGIN_PATH := env_var("PLUGIN_PATH")
+
+# Workflow environment variables
+OPERATION := env_var("OPERATION")
+DRY_RUN := env_var("DRY_RUN")
+EVENT_NAME := env_var("EVENT_NAME")
+DISCOVER_RESULT := env_var("DISCOVER_RESULT")
+TEST_RESULT := env_var("TEST_RESULT")
+REGISTER_RESULT := env_var("REGISTER_RESULT")
+PUBLISH_RESULT := env_var("PUBLISH_RESULT")
+HAS_CHANGES := env_var("HAS_CHANGES")
+PLUGINS_TO_REGISTER := env_var("PLUGINS_TO_REGISTER")
+PLUGINS_TO_UPDATE := env_var("PLUGINS_TO_UPDATE")
 
 default:
   @just --choose --justfile {{justfile()}}
@@ -38,142 +58,103 @@ examples:
   rye run python3 examples/ezpz_ta/ezpz_rust_ti.py
 
 
-reg-gen message:
+# EZPZ Plugin Management and Security Recipes
+
+# =============================================================================
+# SETUP AND CLEANUP COMMANDS
+# =============================================================================
+
+# Install security and maintenance tools
+install-tools:
   #!/usr/bin/env bash
   set -euo pipefail
-  cd core/registry/ezpz_registry/migrations
-  alembic revision --autogenerate -m "{{message}}"
+  print "Installing security and maintenance tools..."
+  rye install bandit
+  rye install semgrep
+  rye install pip-audit
+  cargo install cargo-audit cargo-outdated
 
-reg-bump:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  cd core/registry/ezpz_registry/migrations
-  alembic upgrade head
-
-reg-dev:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  cd core/registry
-  rye run uvicorn ezpz_registry.main:app --host 0.0.0.0 --port 8000 --reload
-
-reg-prod:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  cd core/registry
-  rye run gunicorn ezpz_registry.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-
-
-
-
-
-
-# Workflow commands:
-
-# Environment variables with defaults
-PACKAGE_NAME := env_var_or_default("PACKAGE_NAME", "")
-PLUGIN_PATH := env_var_or_default("PLUGIN_PATH", "")
-
-# plugin structure
-validate-plugin:
-  #!/usr/bin/env nu
-  nu .github/scripts/plugins/validate-plugin.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
-
-build-rust:
-  #!/usr/bin/env nu
-  nu .github/scripts/plugins/build-rust.nu {{PLUGIN_PATH}}
-
-# plugin tests
-run-tests:
-  #!/usr/bin/env nu
-  nu .github/scripts/plugins/run-tests.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
-
-# Build plugin for publishing
-build-plugin:
-  #!/usr/bin/env nu
-  nu .github/scripts/plugins/build-plugin.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
-
-validate-package:
-  #!/usr/bin/env nu
-  nu .github/scripts/plugins/validate-package.nu {{PLUGIN_PATH}}
-
-publish-pypi:
-  #!/usr/bin/env nu
-  nu .github/scripts/plugins/publish-pypi.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
-
-publish-cargo:
-  #!/usr/bin/env nu
-  nu .github/scripts/plugins/publish-cargo.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
-
-# Generate workflow report
-generate-report:
-  #!/usr/bin/env nu
-  nu .github/scripts/plugins/generate-report.nu \
-    "{{env_var_or_default('OPERATION', 'automatic')}}" \
-    "{{env_var_or_default('DRY_RUN', 'false')}}" \
-    "{{env_var_or_default('EVENT_NAME', 'unknown')}}" \
-    "{{env_var_or_default('DISCOVER_RESULT', 'unknown')}}" \
-    "{{env_var_or_default('HAS_CHANGES', 'unknown')}}" \
-    "{{env_var_or_default('PLUGINS_TO_REGISTER', '[]')}}" \
-    "{{env_var_or_default('PLUGINS_TO_UPDATE', '[]')}}" \
-    "{{env_var_or_default('TEST_RESULT', 'unknown')}}" \
-    "{{env_var_or_default('REGISTER_RESULT', 'unknown')}}" \
-    "{{env_var_or_default('PUBLISH_RESULT', 'unknown')}}"
-
-# Python script recipes
-analyze-plugins:
-  #!/usr/bin/env python
-  python .github/scripts/plugins/analyze_plugins.py
-
-register-plugins:
-  #!/usr/bin/env python
-  python .github/scripts/plugins/register_plugins.py
-
-update-plugins:
-  #!/usr/bin/env python
-  python .github/scripts/plugins/update_plugins.py
-
-check-publish:
-  #!/usr/bin/env python
-  python .github/scripts/plugins/check_publish.py
-
-# Dev recipes
-dev-setup:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  @echo "Setting up development environment..."
-  rye sync
-  @echo "Development setup complete!"
-
+# Clean build artifacts and reports
 clean:
   #!/usr/bin/env bash
   set -euo pipefail
-  @echo "Cleaning build artifacts..."
+  echo "Cleaning build artifacts..."
   find . -name "*.pyc" -delete
   find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
   find . -name "dist" -type d -exec rm -rf {} + 2>/dev/null || true
   find . -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
   find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
-  @echo "Clean complete!"
+  echo "Clean complete!"
 
-# Test a specific plugin locally
-test-plugin PLUGIN_NAME:
+# Clean up generated reports
+clean-reports:
   #!/usr/bin/env bash
   set -euo pipefail
-  @echo "Testing plugin: {{PLUGIN_NAME}}"
-  PACKAGE_NAME={{PLUGIN_NAME}} PLUGIN_PATH=plugins/{{PLUGIN_NAME}} just validate-plugin
-  PACKAGE_NAME={{PLUGIN_NAME}} PLUGIN_PATH=plugins/{{PLUGIN_NAME}} just run-tests
+  echo "Cleaning up generated reports..."
+  rm -f **/*_report.json
+  rm -f **/audit.json
+  rm -f **/cargo_outdated*.json
+  rm -f **/rust_audit*.json
+  rm -f main_deps.json
+  rm -f dependency_summary.md
+  echo "Reports cleaned up!"
 
-# Build a specific plugin locally
-build-plugin-local PLUGIN_NAME:
+# =============================================================================
+# PLUGIN DISCOVERY AND ANALYSIS
+# =============================================================================
+
+# Analyze plugins and generate lists for workflows
+analyze-plugins:
   #!/usr/bin/env bash
   set -euo pipefail
-  @echo "Building plugin: {{PLUGIN_NAME}}"
-  PACKAGE_NAME={{PLUGIN_NAME}} PLUGIN_PATH=plugins/{{PLUGIN_NAME}} just build-plugin
+  python3 .github/scripts/plugins/analyze_plugins.py
 
-# Validate all plugins
+# Register new plugins with registry
+register-plugins:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  python3 .github/scripts/plugins/register_plugins.py
+
+# Update existing plugins in registry
+update-plugins:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  python3 .github/scripts/plugins/update_plugins.py
+
+# Check if plugin needs publishing
+check-publish:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  python3 .github/scripts/plugins/check_publish.py
+
+# =============================================================================
+# PLUGIN VALIDATION AND TESTING
+# =============================================================================
+
+# Validate plugin structure
+validate-plugin:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/validate-plugin.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
+
+# Build Rust components
+build-rust:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/build-rust.nu {{PLUGIN_PATH}}
+
+# Run plugin tests
+run-tests:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/run-tests.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
+
+# Validate all plugins in the repository
 validate-all:
-  @echo "Validating all plugins..."
-  @for plugin in plugins/*/; do \
+  #!/usr/bin/env bash
+  set -euo pipefail
+  echo "Validating all plugins..."
+  for plugin in plugins/*/; do \
     if [ -d "$plugin" ]; then \
         plugin_name=$(basename "$plugin"); \
         echo "Validating $plugin_name..."; \
@@ -183,8 +164,10 @@ validate-all:
 
 # Run tests for all plugins
 test-all:
-  @echo "Testing all plugins..."
-  @for plugin in plugins/*/; do \
+  #!/usr/bin/env bash
+  set -euo pipefail
+  echo "Testing all plugins..."
+  for plugin in plugins/*/; do \
     if [ -d "$plugin" ]; then \
         plugin_name=$(basename "$plugin"); \
         echo "Testing $plugin_name..."; \
@@ -192,134 +175,75 @@ test-all:
     fi; \
   done
 
+# =============================================================================
+# PLUGIN BUILDING AND PUBLISHING
+# =============================================================================
+
+# Build plugin for distribution
+build-plugin:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/build-plugin.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
+
+# Validate built package
+validate-package:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/validate-package.nu {{PLUGIN_PATH}}
+
+# Publish plugin to PyPI
+publish-pypi:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/publish-pypi.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
+
+# Publish Rust crate to crates.io
+publish-cargo:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/publish-cargo.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
+
+
+convert-sarif:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  echo "Converting security reports to SARIF format..."
+  python3 .github/scripts/security/convert_sarif.py
+
+# =============================================================================
+# REPORTING AND STATUS
+# =============================================================================
+
+# Generate workflow report
+generate-report:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/generate-report.nu \
+    "{{OPERATION}}" \
+    "{{DRY_RUN}}" \
+    "{{EVENT_NAME}}" \
+    "{{DISCOVER_RESULT}}" \
+    "{{HAS_CHANGES}}" \
+    "{{PLUGINS_TO_REGISTER}}" \
+    "{{PLUGINS_TO_UPDATE}}" \
+    "{{TEST_RESULT}}" \
+    "{{REGISTER_RESULT}}" \
+    "{{PUBLISH_RESULT}}"
+
 # Show plugin information
-info:
-  @echo "Current plugin: {{PACKAGE_NAME}}"
-  @echo "Plugin path: {{PLUGIN_PATH}}"
-  @echo "Available plugins:"
-  @ls -la plugins/ | grep "^d" | awk '{print "  - " $9}' | grep -v "^  - \.$" | grep -v "^  - \.\.$"
+plugin-info:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  echo "Current plugin: {{PACKAGE_NAME}}"
+  echo "Plugin path: {{PLUGIN_PATH}}"
+  echo "Available plugins:"
+  ls -la plugins/ | grep "^d" | awk '{print "  - " $9}' | grep -v "^  - \.$" | grep -v "^  - \.\.$"
 
-
-
-
-
-# Security scripts
-
-install-tools:
-  #!/usr/bin/env nu
-  print "Installing security and maintenance tools..."
-  rye install bandit
-  rye install semgrep
-  rye install pip-audit
-  cargo install cargo-audit cargo-outdated
-
-# full security audit (Python + Rust + Semgrep)
-security-audit:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/python-security.nu
-  nu .github/scripts/security/rust-security.nu  
-  nu .github/scripts/security/semgrep.nu
-
-python-security:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/python-security.nu
-
-rust-security:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/rust-security.nu
-
-semgrep-scan:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/semgrep.nu
-
-# full dependency check (Python + Rust)
-dependency-check:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/py-deps.nu
-  nu .github/scripts/security/rust-deps.nu
-
-python-deps:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/py-deps.nu
-
-rust-deps:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/rust-deps.nu
-
-dependency-summary:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/dep-summary.nu
-
-# Run full code quality checks (Python + Rust)
-code-quality:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/py-quality.nu
-  nu .github/scripts/security/rust-quality.nu
-
-python-quality:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/py-quality.nu
-
-rust-quality:
-  #!/usr/bin/env nu
-  nu .github/scripts/plugins/rust-quality.nu
-
-# Run all checks (equivalent to GitHub Actions workflow)
-all-checks: security-audit dependency-check code-quality
-  #!/usr/bin/env nu
-  print "All security and maintenance checks completed!"
-
-# Clean up generated reports
-clean-reports:
-  #!/usr/bin/env nu
-  print "Cleaning up generated reports..."
-  rye uninstall bandit
-  rye uninstall semgrep
-  rye uninstall pip-audit
-  rm -f **/*_report.json
-  rm -f **/audit.json
-  rm -f **/cargo_outdated*.json
-  rm -f **/rust_audit*.json
-  rm -f main_deps.json
-  rm -f dependency_summary.md
-  print "Reports cleaned up!"
-
-setup:
-    #!/usr/bin/env nu
-    print "Setting up project for development..."
-    rye sync --all-features
-    print "Project setup complete!"
-
-# security checks suitable for CI
-ci-security:
-  #!/usr/bin/env nu 
-  nu .github/scripts/security/python-security.nu
-  nu .github/scripts/security/rust-security.nu
-  nu .github/scripts/security/semgrep.nu
-
-# dependency checks suitable for CI  
-ci-deps:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/py-deps.nu
-  nu .github/scripts/security/rust-deps.nu
-
-# code quality checks suitable for CI
-ci-quality:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/py-quality.nu
-  nu .github/scripts/security/rust-quality.nu
-
-# minimal checks for pre-commit
-pre-commit:
-  #!/usr/bin/env nu
-  nu .github/scripts/security/py-quality.nu
-  nu .github/scripts/security/rust-quality.nu
-
-# project status
+# Show project status
 status:
   #!/usr/bin/env nu
-  print "Project Security and Maintenance Status"
-  print "======================================"
+  print "EZPZ Project Security and Maintenance Status"
+  print "============================================"
   print ""
   print "Lock files:"
   print $"  ezpz-lock.yaml: (if ('ezpz-lock.yaml' | path exists) { '✅' } else { '❌' })"
@@ -327,8 +251,7 @@ status:
   print "Components:"
   let components = [
       "core/pluginz"
-      "core/macroz" 
-      "core/registry"
+      "core/macroz"
       "examples"
       "plugins/ezpz-rust-ti"
       "stubz"
@@ -349,7 +272,13 @@ status:
   }
   print ""
   print "Available commands:"
+  print "  just setup             - Set up development environment"
   print "  just security-audit    - Run full security audit"
   print "  just dependency-check  - Check for dependency updates"
   print "  just code-quality      - Run code quality checks"
   print "  just all-checks        - Run all checks"
+  print "  just validate-all      - Validate all plugins"
+  print "  just test-all          - Test all plugins"
+  print "  just clean             - Clean build artifacts"
+  print "  just status            - Show this status"
+
