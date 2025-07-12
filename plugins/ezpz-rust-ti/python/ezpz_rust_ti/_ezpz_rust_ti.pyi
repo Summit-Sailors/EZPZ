@@ -1489,6 +1489,7 @@ class TrendTI:
 
 class VolatilityTI:
   def __new__(cls, lf: polars.LazyFrame) -> VolatilityTI: ...
+  def __init__(self, lf: polars.LazyFrame) -> None: ...
   def ulcer_index_single(self, price_column: builtins.str) -> builtins.float:
     r"""
     Ulcer Index (Single) - Calculates how quickly the price is able to get back to its former high

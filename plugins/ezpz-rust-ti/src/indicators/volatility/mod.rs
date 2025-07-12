@@ -21,6 +21,12 @@ impl VolatilityTI {
 		Self { lf: lf.0.into() }
 	}
 
+	fn __init__(&mut self, lf: PyLfStubbed) -> PyResult<()> {
+		// Actual initialization happens here
+		self.lf = lf.0.into();
+		Ok(())
+	}
+
 	/// Ulcer Index (Single) - Calculates how quickly the price is able to get back to its former high
 	/// Can be used instead of standard deviation for volatility measurement
 	///
