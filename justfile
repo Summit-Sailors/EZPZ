@@ -50,12 +50,12 @@ clear:
 stub-gen:
   #!/usr/bin/env bash
   set -euo pipefail
-  cargo run -p file:///Users/stephen/Desktop/summit-sailors/ezpz/plugins/ezpz-rust-ti stub_gen
+  cargo run -p ezpz-rust-ti stub_gen
 
 examples:
   #!/usr/bin/env bash
   set -euo pipefail
-  rye run python3 examples/ezpz_ta/standard.py
+  rye run python3 examples/ezpz_ta/volatility.py
 
 
 # EZPZ Plugin Management and Security Recipes
