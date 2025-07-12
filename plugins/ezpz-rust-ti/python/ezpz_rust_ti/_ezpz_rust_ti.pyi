@@ -1488,28 +1488,38 @@ class TrendTI:
     """
 
 class VolatilityTI:
-  def __new__(cls, series: polars.Series) -> VolatilityTI: ...
-  def ulcer_index_single(self) -> builtins.float:
+  def __new__(cls, lf: polars.LazyFrame) -> VolatilityTI: ...
+  def ulcer_index_single(self, price_column: builtins.str) -> builtins.float:
     r"""
     Ulcer Index (Single) - Calculates how quickly the price is able to get back to its former high
     Can be used instead of standard deviation for volatility measurement
 
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
+
     # Returns
     f64 - Single Ulcer Index value representing overall price volatility and drawdown risk
     """
-  def ulcer_index_bulk(self, period: builtins.int) -> polars.Series:
+  def ulcer_index_bulk(self, price_column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Ulcer Index (Bulk) - Calculates rolling Ulcer Index over specified period
     Returns a series of Ulcer Index values
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `period`: usize - Rolling window period for calculation
 
     # Returns
     PySeriesStubbed - Series of rolling Ulcer Index values with name "ulcer_index"
     """
   def volatility_system(
-    self, high: polars.Series, low: polars.Series, period: builtins.int, constant_multiplier: builtins.float, constant_model_type: builtins.str
+    self,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
+    period: builtins.int,
+    constant_multiplier: builtins.float,
+    constant_model_type: builtins.str,
   ) -> polars.Series:
     r"""
     Volatility System - Calculates Welles volatility system with Stop and Reverse (SaR) points
@@ -1517,9 +1527,9 @@ class VolatilityTI:
     Constant multiplier typically between 2.8-3.1 (Welles used 3.0)
 
     # Parameters
-    - `high`: PySeriesStubbed - Series of high price values
-    - `low`: PySeriesStubbed - Series of low price values
-    - `close`: PySeriesStubbed - Series of closing price values
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `period`: usize - Period for volatility calculation
     - `constant_multiplier`: f64 - Multiplier for volatility (typically 2.8-3.1)
     - `constant_model_type`: &str - Type of constant model to use for calculation

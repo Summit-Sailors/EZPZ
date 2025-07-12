@@ -42,6 +42,6 @@ ezpz_plugin_collect(polars_ns="Series", attr_name="strength_ti", import_="from e
 ezpz_plugin_collect(polars_ns="Series", attr_name="trend_ti", import_="from ezpz_rust_ti._ezpz_rust_ti import TrendTI", type_hint="TrendTI")(TrendTI)
 
 # Volatility Technical Indicators
-ezpz_plugin_collect(polars_ns="Series", attr_name="volatility_ti", import_="from ezpz_rust_ti._ezpz_rust_ti import VolatilityTI", type_hint="VolatilityTI")(
+ezpz_plugin_collect(polars_ns="LazyFrame", attr_name="volatility_ti", import_="from ezpz_rust_ti._ezpz_rust_ti import VolatilityTI", type_hint="VolatilityTI")(
   VolatilityTI
 )

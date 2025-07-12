@@ -230,17 +230,21 @@ def main() -> None:  # noqa: PLR0915
     python_opt_benchmark, python_opt_result = benchmark_python_function(sma_pure_python_optimized, close_prices, period, num_runs=num_runs)
     logger.info(f"Optimized Python avg: {python_opt_benchmark.avg_time_ms:.4f} ms")
 
-    # Compare Original Python vs Optimized Python (Accuracy Check)
+    # Original Python vs Optimized Python (Accuracy Check)
     compare_results_accuracy(python_orig_result, python_opt_result, title="ORIGINAL VS OPTIMIZED PYTHON ACCURACY")
     # Benchmark Rust implementation
     logger.info("Benchmarking Rust SMA...")
+
+    def rust_sma_wrapper(series: pl.Series, period: int) -> pl.Series:
+      return series.standard_ti.sma_bulk(period)
+
     try:
       rust_benchmark, rust_result = benchmark_rust_function(
-        close_series.standard_ti.sma_bulk,
+        rust_sma_wrapper,
+        close_series,
         period,
         num_runs=num_runs,
       )
-      logger.info(f"Rust avg: {rust_benchmark.avg_time_ms:.4f} ms")
       logger.info(f"Rust avg: {rust_benchmark.avg_time_ms:.4f} ms")
 
       # Python Results against Rust results (Accuracy Check)
@@ -283,7 +287,7 @@ def main() -> None:  # noqa: PLR0915
     except AttributeError:
       logger.exception("rust_ti extension not available - cannot benchmark Rust implementation")
       logger.info("Install the rust_ti extension to compare with Rust performance")
-      break  # Stop trying further sizes if the Rust extension isn't found
+      break
 
 
 if __name__ == "__main__":

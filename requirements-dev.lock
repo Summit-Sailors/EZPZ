@@ -4,7 +4,7 @@
 # last locked with the following flags:
 #   pre: false
 #   features: []
-#   all-features: true
+#   all-features: false
 #   with-sources: false
 #   generate-hashes: false
 #   universal: false
@@ -55,7 +55,7 @@ cachecontrol==0.14.3
     # via pip-audit
 cached-property==2.0.1
     # via ezpz-pluginz
-certifi==2025.6.15
+certifi==2025.7.9
     # via httpcore
     # via httpx
     # via requests
@@ -65,7 +65,7 @@ charset-normalizer==3.4.2
     # via requests
 classify-imports==4.2.0
     # via flake8-type-checking
-click==8.1.8
+click==8.2.1
     # via typer
 comm==0.2.2
     # via ipykernel
@@ -194,7 +194,7 @@ matplotlib==3.10.3
 matplotlib-inline==0.1.7
     # via ipykernel
     # via ipython
-maturin==1.9.0
+maturin==1.9.1
 mccabe==0.7.0
     # via flake8
     # via pylint
@@ -335,7 +335,7 @@ rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
     # via jsonschema
     # via jupyter-events
-rich==13.5.3
+rich==14.0.0
     # via pip-audit
     # via typer
 rpds-py==0.26.0
@@ -392,9 +392,9 @@ traitlets==5.14.3
     # via nbformat
 typer==0.16.0
     # via ezpz-pluginz
-types-python-dateutil==2.9.0.20250516
+types-python-dateutil==2.9.0.20250708
     # via arrow
-typing-extensions==4.14.0
+typing-extensions==4.14.1
     # via beautifulsoup4
     # via pydantic
     # via pydantic-core
