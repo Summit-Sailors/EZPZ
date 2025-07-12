@@ -1,6 +1,6 @@
 [project]
 authors = [{ "name" = "Stephen Oketch" }]
-dependencies = ["ezpz-pluginz", "polars==1.30.0", "pyarrow==20.0.0"]
+dependencies = ["ezpz-pluginz", "polars==1.31.0", "pyarrow==20.0.0"]
 description = "Examples showcasing use of the ezpz-rust-ti plugin"
 name = "ezpz_ta"
 readme = "README.md"

@@ -35,11 +35,11 @@ impl VolatilityTI {
 			.clone()
 			.select([col(price_column)])
 			.collect()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Failed to collect column '{}': {}", price_column, e)))?
+			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Failed to collect column '{price_column}': {e}")))?
 			.column(price_column)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' not found: {}", price_column, e)))?
+			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{price_column}' not found: {e}")))?
 			.as_series()
-			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' could not be converted to Series", price_column)))?
+			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{price_column}' could not be converted to Series")))?
 			.clone();
 
 		let values: Vec<f64> = extract_f64_values(PySeriesStubbed(pyo3_polars::PySeries(series)))?;
@@ -62,11 +62,11 @@ impl VolatilityTI {
 			.clone()
 			.select([col(price_column)])
 			.collect()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Failed to collect column '{}': {}", price_column, e)))?
+			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Failed to collect column '{price_column}': {e}")))?
 			.column(price_column)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' not found: {}", price_column, e)))?
+			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{price_column}' not found: {e}")))?
 			.as_series()
-			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' could not be converted to Series", price_column)))?
+			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{price_column}' could not be converted to Series")))?
 			.clone();
 
 		let values: Vec<f64> = extract_f64_values(PySeriesStubbed(pyo3_polars::PySeries(series)))?;
@@ -103,27 +103,27 @@ impl VolatilityTI {
 			.clone()
 			.select([col(high_column), col(low_column), col(close_column)])
 			.collect()
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Failed to select columns: {}", e)))?;
+			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Failed to select columns: {e}")))?;
 
 		let high_series = df
 			.column(high_column)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' not found: {}", high_column, e)))?
+			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{high_column}' not found: {e}")))?
 			.as_series()
-			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' could not be converted to Series", high_column)))?
+			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{high_column}' could not be converted to Series")))?
 			.clone();
 
 		let low_series = df
 			.column(low_column)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' not found: {}", low_column, e)))?
+			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{low_column}' not found: {e}")))?
 			.as_series()
-			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' could not be converted to Series", low_column)))?
+			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{low_column}' could not be converted to Series")))?
 			.clone();
 
 		let close_series = df
 			.column(close_column)
-			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' not found: {}", close_column, e)))?
+			.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{close_column}' not found: {e}")))?
 			.as_series()
-			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{}' could not be converted to Series", close_column)))?
+			.ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Column '{close_column}' could not be converted to Series")))?
 			.clone();
 
 		let high_values: Vec<f64> = extract_f64_values(PySeriesStubbed(pyo3_polars::PySeries(high_series)))?;
