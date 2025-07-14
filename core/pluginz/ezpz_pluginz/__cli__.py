@@ -3,6 +3,7 @@
 import os
 import time
 from typing import Any
+from pathlib import Path
 
 import typer
 
@@ -130,9 +131,9 @@ def show_help(command: str = typer.Argument(None, help="Show help for a specific
         "description": "Delete the local plugin registry cache",
         "usage": "ezplugins delete-registry",
         "details": [
-          "• Removes the local registry cache file (~/.ezpz)",
+          "• Removes the local registry (~/.ezpz)",
           "• Useful for troubleshooting registry corruption or clearing cache",
-          "• Registry will be automatically recreated when needed",
+          "• Registry can be automatically recreated using refresh",
         ],
       },
     }
@@ -425,14 +426,14 @@ def list_plugins() -> None:
 @app.command(name="delete-registry")
 def delete_registry() -> None:
   """Delete the local plugin registry cache."""
-  if not LOCAL_REGISTRY_FILE.exists():
+  LOCAL_REGISTRY = Path.home() / ".ezpz"
+  if not LOCAL_REGISTRY.exists():
     logger.info("Local registry file does not exist - nothing to delete")
     return
 
   try:
-    LOCAL_REGISTRY_FILE.unlink()
+    LOCAL_REGISTRY.rmdir()
     logger.info(f"Successfully deleted local registry: {LOCAL_REGISTRY_FILE}")
-    logger.info("Registry will be recreated automatically when needed")
   except Exception as e:
     logger.exception("Failed to delete local registry")
     raise typer.Exit(1) from e

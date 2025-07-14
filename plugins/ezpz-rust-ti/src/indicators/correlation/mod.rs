@@ -371,10 +371,9 @@ mod tests {
 		let ti = create_correlation_ti();
 		let result = ti.correlate_asset_prices_bulk("price_a", "price_b", "arithmetic", "population", 4).unwrap();
 		let series = result.0.0;
-
 		if let Ok(values) = series.f64() {
 			for value in values.into_iter().flatten() {
-				assert!((-1.0..=1.0).contains(&value), "Correlation value {} is out of bounds", value);
+				assert!((-1.0..=1.0).contains(&value), "Correlation value {value} is out of bounds");
 			}
 		}
 	}
