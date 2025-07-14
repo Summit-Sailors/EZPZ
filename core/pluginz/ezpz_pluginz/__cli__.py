@@ -126,6 +126,15 @@ def show_help(command: str = typer.Argument(None, help="Show help for a specific
           "  ezplugins find polars --both --exact",
         ],
       },
+      "delete-registry": {
+        "description": "Delete the local plugin registry cache",
+        "usage": "ezplugins delete-registry",
+        "details": [
+          "• Removes the local registry cache file (~/.ezpz)",
+          "• Useful for troubleshooting registry corruption or clearing cache",
+          "• Registry will be automatically recreated when needed",
+        ],
+      },
     }
 
     if command in command_help:
@@ -140,7 +149,7 @@ def show_help(command: str = typer.Argument(None, help="Show help for a specific
         logger.info(f"  {detail}")
     else:
       logger.error(f"Unknown command: {command}")
-      logger.info("Available commands: mount, unmount, register, update, refresh, status, add, list, find")
+      logger.info("Available commands: mount, unmount, register, update, refresh, status, add, list, find, delete-registry")
       raise typer.Exit(1)
     return
 
@@ -171,6 +180,7 @@ def show_help(command: str = typer.Argument(None, help="Show help for a specific
     ("register", "Register a new plugin (requires GitHub PAT)"),
     ("update", "Update an existing plugin (requires GitHub PAT)"),
     ("help", "Show this help or help for specific commands"),
+    ("delete-registry", "Delete the local plugin registry cache"),
   ]
 
   for cmd, desc in commands:
@@ -316,11 +326,15 @@ def status() -> None:
   logger.info(f"Verified plugins: {verified_count}")
 
 
+def return_bool(*, val: bool) -> bool:
+  return val
+
+
 @app.command(name="add")
 def add(
   plugin_name: str = typer.Argument(help="Name of the plugin to install"),
   *,
-  auto_mount: bool = typer.Option(True, "--auto-mount/--no-auto-mount", help="Automatically mount plugins after installation"),
+  auto_mount: bool = typer.Option(return_bool(val=True), "--auto-mount/--no-auto-mount", help="Automatically mount plugins after installation"),
 ) -> None:
   registry = LocalPluginRegistry()
   plugin = registry.get_plugin(plugin_name)
@@ -408,17 +422,33 @@ def list_plugins() -> None:
     logger.info("")
 
 
+@app.command(name="delete-registry")
+def delete_registry() -> None:
+  """Delete the local plugin registry cache."""
+  if not LOCAL_REGISTRY_FILE.exists():
+    logger.info("Local registry file does not exist - nothing to delete")
+    return
+
+  try:
+    LOCAL_REGISTRY_FILE.unlink()
+    logger.info(f"Successfully deleted local registry: {LOCAL_REGISTRY_FILE}")
+    logger.info("Registry will be recreated automatically when needed")
+  except Exception as e:
+    logger.exception("Failed to delete local registry")
+    raise typer.Exit(1) from e
+
+
 @app.command(name="find")
 def find(
   keyword: str = typer.Argument(help="Keyword to search for in plugins"),
   *,
   field: str = typer.Option(None, "--field", "-f", help="Search in specific field: name, description, author, package, category, aliases, all"),
-  remote: bool = typer.Option(False, "--remote", "-r", help="Search in remote registry instead of local"),
-  both: bool = typer.Option(False, "--both", "-b", help="Search in both local and remote registries"),
-  case_sensitive: bool = typer.Option(False, "--case-sensitive", "-c", help="Perform case-sensitive search"),
-  exact: bool = typer.Option(False, "--exact", "-e", help="Exact match instead of partial match"),
+  remote: bool = typer.Option(return_bool(val=False), "--remote", "-r", help="Search in remote registry instead of local"),
+  both: bool = typer.Option(return_bool(val=False), "--both", "-b", help="Search in both local and remote registries"),
+  case_sensitive: bool = typer.Option(return_bool(val=False), "--case-sensitive", "-c", help="Perform case-sensitive search"),
+  exact: bool = typer.Option(return_bool(val=False), "--exact", "-e", help="Exact match instead of partial match"),
   limit: int = typer.Option(50, "--limit", "-l", help="Maximum number of results to show"),
-  show_details: bool = typer.Option(False, "--details", "-d", help="Show detailed plugin information"),
+  show_details: bool = typer.Option(return_bool(val=False), "--details", "-d", help="Show detailed plugin information"),
 ) -> None:
   valid_fields = {"name", "description", "author", "package", "category", "aliases", "all", None}
   if field and field not in valid_fields:

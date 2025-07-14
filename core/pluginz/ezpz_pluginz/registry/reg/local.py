@@ -1,6 +1,7 @@
 import json
 import time
 import importlib.metadata
+from typing import Any
 from dataclasses import asdict
 
 from ezpz_pluginz.logger import setup_logger
@@ -137,8 +138,8 @@ def discover_local_plugins() -> list[PluginResponse]:
       for entry_point in ezpz_plugins:
         try:
           plugin_info_func = entry_point.load()
-          plugin_info_data = plugin_info_func()
-          plugin_info = PluginResponse(**plugin_info_data) if isinstance(plugin_info_data, dict) else plugin_info_data
+          plugin_info_data: dict[str, Any] = plugin_info_func()
+          plugin_info = PluginResponse(**plugin_info_data)
           plugins.append(plugin_info)
         except Exception:
           logger.warning(f"Failed to load plugin from {entry_point.name}")

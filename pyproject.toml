@@ -1,6 +1,7 @@
 [tool.ezpz_pluginz]
-include = ["ezpz-rust-ti", "pluginz"]
+include = ["plugins/ezpz-rust-ti"]
 name = "ezpz"
+package_manger = "rye"
 site_customize = true
 
 [build-system]

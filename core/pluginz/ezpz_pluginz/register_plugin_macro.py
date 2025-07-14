@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Unpack, Callable, Sequence, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Unpack, Callable, Sequence, TypedDict, cast
 
 import libcst as cst
 import libcst.matchers as m
@@ -13,6 +13,11 @@ from ezpz_pluginz.polars_class_provider import PolarsClassProvider
 
 if TYPE_CHECKING:
   from ezpz_pluginz.register_plugin_macro import PolarsPluginMacroMetadataPD
+
+
+class InvalidNamespaceError(Exception):
+  def __init__(self) -> None:
+    super().__init__("PANIC!")
 
 
 class PolarsPluginMacroKwargs(TypedDict):
@@ -59,7 +64,6 @@ class PolarsPluginCollector(MacroMetadataCollector[PolarsPluginMacroMetadataPD, 
       if kwargs and node.args and len(node.args) > 0:
         arg = node.args[0]
         if isinstance(arg.value, cst.Name):
-          class_name = arg.value.value
           try:
             metadata = PolarsPluginMacroMetadataPD(
               import_=kwargs["import_"],
@@ -73,10 +77,10 @@ class PolarsPluginCollector(MacroMetadataCollector[PolarsPluginMacroMetadataPD, 
     super().visit_Call(node)
 
   def _extract_kwargs_from_call(self, call_node: cst.Call) -> dict[str, str] | None:
-    kwargs = {}
+    kwargs = dict[str, Any]()
 
     for arg in call_node.args:
-      if isinstance(arg, cst.Arg) and arg.keyword:
+      if arg.keyword:
         key = arg.keyword.value
         value = self._extract_string_value(arg.value)
         if value is not None:
@@ -121,7 +125,7 @@ class PluginPatcher(MatcherDecoratableTransformer):
   @m.leave(m.ClassDef(name=m.Name(value=m.MatchIfTrue(lambda name: name in EPolarsNS))))
   def add_new_attrs(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.ClassDef:
     if original_node.name.value != self.polars_ns:
-      raise Exception("PANIC")
+      raise InvalidNamespaceError()
     plugin_nodes = list[cst.AnnAssign]()
     for plugin in self.plugins:
       logger.info(f"Adding {plugin}")

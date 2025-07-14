@@ -24,13 +24,13 @@ def is_package_installed(package_name: str) -> bool:
 
 def _command_available(command: str) -> bool:
   try:
-    result = subprocess.run([command, "--version"], capture_output=True, text=True, timeout=5, check=False)
+    result = subprocess.run([command, "--version"], capture_output=True, text=True, timeout=5, check=False)  # noqa: S603
   except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
     return False
   return result.returncode == 0
 
 
-def detect_package_manager() -> tuple[list[str], str]:
+def detect_package_manager() -> tuple[list[str], str]:  # noqa: PLR0911
   config_manager = get_package_manager_from_config()
   if config_manager:
     if config_manager == "pip":
@@ -117,7 +117,7 @@ def install_package(package_name: str) -> bool:
   logger.info(f"Command: {' '.join(cmd)}")
 
   try:
-    subprocess.run(cmd, capture_output=True, text=True, check=True)
+    subprocess.run(cmd, capture_output=True, text=True, check=True)  # noqa: S603
     logger.info(f"Installation completed successfully with {manager_name}")
   except subprocess.CalledProcessError as e:
     logger.exception(f"Failed to install {package_name} using {manager_name}")
@@ -127,7 +127,7 @@ def install_package(package_name: str) -> bool:
       logger.info("Falling back to pip...")
       try:
         pip_cmd = [sys.executable, "-m", "pip", "install", package_name]
-        subprocess.run(pip_cmd, capture_output=True, text=True, check=True)
+        subprocess.run(pip_cmd, capture_output=True, text=True, check=True)  # noqa: S603
         logger.info("Installation completed successfully with pip (fallback)")
       except subprocess.CalledProcessError as fallback_e:
         logger.exception(f"Pip fallback also failed: {fallback_e.stderr}")

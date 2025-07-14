@@ -16,7 +16,7 @@ from ezpz_pluginz.registry.config import (
   DEFAULT_BATCH_SIZE,
   DEFAULT_PAGE_START,
 )
-from ezpz_pluginz.registry.models import PluginCreate, PluginResponse, safe_deserialize_plugin
+from ezpz_pluginz.registry.models import PluginCreate, PluginResponse, safe_deserialize_plugin  # noqa: TC001
 from ezpz_pluginz.registry.exceptions import (
   PluginNotFoundError,
   PluginRegistryError,
@@ -38,8 +38,12 @@ class PluginRegistryAPI:
     self.base_url = base_url.rstrip("/")
     self.timeout = REQUEST_TIMEOUT
 
+  def invalid_method(self, method: str) -> None:
+    raise ValueError(self.UNSUPPORTED_HTTP_METHOD_ERROR.format(method=method))
+
   def _make_request(self, endpoint: str, method: str = "GET", data: dict[str, Any] | None = None, headers: dict[str, str] | None = None) -> dict[str, Any]:
     url = f"{self.base_url}/api/{API_VERSION}{endpoint}"
+    response = None
 
     try:
       with httpx.Client(timeout=self.timeout) as client:
@@ -52,23 +56,23 @@ class PluginRegistryAPI:
         elif method == "PUT":
           response = client.put(url, json=data, headers=headers)
         else:
-          raise ValueError(self.UNSUPPORTED_HTTP_METHOD_ERROR.format(method=method))
+          self.invalid_method(method)
 
-        if response.status_code == HTTP_UNAUTHORIZED:
-          raise PluginRegistryAuthError()
-        if response.status_code == HTTP_NOT_FOUND:
-          raise PluginNotFoundError(endpoint)
-        if response.status_code >= HTTP_SERVER_ERROR:
-          raise PluginRegistryError(f"Server error (HTTP {response.status_code})")
+        if response is not None:
+          if response.status_code == HTTP_UNAUTHORIZED:
+            raise PluginRegistryAuthError()
+          if response.status_code == HTTP_NOT_FOUND:
+            raise PluginNotFoundError(endpoint)
+          if response.status_code >= HTTP_SERVER_ERROR:
+            raise PluginRegistryError("Error")
 
-        response.raise_for_status()
+          response.raise_for_status()
 
-        # Handle empty responses
-        if not response.content.strip():
-          logger.debug(f"Empty response from {url}")
-          return {}
+          if not response.content.strip():
+            logger.debug(f"Empty response from {url}")
+            return {}
 
-        return response.json()
+        return response.json() if response is not None else {}
 
     except httpx.ConnectError as exc:
       raise PluginRegistryConnectionError(self.base_url, "connection refused") from exc
@@ -76,10 +80,10 @@ class PluginRegistryAPI:
       raise PluginRegistryConnectionError(self.base_url, f"timeout after {self.timeout}s") from exc
     except httpx.HTTPStatusError as exc:
       if exc.response.status_code not in [HTTP_UNAUTHORIZED, HTTP_NOT_FOUND]:
-        raise PluginRegistryError(f"HTTP error {exc.response.status_code}: {exc.response.text}") from exc
+        raise PluginRegistryError(f"{exc.response.text}") from exc
       raise
     except (ValueError, json.JSONDecodeError) as exc:
-      raise PluginRegistryError(f"Invalid response format: {exc}") from exc
+      raise PluginRegistryError(f"{exc}") from exc
 
   def fetch_plugins(self, *, verified_only: bool = False) -> list[PluginResponse]:
     all_plugins = list[PluginResponse]()
@@ -92,16 +96,12 @@ class PluginRegistryAPI:
       params = f"?page={page}&page_size={batch_size}&verified_only={verified_only}"
       response = self._make_request(f"/plugins{params}")
 
-      plugins_data = response.get("plugins", [])
+      plugins_data: list[dict[str, Any]] = response.get("plugins", [])
       if not plugins_data:
         break
 
       batch_plugins = list[PluginResponse]()
       for plugin_data in plugins_data:
-        if not isinstance(plugin_data, dict):
-          logger.warning(f"Skipping invalid plugin data: {plugin_data}")
-          continue
-
         plugin = safe_deserialize_plugin(plugin_data)
         if plugin:
           batch_plugins.append(plugin)
@@ -128,14 +128,10 @@ class PluginRegistryAPI:
     params = f"?q={encoded_keyword}"
     response = self._make_request(f"/plugins/search{params}")
 
-    plugins_data = response.get("plugins", [])
+    plugins_data: list[dict[str, Any]] = response.get("plugins", [])
     plugins = list[PluginResponse]()
 
     for plugin_data in plugins_data:
-      if not isinstance(plugin_data, dict):
-        logger.warning("Skipping invalid plugin data in search results")
-        continue
-
       plugin = safe_deserialize_plugin(plugin_data)
       if plugin:
         plugins.append(plugin)
@@ -156,7 +152,7 @@ class PluginRegistryAPI:
 
     plugin = safe_deserialize_plugin(response)
     if not plugin:
-      raise PluginRegistryError(f"Invalid plugin data received for '{plugin_id}'")
+      raise PluginRegistryError("INVALID")
 
     logger.info(f"Successfully retrieved plugin: {plugin.name}")
     return plugin

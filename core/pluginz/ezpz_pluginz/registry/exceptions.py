@@ -1,6 +1,7 @@
 class PluginRegistryError(Exception):
-  def __init__(self, message: str) -> None:
+  def __init__(self, message: str = "An error occurred in the plugin registry") -> None:
     super().__init__(message)
+    self.message = message
 
 
 class PluginRegistryConnectionError(Exception):
@@ -30,5 +31,6 @@ class PluginOperationError(Exception):
 
 
 class PluginValidationError(Exception):
-  def __init__(self, message: str) -> None:
-    super().__init__(message)
+  def __init__(self, field: str) -> None:
+    super().__init__(f"{field} cannot be empty")
+    self.field = field

@@ -89,8 +89,8 @@ def load_config(config_path: str | Path | None = None) -> Optional[EzpzPluginCon
 
   try:
     return EzpzPluginConfig.from_toml_path(config_path)
-  except Exception as e:
-    logger.exception(f"Error loading config from {config_path}: {e}")
+  except Exception:
+    logger.exception(f"Error loading config from {config_path}")
     return None
 
 

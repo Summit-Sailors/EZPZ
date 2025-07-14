@@ -30,10 +30,6 @@ class BenchmarkResult:
 
 
 def sma_pure_python(prices: list[float], period: int) -> list[float]:
-  """
-  Pure Python SMA implementation matching the Rust logic (non-optimized, for direct comparison).
-  Direct translation of the rust_ti Rust code.
-  """
   length = len(prices)
   if period > length:
     raise InsufficientDataError()
@@ -49,17 +45,14 @@ def sma_pure_python(prices: list[float], period: int) -> list[float]:
   return result
 
 
-def sma_pure_python_optimized(prices: list[float], period: int) -> list[float]:  # Return type changed to list[float]
-  """
-  Optimized Pure Python SMA implementation using a sliding window,
-  """
+def sma_pure_python_optimized(prices: list[float], period: int) -> list[float]:
   length = len(prices)
   if period > length:
     raise InsufficientDataError()
 
   result: list[float] = []
 
-  # Calculate the first SMA value
+  # the first SMA value
   # The first window is from index 0 to period-1
   current_sum: float = sum(prices[0:period])
   result.append(current_sum / period)
@@ -93,7 +86,7 @@ def benchmark_python_function(
 
 
 def benchmark_rust_function(
-  func: Callable[[pl.Series, int], pl.Series], *args: Unpack[tuple[pl.Series, int]], num_runs: int = 1000
+  func: Callable[[pl.LazyFrame, str, int], pl.Series], *args: Unpack[tuple[pl.LazyFrame, str, int]], num_runs: int = 1000
 ) -> tuple[BenchmarkResult, pl.Series | None]:
   times: list[float] = []
   result = None
@@ -111,9 +104,12 @@ def benchmark_rust_function(
   return benchmark_result, result
 
 
-def create_test_data(num_points: int = 365) -> tuple[pl.DataFrame, list[float]]:
+def create_test_data(num_points: int = 365) -> tuple[pl.LazyFrame, list[float]]:
   start_date = date(2023, 1, 1)
   end_date = start_date + timedelta(days=num_points - 1)
+
+  # Create price data
+  close_prices = [100.5 + i * 0.1 for i in range(num_points)]
 
   _df = pl.select(
     timestamp=pl.date_range(start=start_date, end=end_date, interval="1d", eager=True),
@@ -122,13 +118,12 @@ def create_test_data(num_points: int = 365) -> tuple[pl.DataFrame, list[float]]:
       pl.Series("open", [100 + i * 0.1 for i in range(num_points)]),
       pl.Series("high", [101 + i * 0.1 for i in range(num_points)]),
       pl.Series("low", [99 + i * 0.1 for i in range(num_points)]),
-      pl.Series("close", [100.5 + i * 0.1 for i in range(num_points)]),
+      pl.Series("close", close_prices),
       pl.Series("volume", [1000 + i * 10 for i in range(num_points)]),
     ]
   )
 
-  close_prices = _df["close"].to_list()
-  return _df, close_prices
+  return _df.lazy(), close_prices
 
 
 def compare_results_accuracy(first_result: list[float] | None, second_result: pl.Series | list[float] | None, title: str = "ACCURACY COMPARISON") -> None:
@@ -155,7 +150,9 @@ def compare_results_accuracy(first_result: list[float] | None, second_result: pl
   max_diff = 0.0
   first_valid_idx = None
 
-  assert first_result is not None, "first_result is None. Neither of the results too be compared should be None"
+  if first_result is None:
+    raise ValueError("first_result_is_None")
+
   for i, (py_val, other_val) in enumerate(zip(first_result, second_result_list, strict=True)):
     if first_valid_idx is None:
       first_valid_idx = i
@@ -199,7 +196,6 @@ def compare_results_accuracy(first_result: list[float] | None, second_result: pl
 
 
 def main() -> None:  # noqa: PLR0915
-  """Main benchmark execution."""
   logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
   period = 20
@@ -211,37 +207,34 @@ def main() -> None:  # noqa: PLR0915
     logger.info(f"--- Benchmarks for {size:,} data points ---")
     logger.info("=" * 50)
 
-    # test data
-    df, close_prices = create_test_data(size)
-    close_series = df["close"]
+    lf, prices = create_test_data(size)
 
-    logger.info(f"Data points: {len(close_prices):,}")
+    logger.info(f"Data points: {size:,}")
     logger.info(f"SMA period: {period}")
     logger.info(f"Benchmark runs: {num_runs}")
     logger.info("")
 
-    # Benchmark Original Pure Python
     logger.info("Benchmarking Original Pure Python SMA...")
-    python_orig_benchmark, python_orig_result = benchmark_python_function(sma_pure_python, close_prices, period, num_runs=num_runs)
+    python_orig_benchmark, python_orig_result = benchmark_python_function(sma_pure_python, prices, period, num_runs=num_runs)
     logger.info(f"Original Python avg: {python_orig_benchmark.avg_time_ms:.4f} ms")
 
-    # Benchmark Optimized Pure Python
     logger.info("Benchmarking Optimized Pure Python SMA...")
-    python_opt_benchmark, python_opt_result = benchmark_python_function(sma_pure_python_optimized, close_prices, period, num_runs=num_runs)
+    python_opt_benchmark, python_opt_result = benchmark_python_function(sma_pure_python_optimized, prices, period, num_runs=num_runs)
     logger.info(f"Optimized Python avg: {python_opt_benchmark.avg_time_ms:.4f} ms")
 
     # Original Python vs Optimized Python (Accuracy Check)
     compare_results_accuracy(python_orig_result, python_opt_result, title="ORIGINAL VS OPTIMIZED PYTHON ACCURACY")
-    # Benchmark Rust implementation
+
     logger.info("Benchmarking Rust SMA...")
 
-    def rust_sma_wrapper(series: pl.Series, period: int) -> pl.Series:
-      return series.standard_ti.sma_bulk(period)
+    def rust_sma_wrapper(lf: pl.LazyFrame, price_column: str, period: int) -> pl.Series:
+      return lf.standard_ti.sma_bulk(price_column, period)
 
     try:
       rust_benchmark, rust_result = benchmark_rust_function(
         rust_sma_wrapper,
-        close_series,
+        lf,
+        "close",
         period,
         num_runs=num_runs,
       )
@@ -287,6 +280,9 @@ def main() -> None:  # noqa: PLR0915
     except AttributeError:
       logger.exception("rust_ti extension not available - cannot benchmark Rust implementation")
       logger.info("Install the rust_ti extension to compare with Rust performance")
+      break
+    except Exception:
+      logger.exception("Error benchmarking Rust implementation")
       break
 
 

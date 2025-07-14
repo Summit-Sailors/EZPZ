@@ -25,13 +25,13 @@ class PluginCreate:
 
   def _validate(self) -> None:
     if not self.name or not self.name.strip():
-      raise PluginValidationError("Plugin name cannot be empty")
+      raise PluginValidationError("plugin_name")
     if not self.package_name or not self.package_name.strip():
-      raise PluginValidationError("Package name cannot be empty")
+      raise PluginValidationError("package_name")
     if not self.description or not self.description.strip():
-      raise PluginValidationError("Description cannot be empty")
+      raise PluginValidationError("description")
     if not self.author or not self.author.strip():
-      raise PluginValidationError("Author cannot be empty")
+      raise PluginValidationError("author")
 
 
 @dataclass(frozen=True)

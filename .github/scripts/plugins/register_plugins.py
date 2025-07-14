@@ -36,7 +36,7 @@ def main() -> None:
         print(f"🏃 DRY RUN: Would register {package_name} from {plugin_path}")
       else:
         cmd = ["rye", "run", "ezplugins", "register", plugin_path]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)  # noqa: S603
         print(f"✅ Successfully registered {package_name}")
         print(result.stdout)
     except subprocess.CalledProcessError as e:

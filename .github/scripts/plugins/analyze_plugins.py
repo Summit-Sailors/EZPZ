@@ -22,16 +22,14 @@ def load_ezpz_config() -> dict[str, Any]:
 
 
 def load_local_registry() -> dict[str, Any]:
-  possible_paths = [Path.home() / ".ezpz" / "plugins.json", Path(".ezpz") / "plugins.json", Path("plugins.json"), Path("registry.json")]
+  registry_path = Path.home() / ".ezpz" / "registry" / "plugins.json"
 
-  for registry_path in possible_paths:
-    if registry_path.exists():
-      print(f"📁 Found registry at: {registry_path}")
-      with Path.open(registry_path, "r") as f:
-        return json.load(f)
+  if registry_path.exists():
+    print(f"📁 Found registry at: {registry_path}")
+    with Path.open(registry_path, "r") as f:
+      return json.load(f)
 
   print("❌ Local registry not found. Did 'rye run ezplugins refresh' run successfully?")
-  print("🔍 Searched in:", [str(p) for p in possible_paths])
   return {"plugins": []}
 
 

@@ -16,13 +16,18 @@ class_name_strategy = identifier
 
 namespace_name_strategy = st.sampled_from([ns.api_decorator for ns in EPolarsNS])
 
-decorator_call_strategy = st.builds(
-  lambda namespace_attr: cst.Decorator(
+
+def make_decorator(namespace_attr: str) -> cst.Decorator:
+  return cst.Decorator(
     decorator=cst.Call(
-      func=cst.Attribute(value=cst.Name("pl"), attr=cst.Name(namespace_attr)),
+      func=cst.Attribute(value=cst.Name("pl"), attr=cst.Name(str(namespace_attr))),
       args=[cst.Arg(value=cst.SimpleString(f'"{namespace_attr.split("_")[1]}_namespace"'))],
     )
-  ),
+  )
+
+
+decorator_call_strategy = st.builds(
+  make_decorator,
   namespace_name_strategy,
 )
 
@@ -40,7 +45,8 @@ def test_polars_plugin_collector(class_def: cst.ClassDef) -> None:
   module.visit(collector)
 
   # Test should verify that plugins are collected correctly
-  assert len(collector.macro_data) >= 0  # Basic assertion
+  if len(collector.macro_data) < 0:
+    raise ValueError("NEGATIVE_MACRO_DATA")
 
 
 if __name__ == "__main__":

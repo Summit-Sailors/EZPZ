@@ -6,61 +6,83 @@ import builtins
 import polars
 
 class BasicTI:
-  def __new__(cls, series: polars.Series) -> BasicTI: ...
-  def mean_single(self) -> builtins.float:
+  def __new__(cls, lf: polars.LazyFrame) -> BasicTI: ...
+  def mean_single(self, column: builtins.str) -> builtins.float:
     r"""
     Calculate the arithmetic mean of all values.
+
+    # Parameters
+    - `column`: &str - Name of the column to analyze
 
     # Returns
     f64 - The arithmetic mean
     """
-  def median_single(self) -> builtins.float:
+  def median_single(self, column: builtins.str) -> builtins.float:
     r"""
     Calculate the median of all values.
+
+    # Parameters
+    - `column`: &str - Name of the column to analyze
 
     # Returns
     f64 - The median value
     """
-  def mode_single(self) -> builtins.float:
+  def mode_single(self, column: builtins.str) -> builtins.float:
     r"""
     Calculate the mode of all values.
+
+    # Parameters
+    - `column`: &str - Name of the column to analyze
 
     # Returns
     f64 - The most frequently occurring value
     """
-  def variance_single(self) -> builtins.float:
+  def variance_single(self, column: builtins.str) -> builtins.float:
     r"""
     Calculate the variance of all values.
+
+    # Parameters
+    - `column`: &str - Name of the column to analyze
 
     # Returns
     f64 - The variance
     """
-  def standard_deviation_single(self) -> builtins.float:
+  def standard_deviation_single(self, column: builtins.str) -> builtins.float:
     r"""
     Calculate the standard deviation of all values.
+
+    # Parameters
+    - `column`: &str - Name of the column to analyze
 
     # Returns
     f64 - The standard deviation
     """
-  def max_single(self) -> builtins.float:
+  def max_single(self, column: builtins.str) -> builtins.float:
     r"""
     Find the maximum value.
+
+    # Parameters
+    - `column`: &str - Name of the column to analyze
 
     # Returns
     f64 - The maximum value
     """
-  def min_single(self) -> builtins.float:
+  def min_single(self, column: builtins.str) -> builtins.float:
     r"""
     Find the minimum value.
+
+    # Parameters
+    - `column`: &str - Name of the column to analyze
 
     # Returns
     f64 - The minimum value
     """
-  def absolute_deviation_single(self, central_point: builtins.str) -> builtins.float:
+  def absolute_deviation_single(self, column: builtins.str, central_point: builtins.str) -> builtins.float:
     r"""
     Calculate the absolute deviation from a central point.
 
     # Parameters
+    - `column`: &str - Name of the column to analyze
     - `central_point`: &str - Central point type ("mean", "median", etc.)
 
     # Returns
@@ -77,89 +99,102 @@ class BasicTI:
     # Returns
     f64 - The logarithmic difference
     """
-  def mean_bulk(self, period: builtins.int) -> polars.Series:
+  def mean_bulk(self, column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling mean over a specified period.
 
     # Parameters
+    - `column`: &str - Name of the column to analyze
     - `period`: usize - Rolling window size
 
     # Returns
     PySeriesStubbed - Series containing rolling mean values
     """
-  def median_bulk(self, period: builtins.int) -> polars.Series:
+  def median_bulk(self, column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling median over a specified period.
 
     # Parameters
+    - `column`: &str - Name of the column to analyze
     - `period`: usize - Rolling window size
 
     # Returns
     PySeriesStubbed - Series containing rolling median values
     """
-  def mode_bulk(self, period: builtins.int) -> polars.Series:
+  def mode_bulk(self, column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling mode over a specified period.
 
     # Parameters
+    - `column`: &str - Name of the column to analyze
     - `period`: usize - Rolling window size
 
     # Returns
     PySeriesStubbed - Series containing rolling mode values
     """
-  def variance_bulk(self, period: builtins.int) -> polars.Series:
+  def variance_bulk(self, column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling variance over a specified period.
 
     # Parameters
+    - `column`: &str - Name of the column to analyze
     - `period`: usize - Rolling window size
 
     # Returns
     PySeriesStubbed - Series containing rolling variance values
     """
-  def standard_deviation_bulk(self, period: builtins.int) -> polars.Series:
+  def standard_deviation_bulk(self, column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Calculate rolling standard deviation over a specified period.
 
     # Parameters
+    - `column`: &str - Name of the column to analyze
     - `period`: usize - Rolling window size
 
     # Returns
     PySeriesStubbed - Series containing rolling standard deviation values
     """
-  def absolute_deviation_bulk(self, period: builtins.int, central_point: builtins.str) -> polars.Series:
+  def absolute_deviation_bulk(self, column: builtins.str, period: builtins.int, central_point: builtins.str) -> polars.Series:
     r"""
     Calculate rolling absolute deviation over a specified period.
 
     # Parameters
+    - `column`: &str - Name of the column to analyze
     - `period`: usize - Rolling window size
     - `central_point`: &str - Central point type ("mean", "median", etc.)
 
     # Returns
     PySeriesStubbed - Series containing rolling absolute deviation values
     """
-  def log_bulk(self) -> polars.Series:
+  def log_bulk(self, column: builtins.str) -> polars.Series:
     r"""
     Calculate natural logarithm of all values.
+
+    # Parameters
+    - `column`: &str - Name of the column to analyze
 
     # Returns
     PySeriesStubbed - Series containing natural logarithm values
     """
-  def log_difference_bulk(self) -> polars.Series:
+  def log_difference_bulk(self, column: builtins.str) -> polars.Series:
     r"""
     Calculate logarithmic differences between consecutive values.
+
+    # Parameters
+    - `column`: &str - Name of the column to analyze
 
     # Returns
     PySeriesStubbed - Series containing logarithmic difference values
     """
 
 class CandleTI:
-  def __new__(cls, series: polars.Series) -> CandleTI: ...
-  def moving_constant_envelopes_single(self, constant_model_type: builtins.str, difference: builtins.float) -> polars.DataFrame:
+  def __new__(cls, lf: polars.LazyFrame) -> CandleTI: ...
+  def moving_constant_envelopes_single(self, price_column: builtins.str, constant_model_type: builtins.str, difference: builtins.float) -> polars.DataFrame:
     r"""
     Moving Constant Envelopes - Creates upper and lower bands from moving constant of price
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `constant_model_type`: &str - Type of moving average (e.g., "sma", "ema", "wma")
     - `difference`: f64 - Fixed difference value to create envelope bands
 
@@ -169,11 +204,14 @@ class CandleTI:
     - `middle_envelope`: f64 - Middle line (moving average)
     - `upper_envelope`: f64 - Upper envelope band (middle + difference)
     """
-  def mcginley_dynamic_envelopes_single(self, difference: builtins.float, previous_mcginley_dynamic: builtins.float) -> polars.DataFrame:
+  def mcginley_dynamic_envelopes_single(
+    self, price_column: builtins.str, difference: builtins.float, previous_mcginley_dynamic: builtins.float
+  ) -> polars.DataFrame:
     r"""
     McGinley Dynamic Envelopes - Variation of moving constant envelopes using McGinley Dynamic
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `difference`: f64 - Fixed difference value to create envelope bands
     - `previous_mcginley_dynamic`: f64 - Previous McGinley Dynamic value for calculation
 
@@ -184,12 +222,13 @@ class CandleTI:
     - `upper_envelope`: f64 - Upper envelope band (McGinley Dynamic + difference)
     """
   def moving_constant_bands_single(
-    self, constant_model_type: builtins.str, deviation_model: builtins.str, deviation_multiplier: builtins.float
+    self, price_column: builtins.str, constant_model_type: builtins.str, deviation_model: builtins.str, deviation_multiplier: builtins.float
   ) -> polars.DataFrame:
     r"""
     Moving Constant Bands - Extended Bollinger Bands with configurable models
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
     - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
     - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
@@ -201,12 +240,13 @@ class CandleTI:
     - `upper_band`: f64 - Upper band (moving average + deviation * multiplier)
     """
   def mcginley_dynamic_bands_single(
-    self, deviation_model: builtins.str, deviation_multiplier: builtins.float, previous_mcginley_dynamic: builtins.float
+    self, price_column: builtins.str, deviation_model: builtins.str, deviation_multiplier: builtins.float, previous_mcginley_dynamic: builtins.float
   ) -> polars.DataFrame:
     r"""
     McGinley Dynamic Bands - Variation of moving constant bands using McGinley Dynamic
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
     - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
     - `previous_mcginley_dynamic`: f64 - Previous McGinley Dynamic value for calculation
@@ -218,14 +258,21 @@ class CandleTI:
     - `upper_band`: f64 - Upper band (McGinley Dynamic + deviation * multiplier)
     """
   def ichimoku_cloud_single(
-    self, highs: polars.Series, lows: polars.Series, conversion_period: builtins.int, base_period: builtins.int, span_b_period: builtins.int
+    self,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
+    conversion_period: builtins.int,
+    base_period: builtins.int,
+    span_b_period: builtins.int,
   ) -> polars.DataFrame:
     r"""
     Ichimoku Cloud - Calculates support and resistance levels
 
     # Parameters
-    - `highs`: PySeriesStubbed - Series of high prices
-    - `lows`: PySeriesStubbed - Series of low prices
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `conversion_period`: usize - Period for conversion line calculation (typically 9)
     - `base_period`: usize - Period for base line calculation (typically 26)
     - `span_b_period`: usize - Period for leading span B calculation (typically 52)
@@ -238,13 +285,13 @@ class CandleTI:
     - `conversion_line`: f64 - Conversion Line (Tenkan-sen)
     - `lagged_price`: f64 - Lagging Span (Chikou Span)
     """
-  def donchian_channels_single(self, highs: polars.Series, lows: polars.Series) -> polars.DataFrame:
+  def donchian_channels_single(self, high_column: builtins.str, low_column: builtins.str) -> polars.DataFrame:
     r"""
     Donchian Channels - Produces bands from period highs and lows
 
     # Parameters
-    - `highs`: PySeriesStubbed - Series of high prices
-    - `lows`: PySeriesStubbed - Series of low prices
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
 
     # Returns
     DataFrame with columns:
@@ -253,14 +300,21 @@ class CandleTI:
     - `donchian_upper`: f64 - Upper channel (highest high over period)
     """
   def keltner_channel_single(
-    self, highs: polars.Series, lows: polars.Series, constant_model_type: builtins.str, atr_constant_model_type: builtins.str, multiplier: builtins.float
+    self,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
+    constant_model_type: builtins.str,
+    atr_constant_model_type: builtins.str,
+    multiplier: builtins.float,
   ) -> polars.DataFrame:
     r"""
     Keltner Channel - Bands based on moving average and average true range
 
     # Parameters
-    - `highs`: PySeriesStubbed - Series of high prices
-    - `lows`: PySeriesStubbed - Series of low prices
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
     - `atr_constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
     - `multiplier`: f64 - Multiplier for the ATR to create channel width
@@ -271,13 +325,16 @@ class CandleTI:
     - `keltner_middle`: f64 - Middle channel (moving average)
     - `keltner_upper`: f64 - Upper channel (moving average + ATR * multiplier)
     """
-  def supertrend_single(self, highs: polars.Series, lows: polars.Series, constant_model_type: builtins.str, multiplier: builtins.float) -> polars.Series:
+  def supertrend_single(
+    self, high_column: builtins.str, low_column: builtins.str, close_column: builtins.str, constant_model_type: builtins.str, multiplier: builtins.float
+  ) -> polars.Series:
     r"""
     Supertrend - Trend indicator showing support and resistance levels
 
     # Parameters
-    - `highs`: PySeriesStubbed - Series of high prices
-    - `lows`: PySeriesStubbed - Series of low prices
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
     - `multiplier`: f64 - Multiplier for the ATR to determine trend sensitivity
 
@@ -285,11 +342,14 @@ class CandleTI:
     Series containing:
     - `supertrend`: f64 - Supertrend value (support/resistance level based on trend direction)
     """
-  def moving_constant_envelopes_bulk(self, constant_model_type: builtins.str, difference: builtins.float, period: builtins.int) -> polars.DataFrame:
+  def moving_constant_envelopes_bulk(
+    self, price_column: builtins.str, constant_model_type: builtins.str, difference: builtins.float, period: builtins.int
+  ) -> polars.DataFrame:
     r"""
     Moving Constant Envelopes (Bulk) - Returns envelopes over time periods
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `constant_model_type`: &str - Type of moving average (e.g., "sma", "ema", "wma")
     - `difference`: f64 - Fixed difference value to create envelope bands
     - `period`: usize - Rolling window period for calculations
@@ -300,11 +360,12 @@ class CandleTI:
     - `middle_envelope`: Vec<f64> - Time series of middle lines (moving averages)
     - `upper_envelope`: Vec<f64> - Time series of upper envelope bands
     """
-  def mcginley_dynamic_envelopes_bulk(self, difference: builtins.float, previous_mcginley_dynamic: builtins.float, period: builtins.int) -> polars.DataFrame:
+  def mcginley_dynamic_envelopes_bulk(
+    self, price_column: builtins.str, difference: builtins.float, previous_mcginley_dynamic: builtins.float, period: builtins.int
+  ) -> polars.DataFrame:
     r"""
-    McGinley Dynamic Envelopes (Bulk)
-
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `difference`: f64 - Fixed difference value to create envelope bands
     - `previous_mcginley_dynamic`: f64 - Initial McGinley Dynamic value for calculation
     - `period`: usize - Rolling window period for calculations
@@ -316,12 +377,18 @@ class CandleTI:
     - `upper_envelope`: Vec<f64> - Time series of upper envelope bands
     """
   def moving_constant_bands_bulk(
-    self, constant_model_type: builtins.str, deviation_model: builtins.str, deviation_multiplier: builtins.float, period: builtins.int
+    self,
+    price_column: builtins.str,
+    constant_model_type: builtins.str,
+    deviation_model: builtins.str,
+    deviation_multiplier: builtins.float,
+    period: builtins.int,
   ) -> polars.DataFrame:
     r"""
     Moving Constant Bands (Bulk)
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
     - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
     - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
@@ -334,12 +401,18 @@ class CandleTI:
     - `upper_band`: Vec<f64> - Time series of upper bands
     """
   def mcginley_dynamic_bands_bulk(
-    self, deviation_model: builtins.str, deviation_multiplier: builtins.float, previous_mcginley_dynamic: builtins.float, period: builtins.int
+    self,
+    price_column: builtins.str,
+    deviation_model: builtins.str,
+    deviation_multiplier: builtins.float,
+    previous_mcginley_dynamic: builtins.float,
+    period: builtins.int,
   ) -> polars.DataFrame:
     r"""
     McGinley Dynamic Bands (Bulk)
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `deviation_model`: &str - Type of deviation calculation (e.g., "std", "mad")
     - `deviation_multiplier`: f64 - Multiplier for the deviation to create bands
     - `previous_mcginley_dynamic`: f64 - Initial McGinley Dynamic value for calculation
@@ -352,14 +425,21 @@ class CandleTI:
     - `upper_band`: Vec<f64> - Time series of upper bands
     """
   def ichimoku_cloud_bulk(
-    self, highs: polars.Series, lows: polars.Series, conversion_period: builtins.int, base_period: builtins.int, span_b_period: builtins.int
+    self,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
+    conversion_period: builtins.int,
+    base_period: builtins.int,
+    span_b_period: builtins.int,
   ) -> polars.DataFrame:
     r"""
     Ichimoku Cloud (Bulk) - Returns ichimoku components over time
 
     # Parameters
-    - `highs`: PySeriesStubbed - Series of high prices
-    - `lows`: PySeriesStubbed - Series of low prices
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `conversion_period`: usize - Period for conversion line calculation (typically 9)
     - `base_period`: usize - Period for base line calculation (typically 26)
     - `span_b_period`: usize - Period for leading span B calculation (typically 52)
@@ -372,13 +452,13 @@ class CandleTI:
     - `conversion_line`: Vec<f64> - Time series of Conversion Line (Tenkan-sen) values
     - `lagged_price`: Vec<f64> - Time series of Lagging Span (Chikou Span) values
     """
-  def donchian_channels_bulk(self, highs: polars.Series, lows: polars.Series, period: builtins.int) -> polars.DataFrame:
+  def donchian_channels_bulk(self, high_column: builtins.str, low_column: builtins.str, period: builtins.int) -> polars.DataFrame:
     r"""
     Donchian Channels (Bulk) - Returns donchian bands over time
 
     # Parameters
-    - `highs`: PySeriesStubbed - Series of high prices
-    - `lows`: PySeriesStubbed - Series of low prices
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
     - `period`: usize - Rolling window period for channel calculation
 
     # Returns
@@ -389,8 +469,9 @@ class CandleTI:
     """
   def keltner_channel_bulk(
     self,
-    highs: polars.Series,
-    lows: polars.Series,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
     constant_model_type: builtins.str,
     atr_constant_model_type: builtins.str,
     multiplier: builtins.float,
@@ -400,8 +481,9 @@ class CandleTI:
     Keltner Channel (Bulk) - Returns keltner bands over time
 
     # Parameters
-    - `highs`: PySeriesStubbed - Series of high prices
-    - `lows`: PySeriesStubbed - Series of low prices
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `constant_model_type`: &str - Type of moving average for center line (e.g., "sma", "ema", "wma")
     - `atr_constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
     - `multiplier`: f64 - Multiplier for the ATR to create channel width
@@ -414,14 +496,21 @@ class CandleTI:
     - `upper_band`: Vec<f64> - Time series of upper channels
     """
   def supertrend_bulk(
-    self, highs: polars.Series, lows: polars.Series, constant_model_type: builtins.str, multiplier: builtins.float, period: builtins.int
+    self,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
+    constant_model_type: builtins.str,
+    multiplier: builtins.float,
+    period: builtins.int,
   ) -> polars.Series:
     r"""
     Supertrend (Bulk) - Returns supertrend values over time
 
     # Parameters
-    - `highs`: PySeriesStubbed - Series of high prices
-    - `lows`: PySeriesStubbed - Series of low prices
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `constant_model_type`: &str - Type of moving average for ATR calculation (e.g., "sma", "ema", "wma")
     - `multiplier`: f64 - Multiplier for the ATR to determine trend sensitivity
     - `period`: usize - Rolling window period for ATR calculation
@@ -432,12 +521,13 @@ class CandleTI:
     """
 
 class ChartTrendsTI:
-  def __new__(cls, series: polars.Series) -> ChartTrendsTI: ...
-  def peaks(self, period: builtins.int, closest_neighbor: builtins.int) -> builtins.list[tuple[builtins.float, builtins.int]]:
+  def __new__(cls, lf: polars.LazyFrame) -> ChartTrendsTI: ...
+  def peaks(self, price_column: builtins.str, period: builtins.int, closest_neighbor: builtins.int) -> builtins.list[tuple[builtins.float, builtins.int]]:
     r"""
     Find peaks in a price series over a given period
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `period`: usize - Period length for peak detection
     - `closest_neighbor`: usize - Minimum distance between peaks
 
@@ -446,11 +536,12 @@ class ChartTrendsTI:
     - `peak_value`: The price value at the peak
     - `peak_index`: The index position of the peak in the series
     """
-  def valleys(self, period: builtins.int, closest_neighbor: builtins.int) -> builtins.list[tuple[builtins.float, builtins.int]]:
+  def valleys(self, price_column: builtins.str, period: builtins.int, closest_neighbor: builtins.int) -> builtins.list[tuple[builtins.float, builtins.int]]:
     r"""
     Find valleys in a price series over a given period
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `period`: usize - Period length for valley detection
     - `closest_neighbor`: usize - Minimum distance between valleys
 
@@ -459,11 +550,12 @@ class ChartTrendsTI:
     - `valley_value`: The price value at the valley
     - `valley_index`: The index position of the valley in the series
     """
-  def peak_trend(self, period: builtins.int) -> tuple[builtins.float, builtins.float]:
+  def peak_trend(self, price_column: builtins.str, period: builtins.int) -> tuple[builtins.float, builtins.float]:
     r"""
     Calculate peak trend (linear regression on peaks)
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `period`: usize - Period length for peak detection
 
     # Returns
@@ -471,11 +563,12 @@ class ChartTrendsTI:
     - `slope`: The slope of the linear regression line through peaks
     - `intercept`: The y-intercept of the linear regression line
     """
-  def valley_trend(self, period: builtins.int) -> tuple[builtins.float, builtins.float]:
+  def valley_trend(self, price_column: builtins.str, period: builtins.int) -> tuple[builtins.float, builtins.float]:
     r"""
     Calculate valley trend (linear regression on valleys)
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `period`: usize - Period length for valley detection
 
     # Returns
@@ -483,9 +576,12 @@ class ChartTrendsTI:
     - `slope`: The slope of the linear regression line through valleys
     - `intercept`: The y-intercept of the linear regression line
     """
-  def overall_trend(self) -> tuple[builtins.float, builtins.float]:
+  def overall_trend(self, price_column: builtins.str) -> tuple[builtins.float, builtins.float]:
     r"""
     Calculate overall trend (linear regression on all prices)
+
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
 
     # Returns
     Tuple of (slope: f64, intercept: f64)
@@ -494,6 +590,7 @@ class ChartTrendsTI:
     """
   def break_down_trends(
     self,
+    price_column: builtins.str,
     max_outliers: builtins.int,
     soft_r_squared_minimum: builtins.float,
     soft_r_squared_maximum: builtins.float,
@@ -508,6 +605,7 @@ class ChartTrendsTI:
     Break down trends in a price series
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `max_outliers`: usize - Maximum number of outliers allowed
     - `soft_r_squared_minimum`: f64 - Soft minimum threshold for R-squared value
     - `soft_r_squared_maximum`: f64 - Soft maximum threshold for R-squared value
@@ -527,9 +625,9 @@ class ChartTrendsTI:
     """
 
 class CorrelationTI:
-  def __new__(cls, series: polars.Series) -> CorrelationTI: ...
+  def __new__(cls, lf: polars.LazyFrame) -> CorrelationTI: ...
   def correlate_asset_prices_single(
-    self, other_asset_prices: polars.Series, constant_model_type: builtins.str, deviation_model: builtins.str
+    self, price_column_a: builtins.str, price_column_b: builtins.str, constant_model_type: builtins.str, deviation_model: builtins.str
   ) -> builtins.float:
     r"""
     Correlation between two assets - Single value calculation
@@ -537,7 +635,8 @@ class CorrelationTI:
     Returns a single correlation value for the entire price series
 
     # Parameters
-    - `other_asset_prices`: PySeriesStubbed - Price series for the second asset
+    - `price_column_a`: &str - Name of the first asset's price column
+    - `price_column_b`: &str - Name of the second asset's price column
     - `constant_model_type`: &str - Type of constant model to use for correlation calculation
     - `deviation_model`: &str - Type of deviation model to use for correlation calculation
 
@@ -545,7 +644,7 @@ class CorrelationTI:
     f64 - Single correlation coefficient between the two asset price series
     """
   def correlate_asset_prices_bulk(
-    self, other_asset_prices: polars.Series, constant_model_type: builtins.str, deviation_model: builtins.str, period: builtins.int
+    self, price_column_a: builtins.str, price_column_b: builtins.str, constant_model_type: builtins.str, deviation_model: builtins.str, period: builtins.int
   ) -> polars.Series:
     r"""
     Correlation between two assets - Rolling/Bulk calculation
@@ -553,7 +652,8 @@ class CorrelationTI:
     Returns a series of correlation values for each period window
 
     # Parameters
-    - `other_asset_prices`: PySeriesStubbed - Price series for the second asset
+    - `price_column_a`: &str - Name of the first asset's price column
+    - `price_column_b`: &str - Name of the second asset's price column
     - `constant_model_type`: &str - Type of constant model to use for correlation calculation
     - `deviation_model`: &str - Type of deviation model to use for correlation calculation
     - `period`: usize - Rolling window size for correlation calculation
@@ -563,66 +663,76 @@ class CorrelationTI:
     """
 
 class MATI:
-  def __new__(cls, series: polars.Series) -> MATI: ...
-  def moving_average_single(self, moving_average_type: builtins.str) -> builtins.float:
+  def __new__(cls, lf: polars.LazyFrame) -> MATI: ...
+  def moving_average_single(self, price_column: builtins.str, moving_average_type: builtins.str) -> builtins.float:
     r"""
     Moving Average (Single) - Calculates a single moving average value for a series of prices
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `moving_average_type`: &str - Type of moving average ("simple", "exponential", "smoothed")
 
     # Returns
     f64 - Single moving average value
     """
-  def moving_average_bulk(self, moving_average_type: builtins.str, period: builtins.int) -> polars.Series:
+  def moving_average_bulk(self, price_column: builtins.str, moving_average_type: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Moving Average (Bulk) - Calculates moving averages over a rolling window
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `moving_average_type`: &str - Type of moving average ("simple", "exponential", "smoothed")
     - `period`: usize - Period over which to calculate the moving average
 
     # Returns
     PySeriesStubbed - Series of moving average values with name "moving_average"
     """
-  def mcginley_dynamic_single(self, previous_mcginley_dynamic: builtins.float, period: builtins.int) -> builtins.float:
+  def mcginley_dynamic_single(self, price_column: builtins.str, previous_mcginley_dynamic: builtins.float, period: builtins.int) -> builtins.float:
     r"""
     McGinley Dynamic (Single) - Calculates a single McGinley Dynamic value
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `previous_mcginley_dynamic`: f64 - Previous McGinley Dynamic value (use 0.0 if none)
     - `period`: usize - Period for calculation
 
     # Returns
     f64 - Single McGinley Dynamic value
     """
-  def mcginley_dynamic_bulk(self, previous_mcginley_dynamic: builtins.float, period: builtins.int) -> polars.Series:
+  def mcginley_dynamic_bulk(self, price_column: builtins.str, previous_mcginley_dynamic: builtins.float, period: builtins.int) -> polars.Series:
     r"""
     McGinley Dynamic (Bulk) - Calculates McGinley Dynamic values over a series
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `previous_mcginley_dynamic`: f64 - Previous McGinley Dynamic value (use 0.0 if none)
     - `period`: usize - Period for calculation
 
     # Returns
     PySeriesStubbed - Series of McGinley Dynamic values with name "mcginley_dynamic"
     """
-  def personalised_moving_average_single(self, alpha_nominator: builtins.float, alpha_denominator: builtins.float) -> builtins.float:
+  def personalised_moving_average_single(
+    self, price_column: builtins.str, alpha_nominator: builtins.float, alpha_denominator: builtins.float
+  ) -> builtins.float:
     r"""
     Personalised Moving Average (Single) - Calculates a single personalised moving average
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `alpha_nominator`: f64 - Alpha nominator value
     - `alpha_denominator`: f64 - Alpha denominator value
 
     # Returns
     f64 - Single personalised moving average value
     """
-  def personalised_moving_average_bulk(self, alpha_nominator: builtins.float, alpha_denominator: builtins.float, period: builtins.int) -> polars.Series:
+  def personalised_moving_average_bulk(
+    self, price_column: builtins.str, alpha_nominator: builtins.float, alpha_denominator: builtins.float, period: builtins.int
+  ) -> polars.Series:
     r"""
     Personalised Moving Average (Bulk) - Calculates personalised moving averages over a rolling window
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `alpha_nominator`: f64 - Alpha nominator value
     - `alpha_denominator`: f64 - Alpha denominator value
     - `period`: usize - Period over which to calculate the moving average
@@ -632,21 +742,21 @@ class MATI:
     """
 
 class MomentumTI:
-  r"""
-  Momentum Technical Indicators - A collection of momentum analysis functions for financial data
-  """
-  def __new__(cls, series: polars.Series) -> MomentumTI: ...
-  def aroon_up_single(self) -> builtins.float:
+  def __new__(cls, lf: polars.LazyFrame) -> MomentumTI: ...
+  def aroon_up_single(self, high_column: builtins.str) -> builtins.float:
     r"""
     Aroon Up indicator
 
     Calculates the Aroon Up indicator, which measures the time since the highest high
     within a given period as a percentage.
 
+    # Parameters
+    * `high_column` - &str name of the column containing high price values
+
     # Returns
     * `PyResult<f64>` - The Aroon Up value (0-100), where higher values indicate recent highs
     """
-  def aroon_down_single(self, lows: polars.Series) -> builtins.float:
+  def aroon_down_single(self, low_column: builtins.str) -> builtins.float:
     r"""
     Aroon Down indicator
 
@@ -654,7 +764,7 @@ class MomentumTI:
     within a given period as a percentage.
 
     # Parameters
-    * `lows` - PySeriesStubbed containing low price values
+    * `low_column` - &str name of the column containing low price values
 
     # Returns
     * `PyResult<f64>` - The Aroon Down value (0-100), where higher values indicate recent lows
@@ -673,7 +783,7 @@ class MomentumTI:
     # Returns
     * `PyResult<f64>` - The Aroon Oscillator value (-100 to +100)
     """
-  def aroon_indicator_single(self, lows: polars.Series) -> tuple[builtins.float, builtins.float, builtins.float]:
+  def aroon_indicator_single(self, high_column: builtins.str, low_column: builtins.str) -> tuple[builtins.float, builtins.float, builtins.float]:
     r"""
     Aroon Indicator (complete calculation)
 
@@ -681,7 +791,8 @@ class MomentumTI:
     in a single function call.
 
     # Parameters
-    * `lows` - PySeriesStubbed containing low price values
+    * `high_column` - &str name of the column containing high price values
+    * `low_column` - &str name of the column containing low price values
 
     # Returns
     * `PyResult<(f64, f64, f64)>` - Tuple containing (aroon_up, aroon_down, aroon_oscillator)
@@ -722,7 +833,9 @@ class MomentumTI:
     # Returns
     * `PyResult<f64>` - The calculated SAR value for short positions
     """
-  def volume_price_trend_single(self, previous_price: builtins.float, volume: builtins.float, previous_volume_price_trend: builtins.float) -> builtins.float:
+  def volume_price_trend_single(
+    self, price_column: builtins.str, previous_price: builtins.float, volume: builtins.float, previous_volume_price_trend: builtins.float
+  ) -> builtins.float:
     r"""
     Volume Price Trend
 
@@ -730,6 +843,7 @@ class MomentumTI:
     to show the relationship between volume and price changes.
 
     # Parameters
+    * `price_column` - &str name of the column containing price values
     * `previous_price` - f64 previous period's price
     * `volume` - f64 current period's volume
     * `previous_volume_price_trend` - f64 previous VPT value
@@ -737,7 +851,9 @@ class MomentumTI:
     # Returns
     * `PyResult<f64>` - The calculated Volume Price Trend value
     """
-  def true_strength_index_single(self, first_constant_model: builtins.str, first_period: builtins.int, second_constant_model: builtins.str) -> builtins.float:
+  def true_strength_index_single(
+    self, price_column: builtins.str, first_constant_model: builtins.str, first_period: builtins.int, second_constant_model: builtins.str
+  ) -> builtins.float:
     r"""
     True Strength Index
 
@@ -745,6 +861,7 @@ class MomentumTI:
     smoothed by two exponential moving averages.
 
     # Parameters
+    * `price_column` - &str name of the column containing price values
     * `first_constant_model` - &str smoothing model for first smoothing ("sma", "ema", etc.)
     * `first_period` - usize period for first smoothing
     * `second_constant_model` - &str smoothing model for second smoothing ("sma", "ema", etc.)
@@ -752,7 +869,7 @@ class MomentumTI:
     # Returns
     * `PyResult<f64>` - The True Strength Index value (typically ranges from -100 to +100)
     """
-  def relative_strength_index_bulk(self, constant_model_type: builtins.str, period: builtins.int) -> polars.Series:
+  def relative_strength_index_bulk(self, price_column: builtins.str, constant_model_type: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Relative Strength Index (RSI) - bulk calculation
 
@@ -760,13 +877,14 @@ class MomentumTI:
     of price movements, oscillating between 0 and 100.
 
     # Parameters
+    * `price_column` - &str name of the column containing price values
     * `constant_model_type` - &str smoothing model ("sma", "ema", etc.)
     * `period` - usize calculation period (commonly 14)
 
     # Returns
     * `PyResult<PySeriesStubbed>` - Series named "rsi" containing RSI values (0-100)
     """
-  def stochastic_oscillator_bulk(self, period: builtins.int) -> polars.Series:
+  def stochastic_oscillator_bulk(self, price_column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Stochastic Oscillator - bulk calculation
 
@@ -774,12 +892,13 @@ class MomentumTI:
     to its price range over a given time period.
 
     # Parameters
+    * `price_column` - &str name of the column containing price values
     * `period` - usize lookback period for calculation
 
     # Returns
     * `PyResult<PySeriesStubbed>` - Series named "stochastic" containing oscillator values (0-100)
     """
-  def slow_stochastic_bulk(self, stochastics: polars.Series, constant_model_type: builtins.str, period: builtins.int) -> polars.Series:
+  def slow_stochastic_bulk(self, stochastic_column: builtins.str, constant_model_type: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Slow Stochastic - bulk calculation
 
@@ -787,14 +906,14 @@ class MomentumTI:
     to reduce noise and false signals.
 
     # Parameters
-    * `stochastics` - PySeriesStubbed containing Stochastic Oscillator values
+    * `stochastic_column` - &str name of the column containing Stochastic Oscillator values
     * `constant_model_type` - &str smoothing model ("sma", "ema", etc.)
     * `period` - usize smoothing period
 
     # Returns
     * `PyResult<PySeriesStubbed>` - Series named "slow_stochastic" containing smoothed values (0-100)
     """
-  def slowest_stochastic_bulk(self, slow_stochastics: polars.Series, constant_model_type: builtins.str, period: builtins.int) -> polars.Series:
+  def slowest_stochastic_bulk(self, slow_stochastic_column: builtins.str, constant_model_type: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Slowest Stochastic - bulk calculation
 
@@ -802,14 +921,14 @@ class MomentumTI:
     for even more noise reduction.
 
     # Parameters
-    * `slow_stochastics` - PySeriesStubbed containing Slow Stochastic values
+    * `slow_stochastic_column` - &str name of the column containing Slow Stochastic values
     * `constant_model_type` - &str smoothing model ("sma", "ema", etc.)
     * `period` - usize smoothing period
 
     # Returns
     * `PyResult<PySeriesStubbed>` - Series named "slowest_stochastic" containing double-smoothed values (0-100)
     """
-  def williams_percent_r_bulk(self, high: polars.Series, low: polars.Series, period: builtins.int) -> polars.Series:
+  def williams_percent_r_bulk(self, high_column: builtins.str, low_column: builtins.str, close_column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Williams %R - bulk calculation
 
@@ -817,14 +936,15 @@ class MomentumTI:
     Values range from -100 to 0, where -20 and above indicates overbought, -80 and below indicates oversold.
 
     # Parameters
-    * `high` - PySeriesStubbed containing high price values
-    * `low` - PySeriesStubbed containing low price values
+    * `high_column` - &str name of the column containing high price values
+    * `low_column` - &str name of the column containing low price values
+    * `close_column` - &str name of the column containing close price values
     * `period` - usize lookback period for calculation
 
     # Returns
     * `PyResult<PySeriesStubbed>` - Series named "williams_r" containing Williams %R values (-100 to 0)
     """
-  def money_flow_index_bulk(self, volume: polars.Series, period: builtins.int) -> polars.Series:
+  def money_flow_index_bulk(self, price_column: builtins.str, volume_column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Money Flow Index - bulk calculation
 
@@ -832,128 +952,143 @@ class MomentumTI:
     Values range from 0 to 100, where >80 indicates overbought and <20 indicates oversold.
 
     # Parameters
-    * `volume` - PySeriesStubbed containing volume values
+    * `price_column` - &str name of the column containing price values
+    * `volume_column` - &str name of the column containing volume values
     * `period` - usize calculation period (commonly 14)
 
     # Returns
     * `PyResult<PySeriesStubbed>` - Series named "mfi" containing Money Flow Index values (0-100)
     """
-  def rate_of_change_bulk(self) -> polars.Series:
+  def rate_of_change_bulk(self, price_column: builtins.str) -> polars.Series:
     r"""
     Rate of Change - bulk calculation
 
     Calculates the Rate of Change, which measures the percentage change in price
     from one period to the next.
 
+    # Parameters
+    * `price_column` - &str name of the column containing price values
+
     # Returns
     * `PyResult<PySeriesStubbed>` - Series named "roc" containing rate of change values as percentages
     """
-  def on_balance_volume_bulk(self, volume: polars.Series, previous_obv: builtins.float) -> polars.Series:
+  def on_balance_volume_bulk(self, price_column: builtins.str, volume_column: builtins.str, previous_obv: builtins.float) -> polars.Series:
     r"""
-    On Balance Volume - bulk calculation
-
-    Calculates On Balance Volume, a cumulative volume indicator that adds volume on up days
-    and subtracts volume on down days to measure buying and selling pressure.
+    On Balance Volume (Bulk) - Calculates cumulative volume indicator
+    Adds volume on up days and subtracts volume on down days to measure buying and selling pressure
 
     # Parameters
-    * `volume` - PySeriesStubbed containing volume values
-    * `previous_obv` - f64 starting OBV value (typically 0)
+    - `price_column`: &str - Name of the price column to analyze
+    - `volume_column`: &str - Name of the volume column
+    - `previous_obv`: f64 - Starting OBV value (typically 0)
 
     # Returns
-    * `PyResult<PySeriesStubbed>` - Series named "obv" containing cumulative OBV values
+    PySeriesStubbed - Series of OBV values with name "obv"
     """
   def commodity_channel_index_bulk(
-    self, constant_model_type: builtins.str, deviation_model: builtins.str, constant_multiplier: builtins.float, period: builtins.int
+    self,
+    price_column: builtins.str,
+    constant_model_type: builtins.str,
+    deviation_model: builtins.str,
+    constant_multiplier: builtins.float,
+    period: builtins.int,
   ) -> polars.Series:
     r"""
-    Commodity Channel Index - bulk calculation
-
-    Calculates the Commodity Channel Index, which measures the variation of a security's price
-    from its statistical mean. Values typically range from -100 to +100.
+    Commodity Channel Index (Bulk) - Calculates CCI over rolling periods
+    Measures the variation of a security's price from its statistical mean
+    Values typically range from -100 to +100
 
     # Parameters
-    * `constant_model_type` - &str model for calculating moving average ("sma", "ema", etc.)
-    * `deviation_model` - &str model for calculating deviation ("mad", "std", etc.)
-    * `constant_multiplier` - f64 multiplier constant (typically 0.015)
-    * `period` - usize calculation period (commonly 20)
+    - `price_column`: &str - Name of the price column to analyze
+    - `constant_model_type`: &str - Model for calculating moving average ("sma", "ema", etc.)
+    - `deviation_model`: &str - Model for calculating deviation ("mad", "std", etc.)
+    - `constant_multiplier`: f64 - Multiplier constant (typically 0.015)
+    - `period`: usize - Calculation period (commonly 20)
 
     # Returns
-    * `PyResult<PySeriesStubbed>` - Series named "cci" containing CCI values
+    PySeriesStubbed - Series of CCI values with name "cci"
     """
   def mcginley_dynamic_commodity_channel_index_bulk(
-    self, previous_mcginley_dynamic: builtins.float, deviation_model: builtins.str, constant_multiplier: builtins.float, period: builtins.int
+    self,
+    price_column: builtins.str,
+    previous_mcginley_dynamic: builtins.float,
+    deviation_model: builtins.str,
+    constant_multiplier: builtins.float,
+    period: builtins.int,
   ) -> tuple[polars.Series, polars.Series]:
     r"""
-    McGinley Dynamic Commodity Channel Index - bulk calculation
-
-    Calculates CCI using McGinley Dynamic as the moving average, which adapts to market conditions
-    better than traditional moving averages.
+    McGinley Dynamic Commodity Channel Index (Bulk) - CCI using McGinley Dynamic MA
+    Uses McGinley Dynamic as the moving average, which adapts to market conditions
+    better than traditional moving averages
 
     # Parameters
-    * `previous_mcginley_dynamic` - f64 initial McGinley Dynamic value
-    * `deviation_model` - &str model for calculating deviation ("mad", "std", etc.)
-    * `constant_multiplier` - f64 multiplier constant (typically 0.015)
-    * `period` - usize calculation period
+    - `price_column`: &str - Name of the price column to analyze
+    - `previous_mcginley_dynamic`: f64 - Initial McGinley Dynamic value
+    - `deviation_model`: &str - Model for calculating deviation ("mad", "std", etc.)
+    - `constant_multiplier`: f64 - Multiplier constant (typically 0.015)
+    - `period`: usize - Calculation period
 
     # Returns
-    * `PyResult<(PySeriesStubbed, PySeriesStubbed)>` - Tuple containing (CCI series, McGinley Dynamic series)
+    (PySeriesStubbed, PySeriesStubbed) - Tuple containing (CCI series, McGinley Dynamic series)
     """
   def macd_line_bulk(
-    self, short_period: builtins.int, short_period_model: builtins.str, long_period: builtins.int, long_period_model: builtins.str
+    self, price_column: builtins.str, short_period: builtins.int, short_period_model: builtins.str, long_period: builtins.int, long_period_model: builtins.str
   ) -> polars.Series:
     r"""
-    MACD Line - bulk calculation
-
-    Calculates the MACD (Moving Average Convergence Divergence) line by subtracting
-    the long-period moving average from the short-period moving average.
+    MACD Line (Bulk) - Calculates Moving Average Convergence Divergence line
+    Subtracts the long-period moving average from the short-period moving average
 
     # Parameters
-    * `short_period` - usize period for short moving average (commonly 12)
-    * `short_period_model` - &str model for short MA ("sma", "ema", etc.)
-    * `long_period` - usize period for long moving average (commonly 26)
-    * `long_period_model` - &str model for long MA ("sma", "ema", etc.)
+    - `price_column`: &str - Name of the price column to analyze
+    - `short_period`: usize - Period for short moving average (commonly 12)
+    - `short_period_model`: &str - Model for short MA ("sma", "ema", etc.)
+    - `long_period`: usize - Period for long moving average (commonly 26)
+    - `long_period_model`: &str - Model for long MA ("sma", "ema", etc.)
 
     # Returns
-    * `PyResult<PySeriesStubbed>` - Series named "macd" containing MACD line values
+    PySeriesStubbed - Series of MACD line values with name "macd"
     """
-  def signal_line_bulk(self, macds: polars.Series, constant_model_type: builtins.str, period: builtins.int) -> polars.Series:
+  def signal_line_bulk(self, macd_column: builtins.str, constant_model_type: builtins.str, period: builtins.int) -> polars.Series:
     r"""
-    Signal Line - bulk calculation
-
-    Calculates the MACD Signal Line by applying a moving average to the MACD line.
-    Used to generate buy/sell signals when MACD crosses above or below the signal line.
+    Signal Line (Bulk) - Calculates MACD Signal Line
+    Applies a moving average to the MACD line for generating buy/sell signals
 
     # Parameters
-    * `macds` - PySeriesStubbed containing MACD line values
-    * `constant_model_type` - &str smoothing model ("sma", "ema", etc.)
-    * `period` - usize signal line period (commonly 9)
+    - `macd_column`: &str - Name of the MACD column to analyze
+    - `constant_model_type`: &str - Smoothing model ("sma", "ema", etc.)
+    - `period`: usize - Signal line period (commonly 9)
 
     # Returns
-    * `PyResult<PySeriesStubbed>` - Series named "signal" containing signal line values
+    PySeriesStubbed - Series of signal line values with name "signal"
     """
   def mcginley_dynamic_macd_line_bulk(
-    self, short_period: builtins.int, previous_short_mcginley: builtins.float, long_period: builtins.int, previous_long_mcginley: builtins.float
+    self,
+    price_column: builtins.str,
+    short_period: builtins.int,
+    previous_short_mcginley: builtins.float,
+    long_period: builtins.int,
+    previous_long_mcginley: builtins.float,
   ) -> polars.DataFrame:
     r"""
-    McGinley Dynamic MACD Line - bulk calculation
-
-    Calculates MACD using McGinley Dynamic moving averages instead of traditional MAs,
-    providing better adaptation to market volatility and reducing lag.
+    McGinley Dynamic MACD Line (Bulk) - MACD using McGinley Dynamic moving averages
+    Provides better adaptation to market volatility and reduces lag compared to traditional MACD
 
     # Parameters
-    * `short_period` - usize period for short McGinley Dynamic
-    * `previous_short_mcginley` - f64 initial short McGinley Dynamic value
-    * `long_period` - usize period for long McGinley Dynamic
-    * `previous_long_mcginley` - f64 initial long McGinley Dynamic value
+    - `price_column`: &str - Name of the price column to analyze
+    - `short_period`: usize - Period for short McGinley Dynamic
+    - `previous_short_mcginley`: f64 - Initial short McGinley Dynamic value
+    - `long_period`: usize - Period for long McGinley Dynamic
+    - `previous_long_mcginley`: f64 - Initial long McGinley Dynamic value
 
     # Returns
-    * `PyResult<PyDfStubbed>` - DataFrame with columns: "macd", "short_mcginley", "long_mcginley"
+    PyDfStubbed - DataFrame with columns: "macd", "short_mcginley", "long_mcginley"
     """
   def chaikin_oscillator_bulk(
     self,
-    highs: polars.Series,
-    lows: polars.Series,
-    volume: polars.Series,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
+    volume_column: builtins.str,
     short_period: builtins.int,
     long_period: builtins.int,
     previous_accumulation_distribution: builtins.float,
@@ -961,66 +1096,65 @@ class MomentumTI:
     long_period_model: builtins.str,
   ) -> tuple[polars.Series, polars.Series]:
     r"""
-    Chaikin Oscillator - bulk calculation
-
-    Calculates the Chaikin Oscillator, which applies MACD to the Accumulation/Distribution line
-    to measure the momentum of the Accumulation/Distribution line.
+    Chaikin Oscillator (Bulk) - Applies MACD to Accumulation/Distribution line
+    Measures the momentum of the Accumulation/Distribution line
 
     # Parameters
-    * `highs` - PySeriesStubbed containing high price values
-    * `lows` - PySeriesStubbed containing low price values
-    * `volume` - PySeriesStubbed containing volume values
-    * `short_period` - usize short period for oscillator (commonly 3)
-    * `long_period` - usize long period for oscillator (commonly 10)
-    * `previous_accumulation_distribution` - f64 initial A/D line value
-    * `short_period_model` - &str model for short MA ("sma", "ema", etc.)
-    * `long_period_model` - &str model for long MA ("sma", "ema", etc.)
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
+    - `volume_column`: &str - Name of the volume column
+    - `short_period`: usize - Short period for oscillator (commonly 3)
+    - `long_period`: usize - Long period for oscillator (commonly 10)
+    - `previous_accumulation_distribution`: f64 - Initial A/D line value
+    - `short_period_model`: &str - Model for short MA ("sma", "ema", etc.)
+    - `long_period_model`: &str - Model for long MA ("sma", "ema", etc.)
 
     # Returns
-    * `PyResult<(PySeriesStubbed, PySeriesStubbed)>` - Tuple containing (Chaikin Oscillator, A/D Line)
+    (PySeriesStubbed, PySeriesStubbed) - Tuple containing (Chaikin Oscillator, A/D Line)
     """
-  def percentage_price_oscillator_bulk(self, short_period: builtins.int, long_period: builtins.int, constant_model_type: builtins.str) -> polars.Series:
+  def percentage_price_oscillator_bulk(
+    self, price_column: builtins.str, short_period: builtins.int, long_period: builtins.int, constant_model_type: builtins.str
+  ) -> polars.Series:
     r"""
-    Percentage Price Oscillator - bulk calculation
-
-    Calculates the Percentage Price Oscillator, which is similar to MACD but expressed as a percentage.
-    This makes it easier to compare securities with different price levels.
+    Percentage Price Oscillator (Bulk) - MACD expressed as percentage
+    Similar to MACD but expressed as a percentage for easier comparison across securities
 
     # Parameters
-    * `short_period` - usize short period for moving average (commonly 12)
-    * `long_period` - usize long period for moving average (commonly 26)
-    * `constant_model_type` - &str model for moving averages ("sma", "ema", etc.)
+    - `price_column`: &str - Name of the price column to analyze
+    - `short_period`: usize - Short period for moving average (commonly 12)
+    - `long_period`: usize - Long period for moving average (commonly 26)
+    - `constant_model_type`: &str - Model for moving averages ("sma", "ema", etc.)
 
     # Returns
-    * `PyResult<PySeriesStubbed>` - Series named "ppo" containing PPO values as percentages
+    PySeriesStubbed - Series of PPO values as percentages with name "ppo"
     """
-  def chande_momentum_oscillator_bulk(self, period: builtins.int) -> polars.Series:
+  def chande_momentum_oscillator_bulk(self, price_column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
-    Chande Momentum Oscillator - bulk calculation
-
-    Calculates the Chande Momentum Oscillator, which measures momentum by calculating
-    the difference between the sum of gains and losses over a given period.
-    Values range from -100 to +100.
+    Chande Momentum Oscillator (Bulk) - Measures momentum using gains and losses
+    Calculates the difference between sum of gains and losses over a period
+    Values range from -100 to +100
 
     # Parameters
-    * `prices` - PySeriesStubbed containing price values
-    * `period` - usize calculation period (commonly 14 or 20)
+    - `price_column`: &str - Name of the price column to analyze
+    - `period`: usize - Calculation period (commonly 14 or 20)
 
     # Returns
-    * `PyResult<PySeriesStubbed>` - Series named "chande_momentum_oscillator" containing CMO values (-100 to +100)
+    PySeriesStubbed - Series of CMO values (-100 to +100) with name "chande_momentum_oscillator"
     """
 
 class OtherTI:
   r"""
   Other Technical Indicators - A collection of other analysis functions for financial data
   """
-  def __new__(cls, series: polars.Series) -> OtherTI: ...
-  def return_on_investment_single(self, investment: builtins.float) -> tuple[builtins.float, builtins.float]:
+  def __new__(cls, lf: polars.LazyFrame) -> OtherTI: ...
+  def return_on_investment_single(self, price_column: builtins.str, investment: builtins.float) -> tuple[builtins.float, builtins.float]:
     r"""
     Return on Investment - Calculates investment value and percentage change for a single period
-    Uses the first and last values from the series as start and end prices
+    Uses the first and last values from the price column as start and end prices
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `investment`: f64 - Initial investment amount
 
     # Returns
@@ -1028,12 +1162,13 @@ class OtherTI:
     - `final_investment_value`: The absolute value of the investment at the end
     - `percent_return`: The percentage return on the investment
     """
-  def return_on_investment_bulk(self, investment: builtins.float) -> tuple[polars.Series, polars.Series]:
+  def return_on_investment_bulk(self, price_column: builtins.str, investment: builtins.float) -> tuple[polars.Series, polars.Series]:
     r"""
     Return on Investment Bulk - Calculates ROI for a series of consecutive price periods
-    Uses the series as price values for consecutive period calculations
+    Uses the price column as price values for consecutive period calculations
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `investment`: f64 - Initial investment amount
 
     # Returns
@@ -1041,65 +1176,76 @@ class OtherTI:
     - `final_investment_values`: Series of absolute investment values for each period
     - `percent_returns`: Series of percentage returns for each period
     """
-  def true_range(self, high: polars.Series, low: polars.Series) -> polars.Series:
+  def true_range(self, high_column: builtins.str, low_column: builtins.str, close_column: builtins.str) -> polars.Series:
     r"""
     True Range - Calculates the greatest price movement for a single period
-    Uses the series as closing prices along with provided high/low data
+    Uses the provided high/low/close columns to calculate true range
 
     # Parameters
-    - `high`: PySeriesStubbed - Series of high prices (f64)
-    - `low`: PySeriesStubbed - Series of low prices (f64)
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
 
     # Returns
     PySeriesStubbed - Series of true range values for each period
     """
-  def average_true_range_single(self, high: polars.Series, low: polars.Series, constant_model_type: builtins.str) -> builtins.float:
+  def average_true_range_single(
+    self, high_column: builtins.str, low_column: builtins.str, close_column: builtins.str, constant_model_type: builtins.str
+  ) -> builtins.float:
     r"""
     Average True Range - Calculates the moving average of true range values for a single result
-    Uses the series as closing prices to calculate ATR from the entire price series
+    Uses the provided high/low/close columns to calculate ATR from the entire price series
 
     # Parameters
-    - `high`: PySeriesStubbed - Series of high prices (f64)
-    - `low`: PySeriesStubbed - Series of low prices (f64)
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `constant_model_type`: &str - Type of moving average ("sma", "ema", "wma", etc.)
 
     # Returns
     f64 - Single ATR value calculated from the entire price series
     """
-  def average_true_range_bulk(self, high: polars.Series, low: polars.Series, constant_model_type: builtins.str, period: builtins.int) -> polars.Series:
+  def average_true_range_bulk(
+    self, high_column: builtins.str, low_column: builtins.str, close_column: builtins.str, constant_model_type: builtins.str, period: builtins.int
+  ) -> polars.Series:
     r"""
     Average True Range Bulk - Calculates rolling ATR values over specified periods
-    Uses the series as closing prices for rolling ATR calculations
+    Uses the provided high/low/close columns for rolling ATR calculations
 
     # Parameters
-    - `high`: PySeriesStubbed - Series of high prices (f64)
-    - `low`: PySeriesStubbed - Series of low prices (f64)
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `constant_model_type`: &str - Type of moving average ("sma", "ema", "wma", etc.)
     - `period`: usize - Number of periods for the moving average calculation
 
     # Returns
     PySeriesStubbed - Series of ATR values for each period
     """
-  def internal_bar_strength(self, high: polars.Series, low: polars.Series) -> polars.Series:
+  def internal_bar_strength(self, high_column: builtins.str, low_column: builtins.str, close_column: builtins.str) -> polars.Series:
     r"""
     Internal Bar Strength - Calculates buy/sell oscillator based on close position within high-low range
-    Uses the series as closing prices to calculate IBS values
+    Uses the provided high/low/close columns to calculate IBS values
 
     # Parameters
-    - `high`: PySeriesStubbed - Series of high prices (f64)
-    - `low`: PySeriesStubbed - Series of low prices (f64)
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
 
     # Returns
     PySeriesStubbed - Series of IBS values (0-1 range) for each period, where values closer to 1
                       indicate closes near the high, and values closer to 0 indicate closes near the low
     """
-  def positivity_indicator(self, open: polars.Series, signal_period: builtins.int, constant_model_type: builtins.str) -> tuple[polars.Series, polars.Series]:
+  def positivity_indicator(
+    self, open_column: builtins.str, close_column: builtins.str, signal_period: builtins.int, constant_model_type: builtins.str
+  ) -> tuple[polars.Series, polars.Series]:
     r"""
     Positivity Indicator - Generates trading signals based on open vs previous close comparison
-    Uses the series as previous close prices for signal generation
+    Uses the provided open/close columns for signal generation
 
     # Parameters
-    - `open`: PySeriesStubbed - Series of opening prices (f64)
+    - `open_column`: &str - Name of the opening price column
+    - `close_column`: &str - Name of the close price column
     - `signal_period`: usize - Number of periods for signal line smoothing
     - `constant_model_type`: &str - Type of moving average for signal line ("sma", "ema", "wma", etc.)
 
@@ -1110,92 +1256,76 @@ class OtherTI:
     """
 
 class StandardTI:
-  def __new__(cls, series: polars.Series) -> StandardTI: ...
-  def sma_bulk(self, period: builtins.int) -> polars.Series:
+  def __new__(cls, lf: polars.LazyFrame) -> StandardTI: ...
+  def sma_single(self, price_column: builtins.str) -> builtins.float:
     r"""
-    Simple Moving Average - calculates the mean over a rolling window
+    Simple Moving Average (Single) - calculates the mean of all values in the column
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
+
+    # Returns
+    f64 - Single SMA value calculated from all provided prices
+    """
+  def sma_bulk(self, price_column: builtins.str, period: builtins.int) -> polars.Series:
+    r"""
+    Simple Moving Average (Bulk) - calculates the mean over a rolling window
+
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `period`: usize - Number of periods for the moving average window
 
     # Returns
     PySeriesStubbed - Series containing SMA values for each period
     """
-  def smma_bulk(self, period: builtins.int) -> polars.Series:
+  def smma_single(self, price_column: builtins.str) -> builtins.float:
     r"""
-    Smoothed Moving Average - puts more weight on recent prices
+    Smoothed Moving Average (Single) - single value calculation
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
+
+    # Returns
+    f64 - Single SMMA value calculated from all provided prices
+    """
+  def smma_bulk(self, price_column: builtins.str, period: builtins.int) -> polars.Series:
+    r"""
+    Smoothed Moving Average (Bulk) - puts more weight on recent prices
+
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `period`: usize - Number of periods for the smoothed moving average window
 
     # Returns
     PySeriesStubbed - Series containing SMMA values for each period
     """
-  def ema_bulk(self, period: builtins.int) -> polars.Series:
+  def ema_single(self, price_column: builtins.str) -> builtins.float:
     r"""
-    Exponential Moving Average - puts exponentially more weight on recent prices
+    Exponential Moving Average (Single) - single value calculation
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
+
+    # Returns
+    f64 - Single EMA value calculated from all provided prices
+    """
+  def ema_bulk(self, price_column: builtins.str, period: builtins.int) -> polars.Series:
+    r"""
+    Exponential Moving Average (Bulk) - puts exponentially more weight on recent prices
+
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `period`: usize - Number of periods for the exponential moving average window
 
     # Returns
     PySeriesStubbed - Series containing EMA values for each period
     """
-  def bollinger_bands_bulk(self) -> polars.DataFrame:
+  def bollinger_bands_single(self, price_column: builtins.str) -> tuple[builtins.float, builtins.float, builtins.float]:
     r"""
-    Bollinger Bands - returns three series: lower band, middle (SMA), upper band
-    Standard period is 20 with 2 standard deviations
+    Bollinger Bands (Single) - single value calculation (requires exactly 20 periods)
 
-    # Returns
-    PyDfStubbed - DataFrame with three columns:
-    - `bb_lower`: Lower Bollinger Band values
-    - `bb_middle`: Middle band (20-period SMA)
-    - `bb_upper`: Upper Bollinger Band values
-    """
-  def macd_bulk(self) -> polars.DataFrame:
-    r"""
-    MACD - Moving Average Convergence Divergence
-    Returns three series: MACD line, Signal line, Histogram
-    Standard periods: 12, 26, 9
-
-    # Returns
-    PyDfStubbed - DataFrame with three columns:
-    - `macd`: MACD line (12-period EMA - 26-period EMA)
-    - `macd_signal`: Signal line (9-period EMA of MACD line)
-    - `macd_histogram`: Histogram (MACD line - Signal line)
-    """
-  def rsi_bulk(self) -> polars.Series:
-    r"""
-    RSI - Relative Strength Index
-    Standard period is 14 using smoothed moving average
-
-    # Returns
-    PySeriesStubbed - Series containing RSI values (0-100 scale)
-    """
-  def sma_single(self) -> builtins.float:
-    r"""
-    Simple Moving Average - single value calculation
-
-    # Returns
-    f64 - Single SMA value calculated from all provided prices
-    """
-  def smma_single(self) -> builtins.float:
-    r"""
-    Smoothed Moving Average - single value calculation
-
-    # Returns
-    f64 - Single SMMA value calculated from all provided prices
-    """
-  def ema_single(self) -> builtins.float:
-    r"""
-    Exponential Moving Average - single value calculation
-
-    # Returns
-    f64 - Single EMA value calculated from all provided prices
-    """
-  def bollinger_bands_single(self) -> tuple[builtins.float, builtins.float, builtins.float]:
-    r"""
-    Bollinger Bands - single value calculation (requires exactly 20 periods)
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
 
     # Returns
     Tuple of (lower_band: f64, middle_band: f64, upper_band: f64)
@@ -1203,9 +1333,26 @@ class StandardTI:
     - `middle_band`: Middle band (SMA) value
     - `upper_band`: Upper Bollinger Band value
     """
-  def macd_single(self) -> tuple[builtins.float, builtins.float, builtins.float]:
+  def bollinger_bands_bulk(self, price_column: builtins.str) -> polars.DataFrame:
     r"""
-    MACD - single value calculation (requires exactly 34 periods)
+    Bollinger Bands (Bulk) - returns three series: lower band, middle (SMA), upper band
+    Standard period is 20 with 2 standard deviations
+
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
+
+    # Returns
+    PyDfStubbed - DataFrame with three columns:
+    - `bb_lower`: Lower Bollinger Band values
+    - `bb_middle`: Middle band (20-period SMA)
+    - `bb_upper`: Upper Bollinger Band values
+    """
+  def macd_single(self, price_column: builtins.str) -> tuple[builtins.float, builtins.float, builtins.float]:
+    r"""
+    MACD (Single) - single value calculation (requires exactly 34 periods)
+
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
 
     # Returns
     Tuple of (macd_line: f64, signal_line: f64, histogram: f64)
@@ -1213,158 +1360,247 @@ class StandardTI:
     - `signal_line`: Signal line value (9-period EMA of MACD line)
     - `histogram`: Histogram value (MACD line - Signal line)
     """
-  def rsi_single(self) -> builtins.float:
+  def macd_bulk(self, price_column: builtins.str) -> polars.DataFrame:
     r"""
-    RSI - single value calculation (requires exactly 14 periods)
+    MACD (Bulk) - Moving Average Convergence Divergence
+    Returns three series: MACD line, Signal line, Histogram
+    Standard periods: 12, 26, 9
+
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
+
+    # Returns
+    PyDfStubbed - DataFrame with three columns:
+    - `macd`: MACD line (12-period EMA - 26-period EMA)
+    - `macd_signal`: Signal line (9-period EMA of MACD line)
+    - `macd_histogram`: Histogram (MACD line - Signal line)
+    """
+  def rsi_single(self, price_column: builtins.str) -> builtins.float:
+    r"""
+    RSI (Single) - single value calculation (requires exactly 14 periods)
+
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
 
     # Returns
     f64 - Single RSI value (0-100 scale)
     """
+  def rsi_bulk(self, price_column: builtins.str) -> polars.Series:
+    r"""
+    RSI (Bulk) - Relative Strength Index
+    Standard period is 14 using smoothed moving average
+
+    # Parameters
+    - `price_column`: &str - Name of the price column to analyze
+
+    # Returns
+    PySeriesStubbed - Series containing RSI values (0-100 scale)
+    """
 
 class StrengthTI:
-  def __new__(cls, series: polars.Series) -> StrengthTI: ...
-  def accumulation_distribution(
-    self, high: polars.Series, low: polars.Series, volume: polars.Series, previous_ad: typing.Optional[builtins.float]
-  ) -> polars.Series:
-    r"""
-    Accumulation Distribution - Shows whether the stock is being accumulated or distributed
-
-    # Parameters
-    - `high`: PySeriesStubbed - Series of high prices
-    - `low`: PySeriesStubbed - Series of low prices
-    - `volume`: PySeriesStubbed - Series of trading volumes
-    - `previous_ad`: Option<f64> - Previous accumulation/distribution value (defaults to 0.0)
-
-    # Returns
-    PySeriesStubbed - Series containing accumulation/distribution values
-    """
-  def positive_volume_index(self, volume: polars.Series, previous_pvi: typing.Optional[builtins.float]) -> polars.Series:
-    r"""
-    Positive Volume Index - Measures volume trend strength when volume increases
-
-    # Parameters
-    - `volume`: PySeriesStubbed - Series of trading volumes
-    - `previous_pvi`: Option<f64> - Previous positive volume index value (defaults to 0.0)
-
-    # Returns
-    PySeriesStubbed - Series containing positive volume index values
-    """
-  def negative_volume_index(self, volume: polars.Series, previous_nvi: typing.Optional[builtins.float]) -> polars.Series:
-    r"""
-    Negative Volume Index - Measures volume trend strength when volume decreases
-
-    # Parameters
-    - `volume`: PySeriesStubbed - Series of trading volumes
-    - `previous_nvi`: Option<f64> - Previous negative volume index value (defaults to 0.0)
-
-    # Returns
-    PySeriesStubbed - Series containing negative volume index values
-    """
-  def relative_vigor_index(
-    self, open: polars.Series, high: polars.Series, low: polars.Series, constant_model_type: builtins.str, period: builtins.int
-  ) -> polars.Series:
-    r"""
-    Relative Vigor Index - Measures the strength of an asset by looking at previous prices
-
-    # Parameters
-    - `open`: PySeriesStubbed - Series of opening prices
-    - `high`: PySeriesStubbed - Series of high prices
-    - `low`: PySeriesStubbed - Series of low prices
-    - `constant_model_type`: &str - Type of constant model to use
-    - `period`: usize - Period length for calculation
-
-    # Returns
-    PySeriesStubbed - Series containing relative vigor index values
-    """
-  def single_accumulation_distribution(
-    self, high: builtins.float, low: builtins.float, volume: builtins.float, previous_ad: typing.Optional[builtins.float]
+  def __new__(cls, lf: polars.LazyFrame) -> StrengthTI: ...
+  def accumulation_distribution_single(
+    self,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
+    volume_column: builtins.str,
+    previous_ad: typing.Optional[builtins.float],
   ) -> builtins.float:
     r"""
-    Single Accumulation Distribution - Single value calculation
+    Accumulation Distribution (Single) - Shows whether the stock is being accumulated or distributed
+    Single value calculation using the last available values
 
     # Parameters
-    - `high`: f64 - High price for the period
-    - `low`: f64 - Low price for the period
-    - `volume`: f64 - Trading volume for the period
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
+    - `volume_column`: &str - Name of the volume column
     - `previous_ad`: Option<f64> - Previous accumulation/distribution value (defaults to 0.0)
 
     # Returns
     f64 - Single accumulation/distribution value
     """
-  def single_volume_index(self, previous_close: builtins.float, previous_volume_index: typing.Optional[builtins.float]) -> builtins.float:
+  def accumulation_distribution_bulk(
+    self,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
+    volume_column: builtins.str,
+    previous_ad: typing.Optional[builtins.float],
+  ) -> polars.Series:
     r"""
-    Single Volume Index - Generic version of PVI and NVI for single calculation
+    Accumulation Distribution (Bulk) - Shows whether the stock is being accumulated or distributed
+    Returns a series of accumulation/distribution values
 
     # Parameters
-    - `previous_close`: f64 - Previous period closing price
-    - `previous_volume_index`: Option<f64> - Previous volume index value (defaults to 0.0)
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
+    - `volume_column`: &str - Name of the volume column
+    - `previous_ad`: Option<f64> - Previous accumulation/distribution value (defaults to 0.0)
 
     # Returns
-    f64 - Single volume index value
+    PySeriesStubbed - Series containing accumulation/distribution values with name "accumulation_distribution"
     """
-  def single_relative_vigor_index(self, open: polars.Series, high: polars.Series, low: polars.Series, constant_model_type: builtins.str) -> builtins.float:
+  def positive_volume_index_single(
+    self, close_column: builtins.str, volume_column: builtins.str, previous_pvi: typing.Optional[builtins.float]
+  ) -> builtins.float:
     r"""
-    Single Relative Vigor Index - Single value calculation
+    Positive Volume Index (Single) - Measures volume trend strength when volume increases
+    Single value calculation using the last available values
 
     # Parameters
-    - `open`: PySeriesStubbed - Series of opening prices
-    - `high`: PySeriesStubbed - Series of high prices
-    - `low`: PySeriesStubbed - Series of low prices
+    - `close_column`: &str - Name of the close price column
+    - `volume_column`: &str - Name of the volume column
+    - `previous_pvi`: Option<f64> - Previous positive volume index value (defaults to 0.0)
+
+    # Returns
+    f64 - Single positive volume index value
+    """
+  def positive_volume_index_bulk(self, close_column: builtins.str, volume_column: builtins.str, previous_pvi: typing.Optional[builtins.float]) -> polars.Series:
+    r"""
+    Positive Volume Index (Bulk) - Measures volume trend strength when volume increases
+    Returns a series of positive volume index values
+
+    # Parameters
+    - `close_column`: &str - Name of the close price column
+    - `volume_column`: &str - Name of the volume column
+    - `previous_pvi`: Option<f64> - Previous positive volume index value (defaults to 0.0)
+
+    # Returns
+    PySeriesStubbed - Series containing positive volume index values with name "positive_volume_index"
+    """
+  def negative_volume_index_single(
+    self, close_column: builtins.str, volume_column: builtins.str, previous_nvi: typing.Optional[builtins.float]
+  ) -> builtins.float:
+    r"""
+    Negative Volume Index (Single) - Measures volume trend strength when volume decreases
+    Single value calculation using the last available values
+
+    # Parameters
+    - `close_column`: &str - Name of the close price column
+    - `volume_column`: &str - Name of the volume column
+    - `previous_nvi`: Option<f64> - Previous negative volume index value (defaults to 0.0)
+
+    # Returns
+    f64 - Single negative volume index value
+    """
+  def negative_volume_index_bulk(self, close_column: builtins.str, volume_column: builtins.str, previous_nvi: typing.Optional[builtins.float]) -> polars.Series:
+    r"""
+    Negative Volume Index (Bulk) - Measures volume trend strength when volume decreases
+    Returns a series of negative volume index values
+
+    # Parameters
+    - `close_column`: &str - Name of the close price column
+    - `volume_column`: &str - Name of the volume column
+    - `previous_nvi`: Option<f64> - Previous negative volume index value (defaults to 0.0)
+
+    # Returns
+    PySeriesStubbed - Series containing negative volume index values with name "negative_volume_index"
+    """
+  def relative_vigor_index_single(
+    self, open_column: builtins.str, high_column: builtins.str, low_column: builtins.str, close_column: builtins.str, constant_model_type: builtins.str
+  ) -> builtins.float:
+    r"""
+    Relative Vigor Index (Single) - Measures the strength of an asset by looking at previous prices
+    Single value calculation using all available values
+
+    # Parameters
+    - `open_column`: &str - Name of the opening price column
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `constant_model_type`: &str - Type of constant model to use
 
     # Returns
     f64 - Single relative vigor index value
+    """
+  def relative_vigor_index_bulk(
+    self,
+    open_column: builtins.str,
+    high_column: builtins.str,
+    low_column: builtins.str,
+    close_column: builtins.str,
+    constant_model_type: builtins.str,
+    period: builtins.int,
+  ) -> polars.Series:
+    r"""
+    Relative Vigor Index (Bulk) - Measures the strength of an asset by looking at previous prices
+    Returns a series of relative vigor index values
+
+    # Parameters
+    - `open_column`: &str - Name of the opening price column
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
+    - `constant_model_type`: &str - Type of constant model to use
+    - `period`: usize - Period length for calculation
+
+    # Returns
+    PySeriesStubbed - Series containing relative vigor index values with name "relative_vigor_index"
     """
 
 class TrendTI:
   r"""
   Trend Technical Indicators - A collection of trend analysis functions for financial data
   """
-  def __new__(cls, series: polars.Series) -> TrendTI: ...
-  def aroon_up_single(self) -> builtins.float:
+  def __new__(cls, lf: polars.LazyFrame) -> TrendTI: ...
+  def aroon_up_single(self, high_column: builtins.str) -> builtins.float:
     r"""
     Aroon Up (Single) - Measures the strength of upward price momentum
     Calculates the percentage of time since the highest high within the series
 
+    # Parameters
+    - `high_column`: &str - Name of the high price column to analyze
+
     # Returns
     f64 - Aroon Up value (0-100), where higher values indicate stronger upward momentum
     """
-  def aroon_down_single(self) -> builtins.float:
+  def aroon_down_single(self, low_column: builtins.str) -> builtins.float:
     r"""
     Aroon Down (Single) - Measures the strength of downward price momentum
     Calculates the percentage of time since the lowest low within the series
 
+    # Parameters
+    - `low_column`: &str - Name of the low price column to analyze
+
     # Returns
     f64 - Aroon Down value (0-100), where higher values indicate stronger downward momentum
     """
-  def aroon_oscillator_single(self, lows: polars.Series) -> builtins.float:
+  def aroon_oscillator_single(self, high_column: builtins.str, low_column: builtins.str) -> builtins.float:
     r"""
     Aroon Oscillator (Single) - Calculates the difference between Aroon Up and Aroon Down
     Provides a single measure of trend direction and strength
 
     # Parameters
-    - `lows`: PySeriesStubbed - Series of low price values for Aroon Down calculation
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
 
     # Returns
     f64 - Aroon Oscillator value (-100 to 100), where positive values indicate upward trend
     """
-  def aroon_indicator_single(self, lows: polars.Series) -> tuple[builtins.float, builtins.float, builtins.float]:
+  def aroon_indicator_single(self, high_column: builtins.str, low_column: builtins.str) -> tuple[builtins.float, builtins.float, builtins.float]:
     r"""
     Aroon Indicator (Single) - Calculates complete Aroon system in one call
     Computes Aroon Up, Aroon Down, and Aroon Oscillator
 
     # Parameters
-    - `lows`: PySeriesStubbed - Series of low price values
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
 
     # Returns
     (f64, f64, f64) - Tuple containing (Aroon Up, Aroon Down, Aroon Oscillator)
     """
-  def true_strength_index_single(self, first_constant_model: builtins.str, first_period: builtins.int, second_constant_model: builtins.str) -> builtins.float:
+  def true_strength_index_single(
+    self, price_column: builtins.str, first_constant_model: builtins.str, first_period: builtins.int, second_constant_model: builtins.str
+  ) -> builtins.float:
     r"""
     True Strength Index (Single) - Momentum oscillator using double-smoothed price changes
     Filters out price noise to provide clearer momentum signals
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `first_constant_model`: &str - First smoothing method ("SimpleMovingAverage", "ExponentialMovingAverage", etc.)
     - `first_period`: usize - Period for first smoothing
     - `second_constant_model`: &str - Second smoothing method
@@ -1372,47 +1608,51 @@ class TrendTI:
     # Returns
     f64 - True Strength Index value (-100 to 100)
     """
-  def aroon_up_bulk(self, period: builtins.int) -> polars.Series:
+  def aroon_up_bulk(self, high_column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Aroon Up (Bulk) - Calculates rolling Aroon Up indicator over specified period
     Measures upward momentum strength for each period in the time series
 
     # Parameters
+    - `high_column`: &str - Name of the high price column to analyze
     - `period`: usize - Lookback period for calculation (typically 14)
 
     # Returns
     PySeriesStubbed - Series of Aroon Up values (0-100) named "aroon_up"
     """
-  def aroon_down_bulk(self, period: builtins.int) -> polars.Series:
+  def aroon_down_bulk(self, low_column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Aroon Down (Bulk) - Calculates rolling Aroon Down indicator over specified period
     Measures downward momentum strength for each period in the time series
 
     # Parameters
+    - `low_column`: &str - Name of the low price column to analyze
     - `period`: usize - Lookback period for calculation (typically 14)
 
     # Returns
     PySeriesStubbed - Series of Aroon Down values (0-100) named "aroon_down"
     """
-  def aroon_oscillator_bulk(self, lows: polars.Series, period: builtins.int) -> polars.Series:
+  def aroon_oscillator_bulk(self, high_column: builtins.str, low_column: builtins.str, period: builtins.int) -> polars.Series:
     r"""
     Aroon Oscillator (Bulk) - Calculates rolling Aroon Oscillator over specified period
     Computes the difference between Aroon Up and Aroon Down for each period
 
     # Parameters
-    - `lows`: PySeriesStubbed - Series of low price values
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
     - `period`: usize - Lookback period for calculation (typically 14)
 
     # Returns
     PySeriesStubbed - Series of Aroon Oscillator values (-100 to 100) named "aroon_oscillator"
     """
-  def aroon_indicator_bulk(self, lows: polars.Series, period: builtins.int) -> polars.DataFrame:
+  def aroon_indicator_bulk(self, high_column: builtins.str, low_column: builtins.str, period: builtins.int) -> polars.DataFrame:
     r"""
     Aroon Indicator (Bulk) - Calculates complete Aroon system for time series data
     Computes Aroon Up, Aroon Down, and Aroon Oscillator for each period
 
     # Parameters
-    - `lows`: PySeriesStubbed - Series of low price values
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
     - `period`: usize - Lookback period for calculation (typically 14)
 
     # Returns
@@ -1420,7 +1660,8 @@ class TrendTI:
     """
   def parabolic_time_price_system_bulk(
     self,
-    lows: polars.Series,
+    high_column: builtins.str,
+    low_column: builtins.str,
     acceleration_factor_start: builtins.float,
     acceleration_factor_max: builtins.float,
     acceleration_factor_step: builtins.float,
@@ -1432,7 +1673,8 @@ class TrendTI:
     Provides trailing stop levels for trend-following system
 
     # Parameters
-    - `lows`: PySeriesStubbed - Series of low price values
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
     - `acceleration_factor_start`: f64 - Initial acceleration factor (typically 0.02)
     - `acceleration_factor_max`: f64 - Maximum acceleration factor (typically 0.20)
     - `acceleration_factor_step`: f64 - Acceleration factor increment (typically 0.02)
@@ -1443,41 +1685,49 @@ class TrendTI:
     PySeriesStubbed - Series of SAR values named "parabolic_sar"
     """
   def directional_movement_system_bulk(
-    self, lows: polars.Series, closes: polars.Series, period: builtins.int, constant_model_type: builtins.str
+    self, high_column: builtins.str, low_column: builtins.str, close_column: builtins.str, period: builtins.int, constant_model_type: builtins.str
   ) -> polars.DataFrame:
     r"""
     Directional Movement System (Bulk) - Calculates complete DMS indicators
     Computes +DI, -DI, ADX, and ADXR for trend strength analysis
 
     # Parameters
-    - `lows`: PySeriesStubbed - Series of low price values
-    - `closes`: PySeriesStubbed - Series of close price values
+    - `high_column`: &str - Name of the high price column
+    - `low_column`: &str - Name of the low price column
+    - `close_column`: &str - Name of the close price column
     - `period`: usize - Calculation period (typically 14)
     - `constant_model_type`: &str - Smoothing method: "SimpleMovingAverage", "SmoothedMovingAverage", etc.
 
     # Returns
     PyDfStubbed - DataFrame with columns: "positive_di", "negative_di", "adx", "adxr"
     """
-  def volume_price_trend_bulk(self, volumes: polars.Series, previous_volume_price_trend: builtins.float) -> polars.Series:
+  def volume_price_trend_bulk(self, price_column: builtins.str, volume_column: builtins.str, previous_volume_price_trend: builtins.float) -> polars.Series:
     r"""
     Volume Price Trend (Bulk) - Combines price and volume to show momentum
     Shows the relationship between price movement and volume flow
 
     # Parameters
-    - `volumes`: PySeriesStubbed - Series of volume values
+    - `price_column`: &str - Name of the price column
+    - `volume_column`: &str - Name of the volume column
     - `previous_volume_price_trend`: f64 - Initial VPT value (typically 0)
 
     # Returns
     PySeriesStubbed - Series of Volume Price Trend values named "volume_price_trend"
     """
   def true_strength_index_bulk(
-    self, first_constant_model: builtins.str, first_period: builtins.int, second_constant_model: builtins.str, second_period: builtins.int
+    self,
+    price_column: builtins.str,
+    first_constant_model: builtins.str,
+    first_period: builtins.int,
+    second_constant_model: builtins.str,
+    second_period: builtins.int,
   ) -> polars.Series:
     r"""
     True Strength Index (Bulk) - Double-smoothed momentum oscillator
     Uses double-smoothed price changes to filter noise and provide clearer signals
 
     # Parameters
+    - `price_column`: &str - Name of the price column to analyze
     - `first_constant_model`: &str - First smoothing method: "SimpleMovingAverage", "ExponentialMovingAverage", etc.
     - `first_period`: usize - Period for first smoothing (typically 25)
     - `second_constant_model`: &str - Second smoothing method

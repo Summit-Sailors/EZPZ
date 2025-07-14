@@ -55,7 +55,7 @@ jobs:
       - name: Install security tools
         run: |
           cargo install cargo-audit
-          just install-tools
+          just workflow::install-tools
 
       - name: Run Rust security audit
         run: |
@@ -71,7 +71,7 @@ jobs:
 
       - name: Convert to SARIF
         run: |
-          just convert-sarif
+          just workflow::convert-sarif
 
       - name: Upload SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2

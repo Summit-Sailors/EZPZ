@@ -1,5 +1,6 @@
 [package]
 authors = ["Stephen Oketch"]
+build = "build.rs"
 description = "Rust technical indicators for polars (Wraps rust_ti crate)"
 edition = { workspace = true }
 name = "ezpz-rust-ti"
@@ -11,6 +12,8 @@ crate-type = ["cdylib", "rlib"]
 name = "ezpz_rust_ti"
 
 [dependencies]
+anyhow = { version = "1.0.98", default-features = false }
+approx = "0.5.1"
 ezpz-stubz = { workspace = true }
 polars = { workspace = true }
 pyo3 = { workspace = true }
@@ -23,7 +26,7 @@ pyo3-build-config = "0.25.1"
 
 
 [features]
-default = ["pyo3/extension-module"]
+default = ["pyo3/auto-initialize", "pyo3/extension-module"]
 
 [[bin]]
 doc = false

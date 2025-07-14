@@ -4,7 +4,7 @@ use {
 	pyo3_stub_gen::{PyStubType, TypeInfo, define_stub_info_gatherer},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PySeriesStubbed(pub PySeries);
 
 impl From<PySeries> for PySeriesStubbed {
