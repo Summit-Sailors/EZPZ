@@ -216,6 +216,13 @@ def unmount() -> None:
   unmount_plugins()
 
 
+@app.command(name="health")
+def health() -> None:
+  remote_reg = PluginRegistryAPI()
+  response = remote_reg.check_health()
+  logger.info(response)
+
+
 @app.command(name="register")
 def register(
   plugin_path: str = typer.Argument(..., help="Path to the plugin to register"),

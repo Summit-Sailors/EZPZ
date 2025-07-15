@@ -8,7 +8,7 @@ from ezpz_pluginz.logger import setup_logger
 logger = setup_logger("Config")
 
 # Registry configuration
-DEFAULT_REGISTRY_URL = "http://localhost:8000"
+DEFAULT_REGISTRY_URL = "http://127.0.0.1:8080"
 REGISTRY_URL = os.getenv("EZPZ_REGISTRY_URL", DEFAULT_REGISTRY_URL)
 API_VERSION = "v1"
 REQUEST_TIMEOUT = 30.0

@@ -2,7 +2,7 @@ set shell := ["bash", "-uc"]
 set export
 set dotenv-load := true
 
-mod workflow
+mod actions
 
 default:
   @just --choose --justfile {{justfile()}}

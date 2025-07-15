@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 from dataclasses import dataclass
 
 from ezpz_pluginz.logger import setup_logger
@@ -74,3 +74,28 @@ def safe_deserialize_plugin(plugin_data: dict[str, Any]) -> PluginResponse | Non
   except Exception:
     logger.exception("Failed to deserialize plugin data")
     return None
+
+
+@dataclass
+class PluginUpdate:
+  name: Optional[str] = None
+  description: Optional[str] = None
+  category: Optional[str] = None
+  aliases: Optional[list[str]] = None
+  author: Optional[str] = None
+  homepage: Optional[str] = None
+  metadata_: Optional[dict[str, Any]] = None
+
+  def __post_init__(self) -> None:
+    self._validate()
+
+  def _validate(self) -> None:
+    for field_name, value in [
+      ("name", self.name),
+      ("description", self.description),
+      ("category", self.category),
+      ("author", self.author),
+      ("homepage", self.homepage),
+    ]:
+      if value is not None and not value.strip():
+        raise PluginValidationError(field_name)

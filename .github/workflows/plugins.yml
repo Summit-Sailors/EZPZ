@@ -50,7 +50,7 @@ jobs:
       - run: rye sync
       - run: rye run ezplugins refresh
       - id: analyze-plugins
-        run: just workflow::analyze-plugins
+        run: just actions::analyze-plugins
 
   test-plugins:
     runs-on: ubuntu-latest
@@ -94,10 +94,10 @@ jobs:
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
         run: |
-          just workflow::validate-plugin
-          just workflow::build-rust
-          just workflow::run-tests
-          just workflow::convert-sarif
+          just actions::validate-plugin
+          just actions::build-rust
+          just actions::run-tests
+          just actions::convert-sarif
       - uses: github/codeql-action/upload-sarif@v2
         if: always()
         with:
@@ -133,13 +133,13 @@ jobs:
           EZPZ_SERVER_SECRET: ${{ secrets.EZPZ_SERVER_SECRET }}
           PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: just workflow::register-plugins
+        run: just actions::register-plugins
       - if: needs.discover-plugins.outputs.plugins-to-update != '[]'
         env:
           EZPZ_SERVER_SECRET: ${{ secrets.EZPZ_SERVER_SECRET }}
           PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: just workflow::update-plugins
+        run: just actions::update-plugins
 
   publish-plugins:
     runs-on: ubuntu-latest
@@ -181,27 +181,27 @@ jobs:
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
           PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
           PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
-        run: just workflow::check-publish
+        run: just actions::check-publish
       - if: steps.check-publish.outputs.needs-publishing == 'true'
         env:
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
         run: |
-          just workflow::build-plugin
-          just workflow::validate-package
+          just actions::build-plugin
+          just actions::validate-package
       - if: steps.check-publish.outputs.needs-publishing == 'true' && github.event.inputs.dry_run != 'true'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just workflow::publish-pypi
+        run: just actions::publish-pypi
       - if: steps.check-publish.outputs.needs-publishing == 'true' && hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != '' && github.event.inputs.dry_run != 'true'
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just workflow::publish-cargo
+        run: just actions::publish-cargo
 
   generate-report:
     runs-on: ubuntu-latest
@@ -227,4 +227,4 @@ jobs:
           HAS_CHANGES: ${{ needs.discover-plugins.outputs.has-changes }}
           PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
           PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
-        run: just workflow::generate-report
+        run: just actions::generate-report

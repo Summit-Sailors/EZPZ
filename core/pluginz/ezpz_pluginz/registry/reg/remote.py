@@ -1,7 +1,7 @@
 import json
 from typing import Any, ClassVar
 from dataclasses import asdict
-from urllib.parse import quote
+from urllib.parse import urlencode
 
 import httpx
 
@@ -16,7 +16,7 @@ from ezpz_pluginz.registry.config import (
   DEFAULT_BATCH_SIZE,
   DEFAULT_PAGE_START,
 )
-from ezpz_pluginz.registry.models import PluginCreate, PluginResponse, safe_deserialize_plugin  # noqa: TC001
+from ezpz_pluginz.registry.models import PluginCreate, PluginUpdate, PluginResponse, safe_deserialize_plugin  # noqa: TC001
 from ezpz_pluginz.registry.exceptions import (
   PluginNotFoundError,
   PluginRegistryError,
@@ -32,7 +32,7 @@ class PluginRegistryAPI:
   UNSUPPORTED_HTTP_METHOD_ERROR: ClassVar[str] = "Unsupported HTTP method: {method}"
   EMPTY_SEARCH_KEYWORD_ERROR: ClassVar[str] = "Search keyword cannot be empty"
   EMPTY_PLUGIN_ID_ERROR: ClassVar[str] = "Plugin ID cannot be empty"
-  GITHUB_TOKEN_REQUIRED_ERROR: ClassVar[str] = "GitHub token is required"  # noqa: S105
+  GITHUB_TOKEN_REQUIRED_ERROR: ClassVar[str] = "Authentication is required"  # noqa: S105
 
   def __init__(self, base_url: str = REGISTRY_URL) -> None:
     self.base_url = base_url.rstrip("/")
@@ -41,20 +41,27 @@ class PluginRegistryAPI:
   def invalid_method(self, method: str) -> None:
     raise ValueError(self.UNSUPPORTED_HTTP_METHOD_ERROR.format(method=method))
 
-  def _make_request(self, endpoint: str, method: str = "GET", data: dict[str, Any] | None = None, headers: dict[str, str] | None = None) -> dict[str, Any]:
+  def _make_request(
+    self,
+    endpoint: str,
+    method: str = "POST",
+    data: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+    params: dict[str, Any] | None = None,
+  ) -> dict[str, Any]:
     url = f"{self.base_url}/api/{API_VERSION}{endpoint}"
     response = None
+    headers = headers or {}
+    if method != "GET":
+      headers["Content-Type"] = "application/x-www-form-urlencoded"
 
     try:
       with httpx.Client(timeout=self.timeout) as client:
-        if method == "GET":
-          response = client.get(url, headers=headers)
-        elif method == "POST":
-          response = client.post(url, json=data, headers=headers)
-        elif method == "DELETE":
-          response = client.delete(url, headers=headers)
-        elif method == "PUT":
-          response = client.put(url, json=data, headers=headers)
+        if method == "POST":
+          encoded_data = urlencode(data or {}, doseq=True)
+          response = client.post(url, content=encoded_data, headers=headers)
+        elif method == "GET":
+          response = client.get(url, params=params, headers=headers)
         else:
           self.invalid_method(method)
 
@@ -64,7 +71,7 @@ class PluginRegistryAPI:
           if response.status_code == HTTP_NOT_FOUND:
             raise PluginNotFoundError(endpoint)
           if response.status_code >= HTTP_SERVER_ERROR:
-            raise PluginRegistryError("Error")
+            raise PluginRegistryError("Server_error")
 
           response.raise_for_status()
 
@@ -85,6 +92,10 @@ class PluginRegistryAPI:
     except (ValueError, json.JSONDecodeError) as exc:
       raise PluginRegistryError(f"{exc}") from exc
 
+  def check_health(self) -> dict[str, Any]:
+    logger.info("Checking registry health")
+    return self._make_request("/health", method="POST")
+
   def fetch_plugins(self, *, verified_only: bool = False) -> list[PluginResponse]:
     all_plugins = list[PluginResponse]()
     batch_size = DEFAULT_BATCH_SIZE
@@ -93,8 +104,12 @@ class PluginRegistryAPI:
     logger.info(f"Fetching plugins from registry (verified_only={verified_only})")
 
     while True:
-      params = f"?page={page}&page_size={batch_size}&verified_only={verified_only}"
-      response = self._make_request(f"/plugins{params}")
+      data = {
+        "page": str(page),
+        "page_size": str(batch_size),
+        "verified_only": str(verified_only).lower(),
+      }
+      response = self._make_request("/plugins", data=data)
 
       plugins_data: list[dict[str, Any]] = response.get("plugins", [])
       if not plugins_data:
@@ -124,9 +139,8 @@ class PluginRegistryAPI:
 
     logger.info(f"Searching plugins for keyword: '{keyword}'")
 
-    encoded_keyword = quote(keyword)
-    params = f"?q={encoded_keyword}"
-    response = self._make_request(f"/plugins/search{params}")
+    data = {"query_text": keyword}
+    response = self._make_request("/plugins/search", data=data)
 
     plugins_data: list[dict[str, Any]] = response.get("plugins", [])
     plugins = list[PluginResponse]()
@@ -145,14 +159,14 @@ class PluginRegistryAPI:
 
     logger.info(f"Fetching plugin: {plugin_id}")
 
-    response = self._make_request(f"/plugins/{plugin_id}")
+    response = self._make_request(f"/plugins/get/{plugin_id}")
 
     if not response:
       raise PluginNotFoundError(plugin_id)
 
     plugin = safe_deserialize_plugin(response)
     if not plugin:
-      raise PluginRegistryError("INVALID")
+      raise PluginRegistryError("Invalid_plugin_data")
 
     logger.info(f"Successfully retrieved plugin: {plugin.name}")
     return plugin
@@ -163,10 +177,11 @@ class PluginRegistryAPI:
 
     logger.info(f"Registering plugin: {plugin_info.name}")
 
-    data = {"plugin": asdict(plugin_info)}
+    data = asdict(plugin_info)
+    data["authorization"] = github_token
     headers = {"Authorization": f"Bearer {github_token}"}
 
-    response = self._make_request("/plugins/register", method="POST", data=data, headers=headers)
+    response = self._make_request("/plugins/register", data=data, headers=headers)
 
     success = response.get("success", False)
     if not success:
@@ -176,7 +191,7 @@ class PluginRegistryAPI:
     logger.info(f"Successfully registered plugin: {plugin_info.name}")
     return success
 
-  def update_plugin(self, plugin_id: str, plugin_info: PluginCreate, github_token: str) -> bool:
+  def update_plugin(self, plugin_id: str, plugin_info: PluginUpdate, github_token: str) -> bool:
     if not plugin_id.strip():
       raise ValueError(self.EMPTY_PLUGIN_ID_ERROR)
     if not github_token.strip():
@@ -185,9 +200,10 @@ class PluginRegistryAPI:
     logger.info(f"Updating plugin: {plugin_id}")
 
     data = asdict(plugin_info)
+    data["authorization"] = github_token
     headers = {"Authorization": f"Bearer {github_token}"}
 
-    response = self._make_request(f"/plugins/{plugin_id}", method="PUT", data=data, headers=headers)
+    response = self._make_request(f"/plugins/update/{plugin_id}", data=data, headers=headers)
 
     success = response.get("success", False)
     if not success:
@@ -204,8 +220,11 @@ class PluginRegistryAPI:
       raise ValueError(self.GITHUB_TOKEN_REQUIRED_ERROR)
 
     logger.info(f"Deleting plugin: {plugin_id}")
+
+    data = {"authorization": github_token}
     headers = {"Authorization": f"Bearer {github_token}"}
-    response = self._make_request(f"/plugins/{plugin_id}", method="DELETE", headers=headers)
+
+    response = self._make_request(f"/plugins/delete/{plugin_id}", data=data, headers=headers)
 
     success = response.get("success", False)
     if not success:
