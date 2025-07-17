@@ -277,14 +277,14 @@ def register_plugin() -> dict[str, Any]:
   ```
   """
   return {
-    "name": "My Awesome Plugin",
-    "package_name": "my-awesome-plugin",
-    "description": "A comprehensive plugin that does amazing things",
-    "category": "utility",
-    "version": "1.0.0",
-    "author": "John Doe",
-    "homepage": "https://github.com/johndoe/my-awesome-plugin",
-    "aliases": ["awesome", "my-plugin"],
+    "name": "rust-ti",
+    "package_name": "ezpz-rust-ti",
+    "description": "Rust-powered technical analysis indicators for Polars DataFrames",
+    "aliases": ["ta", "technical-analysis", "indicators"],
+    "version": "0.1.0",
+    "author": "Summit Sailors",
+    "category": "Technical analysis",
+    "homepage": "https://github.com/Summit-Sailors/EZPZ/tree/main/ezpz-rust-ti",
     "metadata_": {
       "tags": ["testing", "development", "api"],
       "license": "MIT",

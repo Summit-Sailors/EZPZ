@@ -21,6 +21,7 @@ With EZPZ-Pluginz, developers can:
 - **Ecosystem Growth**: Contribute to the Polars ecosystem with greater confidence and tooling support
 - **Hot Reloading**: Automatic type hint updates that point directly to your plugin implementations
 - **Site-packages Integration**: Seamlessly load and manage plugins from installed packages
+- **Registry Management**: Discover, install, and share plugins through a centralized registry system
 
 ## How It Works
 
@@ -105,10 +106,13 @@ site_customize = true  # Enable automatic plugin registration
 - `name`: Project identifier for your plugin collection
 - `include`: List of files and directories to scan for plugins
 - `site_customize`: Optional boolean to enable automatic plugin registration via sitecustomize.py
+- `package_manager`: The package manager
 
 ## CLI Usage
 
-### Mount Plugins
+### Basic Plugin Management
+
+#### Mount Plugins
 
 Apply type hints and enable plugin support:
 
@@ -116,13 +120,112 @@ Apply type hints and enable plugin support:
 ezplugins mount
 ```
 
-### Unmount Plugins
+Loads plugins specified in your ezpz.toml configuration, makes plugin functions available for use, and should be run after installing new plugins or changing configuration.
+
+#### Unmount Plugins
 
 Restore original Polars files and remove modifications:
 
 ```bash
 ezplugins unmount
 ```
+
+Removes mounted plugins from your environment, useful for troubleshooting or cleaning up.
+
+#### Check Status
+
+Show current status of the plugin system:
+
+```bash
+ezplugins status
+```
+
+Shows registry URL and local cache information, displays number of available and verified plugins, and is useful for troubleshooting registry issues.
+
+### Registry Management
+
+#### Discover Available Plugins
+
+**List All Plugins**
+
+```bash
+ezplugins list
+```
+
+Shows all plugins with installation status (✓ = installed, ○ = not installed), displays plugin descriptions, authors, and versions, and sets up local registry if not present.
+
+**Advanced Plugin Search**
+
+```bash
+ezplugins find <keyword> [options]
+```
+
+Powerful search capabilities with flexible filtering options:
+
+- `--field name|description|author|package|category|aliases|all` - Search in specific fields
+- `--remote` - Search remote registry
+- `--both` - Search both local and remote
+- `--case-sensitive` - Case-sensitive search
+- `--exact` - Exact match
+- `--limit N` - Limit results
+- `--details` - Show detailed info
+
+Examples:
+
+```bash
+# Search for Rust-based plugins
+ezplugins find rust --field category
+
+# Search for technical analysis plugins with details
+ezplugins find 'technical analysis' --remote --details
+
+# Exact search for polars-related plugins
+ezplugins find polars --both --exact
+```
+
+#### Install and Manage Plugins
+
+**Install a Plugin**
+
+```bash
+ezplugins add <plugin_name> [--no-auto-mount]
+```
+
+Downloads and installs the plugin package, creates ezpz.toml if not present, and automatically mounts plugins unless `--no-auto-mount` is used. Use `ezplugins list` to see available plugins.
+
+**Refresh Registry**
+
+```bash
+ezplugins refresh
+```
+
+Downloads latest plugin information from registry, run this to see newly published plugins, and is automatically done when installing plugins.
+
+**Clear Registry Cache**
+
+```bash
+ezplugins delete-registry
+```
+
+Removes the local registry cache (`~/.ezpz`), useful for troubleshooting registry corruption or clearing cache, and registry can be automatically recreated using refresh.
+
+### Getting Help
+
+```bash
+ezplugins help [command]
+```
+
+Shows general help or detailed help for a specific command.
+
+## Plugin Registry System
+
+EZPZ-Pluginz includes a comprehensive plugin registry system that enables:
+
+- **Plugin Discovery**: Browse and search through available plugins from the community
+- **Easy Installation**: One-command installation of plugins with automatic dependency management
+- **Automatic Updates**: Stay up-to-date with the latest plugin releases
+
+The registry system maintains a local cache for fast access and can synchronize with remote repositories to discover new plugins and updates.
 
 ## Important Notes
 
@@ -141,6 +244,7 @@ ezplugins unmount
 - Enhanced function call syntax support
 - Robust string value extraction
 - Improved error handling and validation
+- Plugin registry system with discovery and installation
 
 ### Current Development Focus
 
@@ -162,6 +266,8 @@ ezplugins unmount
 - **Lockfile Management**: Maintains state consistency across development sessions
 - **Multi-syntax Support**: Flexible plugin definition patterns for different coding styles
 - **Robust Error Handling**: Graceful handling of malformed plugin definitions
+- **Registry Integration**: Seamless plugin discovery, installation, and management through centralized registry
+- **Advanced Search**: Powerful search capabilities with field-specific filtering and remote/local search options
 
 ## Contributing
 

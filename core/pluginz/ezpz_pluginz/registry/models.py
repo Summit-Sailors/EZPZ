@@ -1,4 +1,5 @@
-from typing import Any, Optional
+import re
+from typing import Any
 from dataclasses import dataclass
 
 from ezpz_pluginz.logger import setup_logger
@@ -7,6 +8,8 @@ from ezpz_pluginz.registry.exceptions import PluginValidationError
 
 logger = setup_logger("Models")
 
+PACKAGE_NAME_REGEX = re.compile(r"^ezpz[_-][a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$")
+
 
 @dataclass
 class PluginCreate:
@@ -14,11 +17,11 @@ class PluginCreate:
   package_name: str
   description: str
   aliases: list[str]
-  category: str
-  author: str
-  metadata_: dict[str, Any] | None
   version: str
+  author: str
+  category: str
   homepage: str
+  metadata_: Any = None
 
   def __post_init__(self) -> None:
     self._validate()
@@ -47,8 +50,7 @@ class PluginResponse:
   homepage: str
   created_at: str
   updated_at: str
-  metadata_: dict[str, Any]
-  downloads: int = 0
+  metadata_: Any
   verified: bool = False
   is_deleted: bool = False
 
@@ -78,13 +80,14 @@ def safe_deserialize_plugin(plugin_data: dict[str, Any]) -> PluginResponse | Non
 
 @dataclass
 class PluginUpdate:
-  name: Optional[str] = None
-  description: Optional[str] = None
-  category: Optional[str] = None
-  aliases: Optional[list[str]] = None
-  author: Optional[str] = None
-  homepage: Optional[str] = None
-  metadata_: Optional[dict[str, Any]] = None
+  name: str | None = None
+  description: str | None = None
+  category: str | None = None
+  aliases: list[str] | None = None
+  author: str | None = None
+  version: str | None = None
+  homepage: str | None = None
+  metadata_: Any | None = None
 
   def __post_init__(self) -> None:
     self._validate()
@@ -95,6 +98,7 @@ class PluginUpdate:
       ("description", self.description),
       ("category", self.category),
       ("author", self.author),
+      ("version", self.version),
       ("homepage", self.homepage),
     ]:
       if value is not None and not value.strip():

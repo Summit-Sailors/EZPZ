@@ -126,6 +126,26 @@ class LocalPluginRegistry:
 
     return matching_plugins
 
+  def remove_plugin_from_local_registry(self, plugin: PluginResponse) -> None:
+    try:
+      plugin_name_lower = plugin.name.lower()
+      if plugin_name_lower in self._plugins:
+        del self._plugins[plugin_name_lower]
+
+      for alias in plugin.aliases:
+        alias_lower = alias.lower()
+        if alias_lower in self._plugins:
+          del self._plugins[alias_lower]
+
+      remaining_plugins = self.list_plugins()
+      self._save_local_registry(remaining_plugins)
+
+      logger.debug(f"Removed plugin {plugin.name} from local registry")
+
+    except Exception as e:
+      logger.warning(f"Failed to remove plugin from local registry: {e}")
+      self.fetch_and_update_registry()
+
 
 def discover_local_plugins() -> list[PluginResponse]:
   plugins = list[PluginResponse]()

@@ -2,6 +2,7 @@
 
 import os
 import time
+import shutil
 from typing import Any
 from pathlib import Path
 
@@ -219,8 +220,12 @@ def unmount() -> None:
 @app.command(name="health")
 def health() -> None:
   remote_reg = PluginRegistryAPI()
-  response = remote_reg.check_health()
-  logger.info(response)
+  try:
+    response = remote_reg.check_health()
+    logger.info(response)
+  except Exception as e:
+    logger.info("Health check failed")
+    raise typer.Exit(1) from e
 
 
 @app.command(name="register")
@@ -432,17 +437,51 @@ def list_plugins() -> None:
 
 @app.command(name="delete-registry")
 def delete_registry() -> None:
-  """Delete the local plugin registry cache."""
   LOCAL_REGISTRY = Path.home() / ".ezpz"
   if not LOCAL_REGISTRY.exists():
     logger.info("Local registry file does not exist - nothing to delete")
     return
 
   try:
-    LOCAL_REGISTRY.rmdir()
-    logger.info(f"Successfully deleted local registry: {LOCAL_REGISTRY_FILE}")
+    shutil.rmtree(LOCAL_REGISTRY)
+    logger.info(f"Successfully deleted local registry: {LOCAL_REGISTRY}")
   except Exception as e:
     logger.exception("Failed to delete local registry")
+    raise typer.Exit(1) from e
+
+
+@app.command(name="delete-plugin")
+def delete_plugin(_id: str = typer.Argument(help="The ID of the plugin to be deleted")) -> None:
+  local_registry = LocalPluginRegistry()
+  remote_registry = PluginRegistryAPI()
+  pat = get_github_pat()
+
+  try:
+    try:
+      plugin = remote_registry.get_plugin(_id)
+
+      if hasattr(plugin, "is_deleted") and plugin.is_deleted:
+        logger.warning(f"Plugin {_id} is already deleted")
+        local_registry.remove_plugin_from_local_registry(plugin=plugin)
+        return
+
+    except Exception as e:
+      logger.warning(f"Failed to check plugin status: {e}")
+
+    remote_registry.delete_plugin(_id, pat)
+    logger.info(f"Successfully deleted plugin: {_id}")
+
+    if "plugin" in locals():
+      local_registry.remove_plugin_from_local_registry(plugin=plugin)
+    else:
+      try:
+        plugin = remote_registry.get_plugin(_id)
+        local_registry.remove_plugin_from_local_registry(plugin=plugin)
+      except Exception:
+        local_registry.fetch_and_update_registry()
+
+  except Exception as e:
+    logger.exception("Failed to delete plugin")
     raise typer.Exit(1) from e
 
 
