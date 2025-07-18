@@ -3,10 +3,10 @@ name: EZPZ Plugin Management
 on:
   push:
     branches: [main, develop]
-    paths: ["plugins/**", "ezpz.toml"]
+    paths: ["plugins/**", "ezpz.toml", "pyproject.toml"]
   pull_request:
     branches: [main]
-    paths: ["plugins/**", "ezpz.toml"]
+    paths: ["plugins/**", "ezpz.toml", "pyproject.toml"]
   workflow_dispatch:
     inputs:
       operation:
@@ -29,10 +29,10 @@ jobs:
   discover-plugins:
     runs-on: ubuntu-latest
     outputs:
-      project-plugins: ${{ steps.analyze-plugins.outputs.project-plugins }}
-      plugins-to-register: ${{ steps.analyze-plugins.outputs.plugins-to-register }}
-      plugins-to-update: ${{ steps.analyze-plugins.outputs.plugins-to-update }}
-      has-changes: ${{ steps.analyze-plugins.outputs.has-changes }}
+      project-plugins: ${{ steps.analyze.outputs.project-plugins }}
+      plugins-to-register: ${{ steps.analyze.outputs.plugins-to-register }}
+      plugins-to-update: ${{ steps.analyze.outputs.plugins-to-update }}
+      has-changes: ${{ steps.analyze.outputs.has-changes }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
@@ -48,14 +48,15 @@ jobs:
         with:
           just-version: "1.40.0"
       - run: rye sync
-      - run: rye run ezplugins refresh
-      - id: analyze-plugins
+      - run: rye run ezpz refresh
+      - id: analyze
         run: just actions::analyze-plugins
 
   test-plugins:
     runs-on: ubuntu-latest
     needs: discover-plugins
-    if: needs.discover-plugins.outputs.has-changes == 'true'
+    if: |
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&  needs.discover-plugins.outputs.has-changes == 'true'
     permissions:
       security-events: write
     strategy:
@@ -90,15 +91,27 @@ jobs:
             target/
           key: ${{ runner.os }}-${{ matrix.plugin.package_name }}-${{ hashFiles(format('{0}/**/pyproject.toml', matrix.plugin.path), format('{0}/**/Cargo.toml', matrix.plugin.path)) }}
       - run: rye sync
-      - env:
+      - id: validate
+        env:
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: |
-          just actions::validate-plugin
-          just actions::build-rust
-          just actions::run-tests
-          just actions::convert-sarif
-      - uses: github/codeql-action/upload-sarif@v2
+        run: just actions::validate-plugin
+      - id: build
+        env:
+          PLUGIN_PATH: ${{ matrix.plugin.path }}
+          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
+        run: just actions::build-plugin
+      - id: test
+        env:
+          PLUGIN_PATH: ${{ matrix.plugin.path }}
+          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
+        run: just actions::test-plugin
+      - id: convert-sarif
+        env:
+          PLUGIN_PATH: ${{ matrix.plugin.path }}
+          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
+        run: just actions::convert-sarif
+      - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: ${{ matrix.plugin.path }}/security_results.sarif
@@ -108,10 +121,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [discover-plugins, test-plugins]
     if: |
-      always() && 
-      needs.discover-plugins.outputs.has-changes == 'true' &&
-      needs.test-plugins.result == 'success' &&
-      (github.event.inputs.operation == 'register-and-update' || github.event.inputs.operation == 'full-pipeline')
+      github.event_name == 'workflow_dispatch' && needs.discover-plugins.outputs.has-changes == 'true' && needs.test-plugins.result == 'success' &&
+      (
+        github.event.inputs.operation == 'register-and-update' ||
+        github.event.inputs.operation == 'full-pipeline'
+      )
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
@@ -127,14 +141,16 @@ jobs:
         with:
           just-version: "1.40.0"
       - run: rye sync
-      - run: rye run ezplugins refresh
-      - if: needs.discover-plugins.outputs.plugins-to-register != '[]'
+      - run: rye run ezpz refresh
+      - id: register
+        if: needs.discover-plugins.outputs.plugins-to-register != '[]'
         env:
           EZPZ_SERVER_SECRET: ${{ secrets.EZPZ_SERVER_SECRET }}
           PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: just actions::register-plugins
-      - if: needs.discover-plugins.outputs.plugins-to-update != '[]'
+      - id: update
+        if: needs.discover-plugins.outputs.plugins-to-update != '[]'
         env:
           EZPZ_SERVER_SECRET: ${{ secrets.EZPZ_SERVER_SECRET }}
           PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
@@ -144,12 +160,7 @@ jobs:
   publish-plugins:
     runs-on: ubuntu-latest
     needs: [discover-plugins, test-plugins, register-update-plugins]
-    if: |
-      always() && 
-      needs.discover-plugins.outputs.has-changes == 'true' &&
-      needs.test-plugins.result == 'success' &&
-      (needs.register-update-plugins.result == 'success' || needs.register-update-plugins.result == 'skipped') &&
-      (github.event.inputs.operation == 'publish' || github.event.inputs.operation == 'full-pipeline')
+    if: github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.discover-plugins.outputs.project-plugins) }}
@@ -182,26 +193,33 @@ jobs:
           PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
           PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
         run: just actions::check-publish
-      - if: steps.check-publish.outputs.needs-publishing == 'true'
+      - id: build
+        if: steps.check-publish.outputs.needs-publishing == 'true'
         env:
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: |
-          just actions::build-plugin
-          just actions::validate-package
-      - if: steps.check-publish.outputs.needs-publishing == 'true' && github.event.inputs.dry_run != 'true'
+        run: just actions::build-plugin
+      - id: validate-package
+        if: steps.check-publish.outputs.needs-publishing == 'true'
+        env:
+          PLUGIN_PATH: ${{ matrix.plugin.path }}
+          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
+        run: just actions::validate-plugin
+      - id: publish-pypi
+        if: steps.check-publish.outputs.needs-publishing == 'true' && github.event.inputs.dry_run != 'true'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::publish-pypi
-      - if: steps.check-publish.outputs.needs-publishing == 'true' && hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != '' && github.event.inputs.dry_run != 'true'
+        run: just actions::publish-plugin
+      - id: publish-cargo
+        if: steps.check-publish.outputs.needs-publishing == 'true' && hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != '' && github.event.inputs.dry_run != 'true'
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::publish-cargo
+        run: just actions::publish-plugin
 
   generate-report:
     runs-on: ubuntu-latest
@@ -216,7 +234,8 @@ jobs:
       - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
-      - env:
+      - id: report
+        env:
           OPERATION: ${{ github.event.inputs.operation }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
           EVENT_NAME: ${{ github.event_name }}

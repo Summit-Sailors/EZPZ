@@ -1,4 +1,5 @@
 import sys
+import shutil
 import inspect
 import importlib
 from pathlib import Path
@@ -78,12 +79,19 @@ def unmount_plugins() -> None:
     if backup_path.is_file():
       filepath.write_text(backup_path.read_text())
       backup_path.unlink()
+
   if hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix):
     venv_site_path = Path(sys.prefix) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
   else:
     logger.warning("WARNING: The system python is executing, running ezpz plugins sitecustomize registry mouting is not advised.")
     return
+
   if venv_site_path.exists():
     sitecustomize = venv_site_path.joinpath("sitecustomize.py")
     if sitecustomize.exists():
       sitecustomize.unlink()
+
+  patched_dir = Path.cwd() / ".patched"
+  if patched_dir.exists():
+    shutil.rmtree(patched_dir)
+    logger.info(f"Removed .patched directory: {patched_dir}")

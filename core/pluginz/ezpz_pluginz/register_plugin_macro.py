@@ -5,8 +5,8 @@ import libcst as cst
 import libcst.matchers as m
 from pydantic import BaseModel, ConfigDict
 from libcst.matchers import MatcherDecoratableTransformer
-from painlezz_macroz.macroz.noop import class_macro
-from painlezz_macroz.visitorz.macro_metadata_collector import MacroMetadataCollector
+from macroz.decoratorz.noop import class_macro
+from macroz.visitorz.macro_metadata_collector import MacroMetadataCollector
 
 from ezpz_pluginz.e_polars_namespace import EPolarsNS
 from ezpz_pluginz.polars_class_provider import PolarsClassProvider
@@ -58,7 +58,7 @@ class PolarsPluginCollector(MacroMetadataCollector[PolarsPluginMacroMetadataPD, 
     )
 
   # handles function call syntax e.g ezpz_plugin_collect(args, kwargs)(Class)
-  def visit_Call(self, node: cst.Call) -> None:
+  def visit_Call(self, node: cst.Call) -> bool:
     if isinstance(node.func, cst.Call) and isinstance(node.func.func, cst.Name) and node.func.func.value == ezpz_plugin_collect.__name__:
       kwargs = self._extract_kwargs_from_call(node.func)
       if kwargs and node.args and len(node.args) > 0:
@@ -71,10 +71,13 @@ class PolarsPluginCollector(MacroMetadataCollector[PolarsPluginMacroMetadataPD, 
               attr_name=kwargs["attr_name"],
               polars_ns=EPolarsNS(kwargs["polars_ns"]),
             )
-            self.macro_data.append(metadata)
           except (KeyError, ValueError) as e:
             logging.getLogger(__name__).warning(f"Failed to create plugin metadata: {e}")
-    super().visit_Call(node)
+            return False  # Stop recursion on error
+          else:
+            self.macro_data.append(metadata)
+            return False  # Stop recursion for this node
+    return True  # Continue recursion for other nodes
 
   def _extract_kwargs_from_call(self, call_node: cst.Call) -> dict[str, str] | None:
     kwargs = dict[str, Any]()

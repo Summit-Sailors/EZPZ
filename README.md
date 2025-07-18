@@ -23,7 +23,7 @@ A powerful tool that provides comprehensive type hinting and IDE support for Pol
 
 ```bash
 pip install ezpz_pluginz
-ezplugins mount  # Enable plugin support
+ezpz mount  # Enable plugin support
 ```
 
 ### 🦀 [EZPZ Stubz](./stubz/)
@@ -60,7 +60,7 @@ A comprehensive technical analysis library showcasing the EZPZ plugin system wit
 ```bash
 pip install ezpz-rust-ti
 # or use the registry
-ezplugins add rust-ti
+ezpz add rust-ti
 ```
 
 ## 📦 Supporting Libraries
@@ -81,7 +81,7 @@ A lightweight Python macro system for code transformation and metadata collectio
 - Flexible callback system
 
 ```bash
-pip install painlezz-macroz
+pip install macroz
 ```
 
 ## 🏗️ Architecture Overview
@@ -144,6 +144,10 @@ class MyDataFramePlugin:
 
 ### 3. Configure Plugin Discovery
 
+To configure plugin discovery, you can use either a dedicated `ezpz.toml` file or add a `[tool.ezpz_pluginz]` section to your `pyproject.toml` file.
+
+#### Option 1: Using `ezpz.toml`
+
 ```toml
 # ezpz.toml
 [ezpz_pluginz]
@@ -155,30 +159,40 @@ include = [
 site_customize = true
 ```
 
+#### Option 1: Using `pyproject.toml`
+
+```toml
+# pyproject.toml
+[tool.ezpz_pluginz]
+name = "my-polars-project"
+include = [
+    "src/plugins/",
+    "my_plugin.py"
+]
+site_customize = true
+```
+
 ### 4. Mount and Use
 
 ```bash
-ezplugins mount  # Enable the plugin system
+ezpz mount  # Enable the plugin system
 ```
 
 ```python
 import polars as pl
 
-df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-result = df.my_operations.custom_transform(2.0)  # Full IDE support!
+lf = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}).lazy()
+result = lf.my_operations.custom_transform(2.0)  # Full IDE support!
 ```
 
 ### 5. Discover and Install Ecosystem Plugins
 
 ```bash
 # List all available plugins in the EZPZ ecosystem
-ezplugins list
+ezpz list
 
 # Search for specific plugins
-ezplugins find technical
-
-# Install a plugin (automatically mounts by default)
-ezplugins add rust-ti
+ezpz find technical
 ```
 
 ## 🔍 Plugin Discovery
@@ -189,18 +203,11 @@ The EZPZ ecosystem includes a plugin registry that makes it easy to discover and
 
 ```bash
 # List all available plugins
-ezplugins list
+ezpz list
 
 # Search for plugins by keyword
-ezplugins find analysis
-ezplugins find rust
-
-# Install a plugin
-ezplugins add rust-ti
-ezplugins add ta  # Same plugin, using alias
-
-# Install without auto-mounting
-ezplugins add rust-ti --no-auto-mount
+ezpz find analysis
+ezpz find rust
 ```
 
 ### For Plugin Devs
@@ -210,17 +217,32 @@ To register your plugin in the EZPZ ecosystem:
 1. **Add the registration function** to your plugin's `__init__.py`:
 
 ```python
-def register_plugin():
-    """Register plugin with EZPZ registry."""
-    return {
-        "name": "my-plugin",
-        "package_name": "ezpz-my-plugin",
-        "description": "My awesome EZPZ plugin",
-        "aliases": ["mp", "awesome"],
-        "version": "1.0.0",
-        "author": "Your Name",
-        "homepage": "https://github.com/you/ezpz-my-plugin"
-    }
+from typing import TYPE_CHECKING, cast
+
+from ezpz_pluginz.registry.models import PluginMetadata, PluginMetadataInner
+
+if TYPE_CHECKING:
+  from pydantic import HttpUrl
+
+def register_plugin() -> PluginMetadata:
+  return PluginMetadata(
+    name="my-plugin",
+    package_name="plugin-package-name",
+    description="Plugin description",
+    aliases=["alias1", "alias2", "alias3"],
+    version="0.1.0",
+    author="author",
+    category="category",
+    homepage=cast("HttpUrl", "https://home-page"),
+    metadata_=PluginMetadataInner(
+      tags=["tag1", "tag2", "tag3"],
+      license="MIT",
+      python_version=">=3.13",
+      dependencies=["ezpz-pluginz", "polars==1.31.0", "pyarrow==20.0.0"],
+      documentation=cast("HttpUrl", "https://doc-url"),
+      support_email="your email",
+    ),
+  )
 ```
 
 2. **Add entry point** in your `pyproject.toml`:
@@ -239,17 +261,16 @@ dependencies = [
 ]
 ```
 
-That's it! Your plugin will automatically appear when users run `ezplugins list`.
+That's it! Your plugin will automatically appear when users run `ezpz list`.
 
 ## 🖥️ CLI Commands
 
-| Command                    | Purpose                          | Example                 |
-| -------------------------- | -------------------------------- | ----------------------- |
-| `ezplugins mount`          | Enable plugin type hints         | `ezplugins mount`       |
-| `ezplugins unmount`        | Disable plugin type hints        | `ezplugins unmount`     |
-| `ezplugins list`           | List available ecosystem plugins | `ezplugins list`        |
-| `ezplugins find <keyword>` | Search plugins by keyword        | `ezplugins find rust`   |
-| `ezplugins add <plugin>`   | Install and mount a plugin       | `ezplugins add rust-ti` |
+| Command               | Purpose                          | Example          |
+| --------------------- | -------------------------------- | ---------------- |
+| `ezpz mount`          | Enable plugin type hints         | `ezpz mount`     |
+| `ezpz unmount`        | Disable plugin type hints        | `ezpz unmount`   |
+| `ezpz list`           | List available ecosystem plugins | `ezpz list`      |
+| `ezpz find <keyword>` | Search plugins by keyword        | `ezpz find rust` |
 
 ## 🎯 Use Cases
 
@@ -275,12 +296,12 @@ That's it! Your plugin will automatically appear when users run `ezplugins list`
 
 ## 📋 Installation Matrix
 
-| Component           | Purpose            | Installation                  | Discovery        |
-| ------------------- | ------------------ | ----------------------------- | ---------------- |
-| **EZPZ-Pluginz**    | Core plugin system | `pip install ezpz_pluginz`    | N/A              |
-| **EZPZ-Rust-TI**    | Technical analysis | `ezplugins add rust-ti`       | `ezplugins list` |
-| **EZPZ-Stubz**      | PyO3 type wrappers | `cargo add ezpz-stubz`        | N/A              |
-| **Painlezz-Macroz** | Macro system       | `pip install painlezz-macroz` | N/A              |
+| Component        | Purpose            | Installation               | Discovery   |
+| ---------------- | ------------------ | -------------------------- | ----------- |
+| **EZPZ-Pluginz** | Core plugin system | `pip install ezpz_pluginz` | N/A         |
+| **EZPZ-Rust-TI** | Technical analysis | `pip install rust-ti`      | `ezpz list` |
+| **EZPZ-Stubz**   | PyO3 type wrappers | `cargo add ezpz-stubz`     | N/A         |
+| **EZPZ-Macroz**  | Macro system       | `pip install macroz`       | N/A         |
 
 ## 🔧 Development Setup
 

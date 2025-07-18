@@ -7,14 +7,14 @@ import libcst as cst
 import pytest
 import libcst.matchers as m
 from pydantic import BaseModel
-from painlezz_macroz.macroz.noop import func_macro, class_macro
-from painlezz_macroz.visitorz.macro_metadata_collector import (
+from macroz.decoratorz.noop import func_macro, class_macro
+from macroz.visitorz.macro_metadata_collector import (
   NoCallbackMethodError,
   MacroMetadataCollector,
 )
 
 if TYPE_CHECKING:
-  from painlezz_macroz.visitorz.macro_metadata_collector import JSONSerializable
+  from macroz.visitorz.macro_metadata_collector import JSONSerializable
 
 DEFAULT_NAME: str = ""
 DEFAULT_VALUE: int = 0

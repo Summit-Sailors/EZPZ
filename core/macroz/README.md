@@ -17,7 +17,7 @@ Painlezz Macroz provides a foundation for creating decorator-based macros that c
 ## Installation
 
 ```bash
-pip install painlezz-macroz
+pip install macroz
 ```
 
 ## Core Components

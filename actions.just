@@ -36,143 +36,97 @@ uninstall-tools:
   cargo uninstall cargo-audit cargo-outdated
 
 
-# Clean build artifacts
+# Clean artifacts
 clean:
   #!/usr/bin/env bash
   set -euo pipefail
-  echo "Cleaning build artifacts..."
   find . -name "*.pyc" -delete
   find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
   find . -name "dist" -type d -exec rm -rf {} + 2>/dev/null || true
   find . -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
   find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
-  uninstall-tools
-  echo "Clean complete!"
+  just uninstall-tools
 
-
-# Analyze plugins and generate lists for workflows
+# Plugin operations
 analyze-plugins:
   #!/usr/bin/env bash
   set -euo pipefail
-  python3 .github/scripts/plugins/analyze_plugins.py
+  python3 .github/scripts/plugins/plugin_manager.py analyze
 
-# Register new plugins with registry
 register-plugins:
   #!/usr/bin/env bash
   set -euo pipefail
-  python3 .github/scripts/plugins/register_plugins.py
+  python3 .github/scripts/plugins/plugin_manager.py register --dry-run=$DRY_RUN
 
-# Update existing plugins in registry
 update-plugins:
   #!/usr/bin/env bash
   set -euo pipefail
-  python3 .github/scripts/plugins/update_plugins.py
+  python3 .github/scripts/plugins/plugin_manager.py update --dry-run=$DRY_RUN
 
-# Check if plugin needs publishing
 check-publish:
   #!/usr/bin/env bash
   set -euo pipefail
-  python3 .github/scripts/plugins/check_publish.py
+  python3 .github/scripts/plugins/plugin_manager.py check-publish --package-name=$PACKAGE_NAME
 
-
-# Validate plugin structure
 validate-plugin:
   #!/usr/bin/env bash
   set -euo pipefail
-  nu .github/scripts/plugins/validate-plugin.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
+  nu .github/scripts/plugins/plugin_ops.nu validate $PACKAGE_NAME $PLUGIN_PATH
 
-# Build Rust components
-build-rust:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  nu .github/scripts/plugins/build-rust.nu {{PLUGIN_PATH}}
-
-# Run plugin tests
-run-tests:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  nu .github/scripts/plugins/run-tests.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
-
-# Validate all plugins in the repository
-validate-all:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  echo "Validating all plugins..."
-  for plugin in plugins/*/; do \
-    if [ -d "$plugin" ]; then \
-        plugin_name=$(basename "$plugin"); \
-        echo "Validating $plugin_name..."; \
-        PACKAGE_NAME="$plugin_name" PLUGIN_PATH="$plugin" just validate-plugin; \
-    fi; \
-  done
-
-# Run tests for all plugins
-test-all:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  echo "Testing all plugins..."
-  for plugin in plugins/*/; do \
-    if [ -d "$plugin" ]; then \
-        plugin_name=$(basename "$plugin"); \
-        echo "Testing $plugin_name..."; \
-        PACKAGE_NAME="$plugin_name" PLUGIN_PATH="$plugin" just run-tests; \
-    fi; \
-  done
-
-
-# Build plugin for distribution
 build-plugin:
   #!/usr/bin/env bash
   set -euo pipefail
-  nu .github/scripts/plugins/build-plugin.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
+  nu .github/scripts/plugins/plugin_ops.nu build $PACKAGE_NAME $PLUGIN_PATH
 
-# Validate built package
-validate-package:
+test-plugin:
   #!/usr/bin/env bash
   set -euo pipefail
-  nu .github/scripts/plugins/validate-package.nu {{PLUGIN_PATH}}
+  nu .github/scripts/plugins/plugin_ops.nu test $PACKAGE_NAME $PLUGIN_PATH
 
-# Publish plugin to PyPI
-publish-pypi:
+publish-plugin:
   #!/usr/bin/env bash
   set -euo pipefail
-  nu .github/scripts/plugins/publish-pypi.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
+  nu .github/scripts/plugins/plugin_ops.nu publish $PACKAGE_NAME $PLUGIN_PATH --dry-run=$DRY_RUN
 
-# Publish Rust crate to crates.io
-publish-cargo:
+# Batch operations
+validate-all:
   #!/usr/bin/env bash
   set -euo pipefail
-  nu .github/scripts/plugins/publish-cargo.nu {{PACKAGE_NAME}} {{PLUGIN_PATH}}
+  for plugin in plugins/*/; do
+    if [ -d "$plugin" ]; then
+      plugin_name=$(basename "$plugin")
+      PACKAGE_NAME="$plugin_name" PLUGIN_PATH="$plugin" just validate-plugin
+    fi
+  done
 
-# Convert security reports to SARIF format
-convert-sarif:
+test-all:
   #!/usr/bin/env bash
   set -euo pipefail
-  echo "Converting security reports to SARIF format..."
-  python3 .github/scripts/security/convert_sarif.py
+  for plugin in plugins/*/; do
+    if [ -d "$plugin" ]; then
+      plugin_name=$(basename "$plugin")
+      PACKAGE_NAME="$plugin_name" PLUGIN_PATH="$plugin" just test-plugin
+    fi
+  done
 
-
-# Generate workflow report
+# Generate report
 generate-report:
   #!/usr/bin/env bash
   set -euo pipefail
   nu .github/scripts/plugins/generate-report.nu \
-    "{{OPERATION}}" \
-    "{{DRY_RUN}}" \
-    "{{EVENT_NAME}}" \
-    "{{DISCOVER_RESULT}}" \
-    "{{HAS_CHANGES}}" \
-    "{{PLUGINS_TO_REGISTER}}" \
-    "{{PLUGINS_TO_UPDATE}}" \
-    "{{TEST_RESULT}}" \
-    "{{REGISTER_RESULT}}" \
-    "{{PUBLISH_RESULT}}"
+    "$OPERATION" \
+    "$DRY_RUN" \
+    "$EVENT_NAME" \
+    "$DISCOVER_RESULT" \
+    "$HAS_CHANGES" \
+    "$PLUGINS_TO_REGISTER" \
+    "$PLUGINS_TO_UPDATE" \
+    "$TEST_RESULT" \
+    "$REGISTER_RESULT" \
+    "$PUBLISH_RESULT"
 
-# Show plugin information
-plugin-info:
+convert-sarif:
   #!/usr/bin/env bash
   set -euo pipefail
-  echo "Current plugin: {{PACKAGE_NAME}}"
-  echo "Plugin path: {{PLUGIN_PATH}}"
-  echo "Available plugins:"
-  ls -la plugins/ | grep "^d" | awk '{print "  - " $9}' | grep -v "^  - \.$" | grep -v "^  - \.\.$"
+  python3 .github/scripts/security/convert-sarif.py
+    

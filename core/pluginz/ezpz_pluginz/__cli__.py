@@ -16,398 +16,82 @@ from ezpz_pluginz.registry import (
   LOCAL_REGISTRY_FILE,
   PluginRegistryAPI,
   LocalPluginRegistry,
-  install_package,
-  check_ezpz_config,
   find_plugin_in_path,
   is_package_installed,
   setup_local_registry,
-  create_default_ezpz_config,
 )
 from ezpz_pluginz.toml_schema import load_config
+from ezpz_pluginz.registry.models import PluginUpdate
 
-app = typer.Typer(name="ezplugins", pretty_exceptions_show_locals=False, pretty_exceptions_short=True)
+app = typer.Typer(name="ezpz", pretty_exceptions_show_locals=False, pretty_exceptions_short=True)
+registry_app = typer.Typer(name="registry", help="Registry management commands")
+app.add_typer(typer_instance=registry_app, name="registry")
+
 logger = setup_logger("CLI")
 
 
-def get_github_pat() -> str:
-  pat = os.getenv("GITHUB_PAT")
+def get_auth_secret() -> str:
+  pat = os.getenv("AUTH_SECRET")
   if not pat:
-    logger.error("GitHub PAT required. Set GITHUB_PAT or GITHUB_TOKEN environment variable")
+    logger.error("Auth Secret required. Set AUTH_SECRET environment variable")
     raise typer.Exit(1)
   return pat
-
-
-@app.command(name="help")
-def show_help(command: str = typer.Argument(None, help="Show help for a specific command")) -> None:
-  if command:
-    command_help = {
-      "mount": {
-        "description": "Mount all configured plugins to make them available in your environment",
-        "usage": "ezplugins mount",
-        "details": [
-          "• Loads plugins specified in your ezpz.toml configuration",
-          "• Makes plugin functions available for use",
-          "• Run this after installing new plugins or changing configuration",
-        ],
-      },
-      "unmount": {
-        "description": "Unmount all plugins from your environment",
-        "usage": "ezplugins unmount",
-        "details": ["• Removes mounted plugins from your environment", "• Useful for troubleshooting or cleaning up"],
-      },
-      "register": {
-        "description": "Register a new plugin to the remote registry",
-        "usage": "ezplugins register <plugin_path>",
-        "details": [
-          "• Requires GITHUB_PAT environment variable",
-          "• Plugin must have a register_plugin() function",
-          "• Path should point to your plugin directory or file",
-          "• Plugin will be made available to other users",
-        ],
-      },
-      "update": {
-        "description": "Update an existing plugin in the registry",
-        "usage": "ezplugins update <plugin_name> <plugin_path>",
-        "details": [
-          "• Requires GITHUB_PAT environment variable",
-          "• Updates the plugin version in the remote registry",
-          "• Plugin must already exist in the registry",
-        ],
-      },
-      "refresh": {
-        "description": "Refresh the local plugin registry from remote",
-        "usage": "ezplugins refresh",
-        "details": [
-          "• Downloads latest plugin information from registry",
-          "• Run this to see newly published plugins",
-          "• Automatically done when installing plugins",
-        ],
-      },
-      "status": {
-        "description": "Show current status of the plugin system",
-        "usage": "ezplugins status",
-        "details": [
-          "• Shows registry URL and local cache information",
-          "• Displays number of available and verified plugins",
-          "• Useful for troubleshooting registry issues",
-        ],
-      },
-      "add": {
-        "description": "Install and optionally mount a plugin",
-        "usage": "ezplugins add <plugin_name> [--no-auto-mount]",
-        "details": [
-          "• Downloads and installs the plugin package",
-          "• Creates ezpz.toml if not present",
-          "• Automatically mounts plugins unless --no-auto-mount is used",
-          "• Use 'ezplugins list' to see available plugins",
-        ],
-      },
-      "list": {
-        "description": "List all available plugins in the registry",
-        "usage": "ezplugins list",
-        "details": [
-          "• Shows all plugins with installation status (✓ = installed, ○ = not installed)",
-          "• Displays plugin descriptions, authors, and versions",
-          "• Sets up local registry if not present",
-        ],
-      },
-      "find": {
-        "description": "Advanced search for plugins with flexible filtering",
-        "usage": "ezplugins find <keyword> [options]",
-        "details": [
-          "• Search in specific fields: --field name|description|author|package|category|aliases|all",
-          "• Search remote registry: --remote",
-          "• Search both local and remote: --both",
-          "• Case-sensitive search: --case-sensitive",
-          "• Exact match: --exact",
-          "• Limit results: --limit N",
-          "• Show detailed info: --details",
-          "• Examples:",
-          "  ezplugins find rust --field category",
-          "  ezplugins find 'technical analysis' --remote --details",
-          "  ezplugins find polars --both --exact",
-        ],
-      },
-      "delete-registry": {
-        "description": "Delete the local plugin registry cache",
-        "usage": "ezplugins delete-registry",
-        "details": [
-          "• Removes the local registry (~/.ezpz)",
-          "• Useful for troubleshooting registry corruption or clearing cache",
-          "• Registry can be automatically recreated using refresh",
-        ],
-      },
-    }
-
-    if command in command_help:
-      help_info = command_help[command]
-      logger.info(f"Command: {command}")
-      logger.info("-" * 50)
-      logger.info(f"Description: {help_info['description']}")
-      logger.info(f"Usage: {help_info['usage']}")
-      logger.info("")
-      logger.info("Details:")
-      for detail in help_info["details"]:
-        logger.info(f"  {detail}")
-    else:
-      logger.error(f"Unknown command: {command}")
-      logger.info("Available commands: mount, unmount, register, update, refresh, status, add, list, find, delete-registry")
-      raise typer.Exit(1)
-    return
-
-  # Show general help
-  logger.info("EZPZ Plugins - Plugin Management System")
-  logger.info("=" * 50)
-  logger.info("")
-  logger.info("EZPZ Plugins allows you to discover, install, and manage plugins for your projects.")
-  logger.info("")
-
-  logger.info("QUICK START:")
-  logger.info("  1. List available plugins:     ezplugins list")
-  logger.info("  2. Install a plugin:           ezplugins add <plugin_name>")
-  logger.info("  3. Mount plugins:              ezplugins mount")
-  logger.info("")
-
-  logger.info("AVAILABLE COMMANDS:")
-  logger.info("")
-
-  commands = [
-    ("list", "List all available plugins"),
-    ("find", "Advanced search for plugins with flexible filtering"),
-    ("add", "Install and mount a plugin"),
-    ("mount", "Mount configured plugins"),
-    ("unmount", "Unmount all plugins"),
-    ("status", "Show plugin system status"),
-    ("refresh", "Refresh local plugin registry"),
-    ("register", "Register a new plugin (requires GitHub PAT)"),
-    ("update", "Update an existing plugin (requires GitHub PAT)"),
-    ("help", "Show this help or help for specific commands"),
-    ("delete-registry", "Delete the local plugin registry cache"),
-  ]
-
-  for cmd, desc in commands:
-    logger.info(f"  {cmd:<12} {desc}")
-
-  logger.info("")
-  logger.info("EXAMPLES:")
-  logger.info("  ezplugins list                    # Show all available plugins")
-  logger.info("  ezplugins find database           # Search for database-related plugins")
-  logger.info("  ezplugins add my-plugin           # Install and mount 'my-plugin'")
-  logger.info("  ezplugins add my-plugin --no-auto-mount  # Install without mounting")
-  logger.info("  ezplugins help add                # Show detailed help for 'add' command")
-  logger.info("")
-
-  logger.info("CONFIGURATION:")
-  logger.info("  • Configuration file: ezpz.toml (created automatically)")
-  logger.info("  • Registry cache: ~/.ezpz/plugins/registry.json")
-  logger.info("  • Environment variables:")
-  logger.info("    - GITHUB_PAT or GITHUB_TOKEN (for registering/updating plugins)")
-  logger.info("")
-
-  logger.info("For detailed help on any command, use: ezplugins help <command>")
-
-
-@app.command(name="mount")
-def mount() -> None:
-  mount_plugins()
-
-
-@app.command(name="unmount")
-def unmount() -> None:
-  unmount_plugins()
-
-
-@app.command(name="health")
-def health() -> None:
-  remote_reg = PluginRegistryAPI()
-  try:
-    response = remote_reg.check_health()
-    logger.info(response)
-  except Exception as e:
-    logger.info("Health check failed")
-    raise typer.Exit(1) from e
-
-
-@app.command(name="register")
-def register(
-  plugin_path: str = typer.Argument(..., help="Path to the plugin to register"),
-) -> None:
-  config = load_config()
-  if not config:
-    logger.error("Could not load ezpz.toml configuration")
-    raise typer.Exit(1)
-
-  local_registry = LocalPluginRegistry()
-  if not local_registry.fetch_and_update_registry():
-    logger.warning("Failed to refresh local plugin registry, continuing with cached data")
-
-  plugin_info = find_plugin_in_path(plugin_path, config.include_str_paths)
-  if plugin_info is None:
-    logger.error(f"No plugin found at path: {plugin_path}")
-    logger.info("Make sure the path contains a plugin with a register_plugin() function in the module entry i.e '__init__.py'")
-    logger.info(f"Searched in configured include paths: {config.include_str_paths}")
-    raise typer.Exit(1)
-
-  if local_registry.is_plugin_registered(plugin_info.name):
-    logger.info(f"Plugin '{plugin_info.name}' is already registered")
-    logger.info("Skipping registration")
-    return
-
-  github_pat = get_github_pat()
-  api = PluginRegistryAPI()
-  success = api.register_plugin(plugin_info, github_pat)
-
-  if success:
-    logger.info(f"Successfully registered '{plugin_info.name}'")
-    local_registry.fetch_and_update_registry()
-  else:
-    logger.error(f"Failed to register '{plugin_info.name}'")
-    raise typer.Exit(1)
-
-
-@app.command(name="update")
-def update_plugin(
-  plugin_name: str = typer.Argument(help="Name of the plugin to update"),
-  plugin_path: str = typer.Argument(default=..., help="Path to the updated plugin"),
-) -> None:
-  github_pat = get_github_pat()
-
-  refresh()
-
-  config = load_config()
-  if not config:
-    logger.error("Could not load ezpz.toml configuration")
-    raise typer.Exit(1)
-
-  # the updated plugin info
-  plugin_info = find_plugin_in_path(plugin_path, config.include_str_paths)
-  if not plugin_info:
-    logger.error(f"No plugin found at path: {plugin_path}")
-    raise typer.Exit(1)
-
-  # plugin ID from the registry
-  local_registry = LocalPluginRegistry()
-  existing_plugin = local_registry.get_plugin(plugin_name)
-
-  if not existing_plugin:
-    logger.error(f"Plugin '{plugin_name}' not found in local registry")
-    logger.info("Try running 'ezplugins refresh' to update the local registry")
-    raise typer.Exit(1)
-
-  api = PluginRegistryAPI()
-  logger.info(f"Updating plugin: {plugin_info.name}")
-  success = api.update_plugin(existing_plugin.id, plugin_info, github_pat)
-
-  if success:
-    logger.info(f"Successfully updated '{plugin_info.name}'")
-    local_registry.fetch_and_update_registry()
-  else:
-    logger.error(f"Failed to update '{plugin_info.name}'")
-    raise typer.Exit(1)
-
-
-@app.command(name="refresh")
-def refresh() -> None:
-  logger.info("Refreshing local plugin registry...")
-  registry = LocalPluginRegistry()
-  if registry.fetch_and_update_registry():
-    logger.info("Local plugin registry refreshed successfully")
-  else:
-    raise typer.Exit(1)
-
-
-@app.command(name="status")
-def status() -> None:
-  registry = LocalPluginRegistry()
-
-  logger.info("EZPZ Plugin Registry Status:")
-  logger.info("-" * 40)
-  logger.info(f"Registry URL: {REGISTRY_URL}")
-  logger.info(f"Local registry directory: {LOCAL_REGISTRY_DIR}")
-
-  if LOCAL_REGISTRY_FILE.exists():
-    registry_age = time.time() - LOCAL_REGISTRY_FILE.stat().st_mtime
-    hours_old = registry_age / 3600
-    logger.info(f"Local registry file: {LOCAL_REGISTRY_FILE}")
-    logger.info(f"Registry age: {hours_old:.1f} hours")
-  else:
-    logger.info("Local registry file: Not found")
-
-  plugins = registry.list_plugins()
-  logger.info(f"Total plugins available: {len(plugins)}")
-  verified_count = sum(1 for p in plugins if p.verified)
-  logger.info(f"Verified plugins: {verified_count}")
 
 
 def return_bool(*, val: bool) -> bool:
   return val
 
 
-@app.command(name="add")
-def add(
-  plugin_name: str = typer.Argument(help="Name of the plugin to install"),
-  *,
-  auto_mount: bool = typer.Option(return_bool(val=True), "--auto-mount/--no-auto-mount", help="Automatically mount plugins after installation"),
-) -> None:
-  registry = LocalPluginRegistry()
-  plugin = registry.get_plugin(plugin_name)
+# Core plugin management commands
+@app.command(name="mount")
+def mount() -> None:
+  """
+  Mount all configured plugins to make them available in your environment.
 
-  if not plugin:
-    logger.info(f"Plugin '{plugin_name}' not found in registry.")
-    logger.info("Use 'ezplugins list' to see available plugins.")
-    raise typer.Exit(1)
+  Loads plugins specified in your ezpz.toml configuration.
+  Makes plugin functions available for use.
+  Run this after installing new plugins or changing configuration.
+  """
+  mount_plugins()
 
-  logger.info(f"Installing {plugin.name} ({plugin.package_name})...")
-  logger.info(f"Description: {plugin.description}")
 
-  if is_package_installed(plugin.package_name):
-    logger.info(f"Package {plugin.package_name} is already installed")
-  else:
-    if not install_package(plugin.package_name):
-      logger.info(f"Failed to install {plugin.package_name}")
-      raise typer.Exit(1)
-    logger.info(f"Successfully installed {plugin.package_name}")
+@app.command(name="unmount")
+def unmount() -> None:
+  """
+  Unmount all plugins from your environment.
 
-  if not check_ezpz_config():
-    if typer.confirm("No ezpz.toml found. Create default configuration?"):
-      project_name = typer.prompt("Project name", default="my-ezpz-project")
-      create_default_ezpz_config(project_name)
-      logger.info("Created ezpz.toml configuration")
-    elif auto_mount:
-      logger.info("Cannot auto-mount without ezpz.toml")
-      auto_mount = False
-
-  if auto_mount:
-    logger.info("Mounting plugins...")
-    mount()
-
-  logger.info(f"Plugin '{plugin.name}' is ready to use!")
+  Removes mounted plugins from your environment.
+  Useful for troubleshooting or cleaning up.
+  """
+  unmount_plugins()
 
 
 @app.command(name="list")
 def list_plugins() -> None:
+  """
+  List all available plugins in the registry.
+
+  Shows all plugins with installation status (✓ = installed, ○ = not installed).
+  Displays plugin descriptions, authors, and versions.
+  Sets up local registry if not present.
+  """
   registry = LocalPluginRegistry()
   plugins = registry.list_plugins()
 
   if not plugins:
     logger.info("Local registry appears to be empty or not set up.")
-
     if not LOCAL_REGISTRY_FILE.exists():
       logger.info("Setting up local plugin registry for the first time...")
       setup_local_registry()
-
-      # reload plugins after setup
       registry = LocalPluginRegistry()
       plugins = registry.list_plugins()
     else:
-      # registry file exists but is empty, try to refresh
       logger.info("Local registry exists but appears empty. Refreshing from remote...")
       if registry.fetch_and_update_registry():
         plugins = registry.list_plugins()
       else:
         logger.error("Failed to refresh local registry from remote.")
 
-  # If still no plugins after setup attempts
   if not plugins:
     logger.info("No plugins found in local registry after setup.")
     logger.info("This could indicate:")
@@ -415,12 +99,11 @@ def list_plugins() -> None:
     logger.info("  - Remote registry is empty")
     logger.info("  - Registry URL is incorrect")
     logger.info(f"  - Current registry URL: {REGISTRY_URL}")
-    logger.info("Try running 'ezplugins refresh' manually to update from remote registry.")
+    logger.info("Try running 'ezpz registry refresh' manually to update from remote registry.")
     return
 
   logger.info("Available EZPZ Plugins:")
   logger.info("-" * 50)
-
   for plugin in plugins:
     installed = "✓" if is_package_installed(plugin.package_name) else "○"
     logger.info(f"{installed} {plugin.name}")
@@ -433,56 +116,7 @@ def list_plugins() -> None:
     if plugin.version:
       logger.info(f"   Version: {plugin.version}")
     logger.info("")
-
-
-@app.command(name="delete-registry")
-def delete_registry() -> None:
-  LOCAL_REGISTRY = Path.home() / ".ezpz"
-  if not LOCAL_REGISTRY.exists():
-    logger.info("Local registry file does not exist - nothing to delete")
-    return
-
-  try:
-    shutil.rmtree(LOCAL_REGISTRY)
-    logger.info(f"Successfully deleted local registry: {LOCAL_REGISTRY}")
-  except Exception as e:
-    logger.exception("Failed to delete local registry")
-    raise typer.Exit(1) from e
-
-
-@app.command(name="delete-plugin")
-def delete_plugin(_id: str = typer.Argument(help="The ID of the plugin to be deleted")) -> None:
-  local_registry = LocalPluginRegistry()
-  remote_registry = PluginRegistryAPI()
-  pat = get_github_pat()
-
-  try:
-    try:
-      plugin = remote_registry.get_plugin(_id)
-
-      if hasattr(plugin, "is_deleted") and plugin.is_deleted:
-        logger.warning(f"Plugin {_id} is already deleted")
-        local_registry.remove_plugin_from_local_registry(plugin=plugin)
-        return
-
-    except Exception as e:
-      logger.warning(f"Failed to check plugin status: {e}")
-
-    remote_registry.delete_plugin(_id, pat)
-    logger.info(f"Successfully deleted plugin: {_id}")
-
-    if "plugin" in locals():
-      local_registry.remove_plugin_from_local_registry(plugin=plugin)
-    else:
-      try:
-        plugin = remote_registry.get_plugin(_id)
-        local_registry.remove_plugin_from_local_registry(plugin=plugin)
-      except Exception:
-        local_registry.fetch_and_update_registry()
-
-  except Exception as e:
-    logger.exception("Failed to delete plugin")
-    raise typer.Exit(1) from e
+  logger.info("")
 
 
 @app.command(name="find")
@@ -497,13 +131,28 @@ def find(
   limit: int = typer.Option(50, "--limit", "-l", help="Maximum number of results to show"),
   show_details: bool = typer.Option(return_bool(val=False), "--details", "-d", help="Show detailed plugin information"),
 ) -> None:
+  """
+  Advanced search for plugins with flexible filtering.
+
+  Search in specific fields: --field name|description|author|package|category|aliases|all.
+  Search remote registry: --remote.
+  Search both local and remote: --both.
+  Case-sensitive search: --case-sensitive.
+  Exact match: --exact.
+  Limit results: --limit N.
+  Show detailed info: --details.
+
+  Examples:
+    ezpz find rust --field category
+    ezpz find 'technical analysis' --remote --details
+    ezpz find polars --both --exact
+  """
   valid_fields = {"name", "description", "author", "package", "category", "aliases", "all", None}
   if field and field not in valid_fields:
     logger.error(f"Invalid field '{field}'. Valid options: {', '.join(f for f in valid_fields if f)}")
     raise typer.Exit(1)
 
   search_field = field or "all"
-
   search_local = not remote or both
   search_remote = remote or both
 
@@ -531,12 +180,218 @@ def find(
       logger.warning(f"Remote search failed: {e}")
 
   all_results = combine_results(local_results, remote_results)
-
   if limit > 0:
     all_results = all_results[:limit]
   display_search_results(all_results, keyword, search_field, searched_local=search_local, searched_remote=search_remote, show_details=show_details)
 
 
+# Registry subcommands
+@registry_app.command(name="health")
+def health() -> None:
+  """
+  Check the health of the remote plugin registry.
+
+  Verifies connectivity and status of the central plugin registry server.
+  """
+  remote_reg = PluginRegistryAPI()
+  try:
+    response = remote_reg.check_health()
+    logger.info(response)
+  except Exception as e:
+    logger.exception("Health check failed")
+    raise typer.Exit(1) from e
+
+
+@registry_app.command(name="register")
+def register(
+  plugin_path: str = typer.Argument(..., help="Path to the plugin to register"),
+) -> None:
+  """
+  Register a new plugin to the remote registry.
+
+  Requires AUTH_SECRET environment variable.
+  Plugin must have a register_plugin() function.
+  Path should point to your plugin directory or file.
+  Plugin will be made available to other users.
+  """
+  config = load_config()
+  if not config:
+    logger.error("Could not load ezpz.toml configuration")
+    raise typer.Exit(1)
+
+  local_registry = LocalPluginRegistry()
+  if not local_registry.fetch_and_update_registry():
+    logger.warning("Failed to refresh local plugin registry, continuing with cached data")
+
+  plugin_info = find_plugin_in_path(plugin_path, config.include_str_paths)
+  if plugin_info is None:
+    logger.error(f"No plugin found at path: {plugin_path}")
+    logger.info("Make sure the path contains a plugin with a register_plugin() function in the module entry i.e '__init__.py'")
+    logger.info(f"Searched in configured include paths: {config.include_str_paths}")
+    raise typer.Exit(1)
+
+  if local_registry.is_plugin_registered(plugin_info.name):
+    logger.info(f"Plugin '{plugin_info.name}' is already registered")
+    logger.info("Skipping registration")
+    return
+
+  auth_secret = get_auth_secret()
+  api = PluginRegistryAPI()
+  success = api.register_plugin(plugin_info, auth_secret)
+
+  if success:
+    logger.info(f"Successfully registered '{plugin_info.name}'")
+    local_registry.fetch_and_update_registry()
+  else:
+    logger.error(f"Failed to register '{plugin_info.name}'")
+    raise typer.Exit(1)
+
+
+@registry_app.command(name="push")
+def update_plugin(
+  plugin_name: str = typer.Argument(help="Name of the plugin to update"),
+  plugin_path: str = typer.Argument(default=..., help="Path to the updated plugin"),
+) -> None:
+  """
+  Update an existing plugin in the registry.
+
+  Requires AUTH_SECRET environment variable.
+  Updates the plugin version in the remote registry.
+  Plugin must already exist in the registry.
+  """
+  auth_secret = get_auth_secret()
+  refresh()
+  config = load_config()
+  if not config:
+    logger.error("Could not load ezpz.toml configuration")
+    raise typer.Exit(1)
+
+  plugin_info = find_plugin_in_path(plugin_path, config.include_str_paths)
+  if not plugin_info:
+    logger.error(f"No plugin found at path: {plugin_path}")
+    raise typer.Exit(1)
+
+  local_registry = LocalPluginRegistry()
+  existing_plugin = local_registry.get_plugin(plugin_name)
+  if not existing_plugin:
+    logger.error(f"Plugin '{plugin_name}' not found in local registry")
+    logger.info("Try running 'ezpz registry refresh' to update the local registry")
+    raise typer.Exit(1)
+
+  api = PluginRegistryAPI()
+  logger.info(f"Updating plugin: {plugin_info.name}")
+  plugin_update = PluginUpdate(**plugin_info.model_dump())
+  success = api.update_plugin(existing_plugin.id, plugin_update, auth_secret)
+
+  if success:
+    logger.info(f"Successfully updated '{plugin_info.name}'")
+    local_registry.fetch_and_update_registry()
+  else:
+    logger.error(f"Failed to update '{plugin_info.name}'")
+    raise typer.Exit(1)
+
+
+@registry_app.command(name="refresh")
+def refresh() -> None:
+  """
+  Refresh the local plugin registry from remote.
+
+  Downloads latest plugin information from registry.
+  Run this to see newly published plugins.
+  Automatically done when installing plugins.
+  """
+  logger.info("Refreshing local plugin registry...")
+  registry = LocalPluginRegistry()
+  if registry.fetch_and_update_registry():
+    logger.info("Local plugin registry refreshed successfully")
+  else:
+    raise typer.Exit(1)
+
+
+@registry_app.command(name="status")
+def status() -> None:
+  """
+  Show current status of the plugin system.
+
+  Shows registry URL and local cache information.
+  Displays number of available and verified plugins.
+  Useful for troubleshooting registry issues.
+  """
+  registry = LocalPluginRegistry()
+  logger.info("EZPZ Plugin Registry Status:")
+  logger.info("-" * 40)
+  logger.info(f"Registry URL: {REGISTRY_URL}")
+  logger.info(f"Local registry directory: {LOCAL_REGISTRY_DIR}")
+  if LOCAL_REGISTRY_FILE.exists():
+    registry_age = time.time() - LOCAL_REGISTRY_FILE.stat().st_mtime
+    hours_old = registry_age / 3600
+    logger.info(f"Local registry file: {LOCAL_REGISTRY_FILE}")
+    logger.info(f"Registry age: {hours_old:.1f} hours")
+  else:
+    logger.info("Local registry file: Not found")
+  plugins = registry.list_plugins()
+  logger.info(f"Total plugins available: {len(plugins)}")
+  verified_count = sum(1 for p in plugins if p.verified)
+  logger.info(f"Verified plugins: {verified_count}")
+
+
+@registry_app.command(name="delete")
+def delete_registry() -> None:
+  """
+  Delete the local plugin registry cache.
+
+  Removes the local registry (~/.ezpz).
+  Useful for troubleshooting registry corruption or clearing cache.
+  Registry can be automatically recreated using refresh.
+  """
+  LOCAL_REGISTRY = Path.home() / ".ezpz"
+  if not LOCAL_REGISTRY.exists():
+    logger.info("Local registry file does not exist - nothing to delete")
+    return
+  try:
+    shutil.rmtree(LOCAL_REGISTRY)
+    logger.info(f"Successfully deleted local registry: {LOCAL_REGISTRY}")
+  except Exception as e:
+    logger.exception("Failed to delete local registry")
+    raise typer.Exit(1) from e
+
+
+@registry_app.command(name="delete-plugin")
+def delete_plugin(_id: str = typer.Argument(help="The ID of the plugin to be deleted")) -> None:
+  """
+  Mark a plugin as deleted in the remote registry.
+
+  Requires AUTH_SECRET environment variable.
+  Removes the plugin from the local cache after successful remote deletion.
+  """
+  local_registry = LocalPluginRegistry()
+  remote_registry = PluginRegistryAPI()
+  pat = get_auth_secret()
+  try:
+    try:
+      plugin = remote_registry.get_plugin(_id)
+      if plugin.is_deleted:
+        logger.warning(f"Plugin {_id} is already deleted")
+        local_registry.remove_plugin_from_local_registry(plugin=plugin)
+        return
+    except Exception as e:
+      logger.warning(f"Failed to check plugin status: {e}")
+    remote_registry.delete_plugin(_id, pat)
+    logger.info(f"Successfully deleted plugin: {_id}")
+    if "plugin" in locals():
+      local_registry.remove_plugin_from_local_registry(plugin=plugin)
+    else:
+      try:
+        plugin = remote_registry.get_plugin(_id)
+        local_registry.remove_plugin_from_local_registry(plugin=plugin)
+      except Exception:
+        local_registry.fetch_and_update_registry()
+  except Exception as e:
+    logger.exception("Failed to delete plugin")
+    raise typer.Exit(1) from e
+
+
+# Helper functions
 def advanced_search_local(registry: LocalPluginRegistry, keyword: str, field: str, *, case_sensitive: bool, exact: bool) -> list:
   plugins = registry.list_plugins()
   search_keyword = keyword if case_sensitive else keyword.lower()

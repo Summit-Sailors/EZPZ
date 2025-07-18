@@ -1,105 +1,98 @@
 import re
-from typing import Any
-from dataclasses import dataclass
+from typing import Any, ClassVar, Optional
+
+from pydantic import Field, HttpUrl, EmailStr, BaseModel, field_validator
 
 from ezpz_pluginz.logger import setup_logger
-from ezpz_pluginz.registry.config import DEFAULT_VERSION
-from ezpz_pluginz.registry.exceptions import PluginValidationError
 
 logger = setup_logger("Models")
 
 PACKAGE_NAME_REGEX = re.compile(r"^ezpz[_-][a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$")
 
 
-@dataclass
-class PluginCreate:
-  name: str
-  package_name: str
-  description: str
-  aliases: list[str]
-  version: str
-  author: str
-  category: str
-  homepage: str
-  metadata_: Any = None
+class PluginMetadataInner(BaseModel):
+  PY_VERSION_ERROR: ClassVar[str] = "python_version must be in the format '>=3.X' (e.g., '>=3.13')"
 
-  def __post_init__(self) -> None:
-    self._validate()
+  tags: list[str] = Field(default_factory=list, description="Tags describing the plugin")
+  license: str = Field(..., description="License type (e.g., MIT, Apache-2.0)")
+  python_version: str = Field(..., description="Minimum Python version (e.g., >=3.13)")
+  dependencies: list[str] = Field(default_factory=list, description="List of required packages")
+  documentation: HttpUrl = Field(..., description="URL to plugin documentation")
+  support_email: EmailStr = Field(..., description="Contact email for support")
 
-  def _validate(self) -> None:
-    if not self.name or not self.name.strip():
-      raise PluginValidationError("plugin_name")
-    if not self.package_name or not self.package_name.strip():
-      raise PluginValidationError("package_name")
-    if not self.description or not self.description.strip():
-      raise PluginValidationError("description")
-    if not self.author or not self.author.strip():
-      raise PluginValidationError("author")
+  @field_validator("python_version")
+  def validate_python_version(cls, v: str) -> str:
+    if not re.match(r"^>=3\.\d{1,2}$", v):
+      raise ValueError(cls.PY_VERSION_ERROR)
+    return v
 
 
-@dataclass(frozen=True)
-class PluginResponse:
-  id: str
-  name: str
-  package_name: str
-  description: str
-  aliases: list[str]
-  version: str
-  author: str
-  category: str
-  homepage: str
-  created_at: str
-  updated_at: str
-  metadata_: Any
-  verified: bool = False
-  is_deleted: bool = False
+class PluginMetadata(BaseModel):
+  VERSION_ERROR: ClassVar[str] = "Version must follow semantic versioning (e.g., '0.1.0')"
+  FIELD_ERROR: ClassVar[str] = "Field must not be empty"
+
+  name: str = Field(..., description="Short name of the plugin")
+  package_name: str = Field(..., description="Package name for installation")
+  description: str = Field(..., description="Brief description of the plugin")
+  aliases: list[str] = Field(default_factory=list, description="Alternative names for the plugin")
+  version: str = Field(..., description="Plugin version (semantic versioning)")
+  author: str = Field(..., description="Author or maintainer of the plugin")
+  category: str = Field(..., description="Category of the plugin (e.g., Technical analysis)")
+  homepage: HttpUrl = Field(..., description="URL to plugin homepage")
+  metadata_: PluginMetadataInner = Field(..., description="Additional metadata")
+
+  @field_validator("version")
+  def validate_version(cls, v: str) -> str:
+    if not re.match(r"^\d+\.\d+\.\d+$", v):
+      raise ValueError(cls.VERSION_ERROR)
+    return v
+
+  @field_validator("name", "package_name", "description", "author", "category")
+  def validate_non_empty(cls, v: str) -> str:
+    if not v.strip():
+      raise ValueError(cls.FIELD_ERROR)
+    return v.strip()
 
 
-def safe_deserialize_plugin(plugin_data: dict[str, Any]) -> PluginResponse | None:
+class PluginCreate(PluginMetadata):
+  pass  # Inherits all fields and validation from PluginMetadata
+
+
+class PluginResponse(PluginMetadata):
+  id: str = Field(..., description="Unique identifier for the plugin")
+  created_at: str = Field(..., description="Creation timestamp")
+  updated_at: str = Field(..., description="Last update timestamp")
+  verified: bool = Field(default=False, description="Whether the plugin is verified")
+  is_deleted: bool = Field(default=False, description="Whether the plugin is marked as deleted")
+
+
+class PluginUpdate(BaseModel):
+  name: Optional[str] = Field(None, description="Short name of the plugin")
+  package_name: Optional[str] = Field(None, description="Package name for installation")
+  description: Optional[str] = Field(None, description="Brief description of the plugin")
+  aliases: Optional[list[str]] = Field(None, description="Alternative names for the plugin")
+  version: Optional[str] = Field(None, description="Plugin version (semantic versioning)")
+  author: Optional[str] = Field(None, description="Author or maintainer of the plugin")
+  category: Optional[str] = Field(None, description="Category of the plugin")
+  homepage: Optional[HttpUrl] = Field(None, description="URL to plugin homepage")
+  metadata_: Optional[PluginMetadataInner] = Field(None, description="Additional metadata")
+
+  @field_validator("version")
+  def validate_version(cls, v: Optional[str]) -> Optional[str]:
+    if v and not re.match(r"^\d+\.\d+\.\d+$", v):
+      raise ValueError(PluginMetadata.VERSION_ERROR)
+    return v
+
+  @field_validator("name", "package_name", "description", "author", "category")
+  def validate_non_empty(cls, v: Optional[str]) -> Optional[str]:
+    if v is not None and not v.strip():
+      raise ValueError(PluginMetadata.FIELD_ERROR)
+    return v.strip() if v else v
+
+
+def safe_deserialize_plugin(plugin_data: dict[str, Any]) -> Optional[PluginResponse]:
   try:
-    return PluginResponse(
-      id=plugin_data.get("id", ""),
-      name=plugin_data.get("name", ""),
-      package_name=plugin_data.get("package_name", ""),
-      description=plugin_data.get("description", ""),
-      aliases=plugin_data.get("aliases", []),
-      category=plugin_data.get("category", ""),
-      author=plugin_data.get("author", ""),
-      version=plugin_data.get("version", DEFAULT_VERSION),
-      homepage=plugin_data.get("homepage", ""),
-      metadata_=plugin_data.get("metadata_", {}),
-      created_at=plugin_data.get("created_at", ""),
-      updated_at=plugin_data.get("updated_at", ""),
-      verified=plugin_data.get("verified", False),
-      is_deleted=plugin_data.get("is_deleted", False),
-    )
+    return PluginResponse.model_validate(plugin_data)
   except Exception:
     logger.exception("Failed to deserialize plugin data")
     return None
-
-
-@dataclass
-class PluginUpdate:
-  name: str | None = None
-  description: str | None = None
-  category: str | None = None
-  aliases: list[str] | None = None
-  author: str | None = None
-  version: str | None = None
-  homepage: str | None = None
-  metadata_: Any | None = None
-
-  def __post_init__(self) -> None:
-    self._validate()
-
-  def _validate(self) -> None:
-    for field_name, value in [
-      ("name", self.name),
-      ("description", self.description),
-      ("category", self.category),
-      ("author", self.author),
-      ("version", self.version),
-      ("homepage", self.homepage),
-    ]:
-      if value is not None and not value.strip():
-        raise PluginValidationError(field_name)

@@ -101,35 +101,35 @@ jobs:
       - name: Test CLI functionality
         run: |
           cd core/pluginz
-          echo "--- Testing 'ezplugins help' command ---"
-          rye run ezplugins help
+          echo "--- Testing 'ezpz help' command ---"
+          rye run ezpz help
 
-          echo "--- Testing 'ezplugins help <command>' ---"
-          rye run ezplugins help list
-          rye run ezplugins help add
-          rye run ezplugins help find
+          echo "--- Testing 'ezpz help <command>' ---"
+          rye run ezpz help list
+          rye run ezpz help add
+          rye run ezpz help find
 
-          echo "--- Testing 'ezplugins list' command ---"
-          rye run ezplugins list
+          echo "--- Testing 'ezpz list' command ---"
+          rye run ezpz list
 
-          echo "--- Testing 'ezplugins status' command ---"
-          rye run ezplugins status
+          echo "--- Testing 'ezpz status' command ---"
+          rye run ezpz status
 
-          echo "--- Testing 'ezplugins mount'  ---"
-          rye run ezplugins mount || true
+          echo "--- Testing 'ezpz mount'  ---"
+          rye run ezpz mount || true
 
-          echo "--- Testing 'ezplugins unmount' ---"
-          rye run ezplugins unmount || true
+          echo "--- Testing 'ezpz unmount' ---"
+          rye run ezpz unmount || true
 
-          rye run ezplugins find database --field category
-          rye run ezplugins find "my-test-plugin" --exact
-          rye run ezplugins find rust
+          rye run ezpz find database --field category
+          rye run ezpz find "my-test-plugin" --exact
+          rye run ezpz find rust
 
   build-packages:
     needs: test-core
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'workflow_dispatch' && github.event.inputs.run_build == true
+      github.event_name == 'workflow_dispatch' && github.event.inputs.run_build == 'true'
     outputs:
       pluginz-version: ${{ steps.build-info.outputs.pluginz-version }}
       macroz-version: ${{ steps.build-info.outputs.macroz-version }}
@@ -188,7 +188,7 @@ jobs:
     needs: build-packages
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'workflow_dispatch' && github.event.inputs.run_publish == true
+      github.event_name == 'workflow_dispatch' && github.event.inputs.run_publish == 'true'
 
     steps:
       - name: Download build artifacts
@@ -213,21 +213,28 @@ jobs:
           echo "Successfully published packages to PyPI"
 
   notify-completion:
-    needs: [test-core, build-packages, publish-pypi]
+    needs:
+      - test-core
+      - build-packages
+      - publish-pypi
+    if: |
+      always() &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request'
+      )
     runs-on: ubuntu-latest
-    if: always()
     steps:
-      - name: Workflow completion summary
+      - name: Summarize results
         run: |
-          echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Summary of Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Result |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Tests | ${{ needs.test-core.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Build | ${{ needs.build-packages.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| PyPI Publish | ${{ needs.publish-pypi.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Core | ${{ needs.test-core.result }} |" >> $GITHUB_STEP_SUMMARY
 
-          if [ "${{ needs.build-packages.result }}" == "success" ]; then
-            echo "### Built Versions" >> $GITHUB_STEP_SUMMARY
-            echo "- **pluginz**: ${{ needs.build-packages.outputs.pluginz-version }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **macroz**: ${{ needs.build-packages.outputs.macroz-version }}" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "| Build Packages | ${{ needs.build-packages.result }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Publish PyPI | ${{ needs.publish-pypi.result }} |" >> $GITHUB_STEP_SUMMARY
           fi

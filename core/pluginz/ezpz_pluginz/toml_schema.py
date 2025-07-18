@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Generator
+from typing import TYPE_CHECKING, Any, ClassVar, Iterable, Optional, Generator
 from pathlib import Path
 from operator import attrgetter
 from itertools import chain, groupby
@@ -52,10 +52,11 @@ def get_plugins(project_toml_path: Path) -> dict[str, set["PolarsPluginMacroMeta
 
 
 class EzpzPluginConfig(BaseModel):
+  INVALID_SECTION: ClassVar[str] = "No valid [ezpz_pluginz] or [tool.ezpz_pluginz] section found in specified path"
+
   name: str
   include: list[Path]
   site_customize: bool | None = Field(default=None)
-  package_manager: str
 
   @property
   def include_str_paths(self) -> list[str]:
@@ -63,7 +64,20 @@ class EzpzPluginConfig(BaseModel):
 
   @staticmethod
   def from_toml_path(path: Path) -> "EzpzPluginConfig":
-    return EzpzPluginToml(**toml.loads(path.read_text())).ezpz_pluginz
+    try:
+      with path.open("r") as f:
+        data = toml.load(f)
+      toml_data = EzpzPluginToml(**data)
+
+      if path.name == EZPZ_TOML_FILENAME and toml_data.ezpz_pluginz:
+        return toml_data.ezpz_pluginz
+      if path.name == "pyproject.toml" and toml_data.tool and "ezpz" in toml_data.tool:
+        return EzpzPluginConfig(**toml_data.tool["ezpz"])
+    except Exception:
+      logger.exception(f"Error loading config from {path}")
+      raise
+    else:
+      raise ValueError(EzpzPluginConfig.INVALID_SECTION)
 
   @staticmethod
   def get_plugins(project_toml_path: Path) -> dict[str, set["PolarsPluginMacroMetadataPD"]]:
@@ -72,14 +86,15 @@ class EzpzPluginConfig(BaseModel):
 
 
 class EzpzPluginToml(BaseModel):
-  ezpz_pluginz: EzpzPluginConfig
+  ezpz_pluginz: Optional[EzpzPluginConfig] = None
+  tool: Optional[dict[str, Any]] = None
 
 
 def load_config(config_path: str | Path | None = None) -> Optional[EzpzPluginConfig]:
   if config_path is None:
     config_path = find_ezpz_toml()
     if config_path is None:
-      logger.warning("Could not find ezpz.toml file")
+      logger.warning("Could not find ezpz.toml or pyproject.toml with [tool.ezpz_pluginz]")
       return None
 
   config_path = Path(config_path)
@@ -105,5 +120,17 @@ def find_ezpz_toml(start_path: Path | None = None) -> Optional[Path]:
     if config_file.exists():
       logger.debug(f"Found ezpz.toml at: {config_file}")
       return config_file
+
+    pyproject_file = parent / "pyproject.toml"
+    if pyproject_file.exists():
+      try:
+        with pyproject_file.open("r") as f:
+          data = toml.load(f)
+        if data.get("tool", {}).get("ezpz"):
+          logger.debug(f"Found [tool.ezpz_pluginz] in pyproject.toml at: {pyproject_file}")
+          return pyproject_file
+      except Exception as e:
+        logger.debug(f"Error checking pyproject.toml at {pyproject_file}: {e}")
+        continue
 
   return None

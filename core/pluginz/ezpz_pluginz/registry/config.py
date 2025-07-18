@@ -33,34 +33,22 @@ LOCAL_REGISTRY_FILE = LOCAL_REGISTRY_DIR / "plugins.json"
 
 def load_ezpz_config() -> dict[str, Any]:
   config_file = Path("ezpz.toml")
-  if not config_file.exists():
-    return {}
+  if config_file.exists():
+    try:
+      with config_file.open("rb") as f:
+        return tomllib.load(f).get("ezpz_pluginz", {})
+    except Exception:
+      logger.warning("Failed to load ezpz.toml")
+      return {}
 
-  try:
-    with config_file.open("rb") as f:
-      return tomllib.load(f)
-  except Exception:
-    logger.warning("Failed to load ezpz.toml")
-    return {}
+  pyproject_file = Path("pyproject.toml")
+  if pyproject_file.exists():
+    try:
+      with pyproject_file.open("rb") as f:
+        return tomllib.load(f).get("tool", {}).get("ezpz", {})
+    except Exception:
+      logger.warning("Failed to load pyproject.toml")
+      return {}
 
-
-def get_package_manager_from_config() -> str | None:
-  config = load_ezpz_config()
-  return config.get("ezpz_pluginz", {}).get("package_manager")
-
-
-def check_ezpz_config() -> bool:
-  return Path("ezpz.toml").exists()
-
-
-def create_default_ezpz_config(project_name: str = "my-ezpz-project") -> None:
-  config_content = f"""[ezpz_pluginz]
-name = "{project_name}"
-include = [
-    "src/",
-    "*.py"
-]
-site_customize = true
-package_manager = "pip"  # Options: pip, uv, rye, poetry, pipenv, conda, mamba
-"""
-  Path("ezpz.toml").write_text(config_content)
+  logger.warning("Neither ezpz.toml nor pyproject.toml with [tool.ezpz_pluginz] found")
+  return {}

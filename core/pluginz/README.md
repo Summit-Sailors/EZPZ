@@ -101,12 +101,24 @@ include = [
 site_customize = true  # Enable automatic plugin registration
 ```
 
+Or using the config file (`pyproject.toml`):
+
+```toml
+[tool.ezpz_pluginz]
+name = "my-polars-project"
+include = [
+    "src/plugins/",
+    "plugins/dataframe_extensions.py",
+    "external/custom_ops/"
+]
+site_customize = true
+```
+
 ### Configuration Options
 
 - `name`: Project identifier for your plugin collection
 - `include`: List of files and directories to scan for plugins
 - `site_customize`: Optional boolean to enable automatic plugin registration via sitecustomize.py
-- `package_manager`: The package manager
 
 ## CLI Usage
 
@@ -117,7 +129,7 @@ site_customize = true  # Enable automatic plugin registration
 Apply type hints and enable plugin support:
 
 ```bash
-ezplugins mount
+ezpz mount
 ```
 
 Loads plugins specified in your ezpz.toml configuration, makes plugin functions available for use, and should be run after installing new plugins or changing configuration.
@@ -127,37 +139,25 @@ Loads plugins specified in your ezpz.toml configuration, makes plugin functions 
 Restore original Polars files and remove modifications:
 
 ```bash
-ezplugins unmount
+ezpz unmount
 ```
 
 Removes mounted plugins from your environment, useful for troubleshooting or cleaning up.
 
-#### Check Status
+### Plugin Discovery and Installation
 
-Show current status of the plugin system:
-
-```bash
-ezplugins status
-```
-
-Shows registry URL and local cache information, displays number of available and verified plugins, and is useful for troubleshooting registry issues.
-
-### Registry Management
-
-#### Discover Available Plugins
-
-**List All Plugins**
+#### List Available Plugins
 
 ```bash
-ezplugins list
+ezpz list
 ```
 
 Shows all plugins with installation status (✓ = installed, ○ = not installed), displays plugin descriptions, authors, and versions, and sets up local registry if not present.
 
-**Advanced Plugin Search**
+#### Advanced Plugin Search
 
 ```bash
-ezplugins find <keyword> [options]
+ezpz find <keyword> [options]
 ```
 
 Powerful search capabilities with flexible filtering options:
@@ -174,48 +174,83 @@ Examples:
 
 ```bash
 # Search for Rust-based plugins
-ezplugins find rust --field category
+ezpz find rust --field category
 
 # Search for technical analysis plugins with details
-ezplugins find 'technical analysis' --remote --details
+ezpz find 'technical analysis' --remote --details
 
 # Exact search for polars-related plugins
-ezplugins find polars --both --exact
+ezpz find polars --both --exact
 ```
 
-#### Install and Manage Plugins
+### Registry Management
 
-**Install a Plugin**
+All registry management commands are under the `registry` subcommand:
+
+#### Check Registry Health
 
 ```bash
-ezplugins add <plugin_name> [--no-auto-mount]
+ezpz registry health
 ```
 
-Downloads and installs the plugin package, creates ezpz.toml if not present, and automatically mounts plugins unless `--no-auto-mount` is used. Use `ezplugins list` to see available plugins.
+Verifies connectivity and status of the central plugin registry server.
 
-**Refresh Registry**
+#### Register a New Plugin
 
 ```bash
-ezplugins refresh
+ezpz registry register <plugin_path>
+```
+
+Register a new plugin to the remote registry. Requires `AUTH_SECRET` environment variable. Plugin must have a `register_plugin()` function. Path should point to your plugin directory or file.
+
+#### Update an Existing Plugin
+
+```bash
+ezpz registry push <plugin_name> <plugin_path>
+```
+
+Update an existing plugin in the registry. Requires `AUTH_SECRET` environment variable. Updates the plugin version in the remote registry.
+
+#### Refresh Registry
+
+```bash
+ezpz registry refresh
 ```
 
 Downloads latest plugin information from registry, run this to see newly published plugins, and is automatically done when installing plugins.
 
-**Clear Registry Cache**
+#### Check Registry Status
 
 ```bash
-ezplugins delete-registry
+ezpz registry status
+```
+
+Shows registry URL and local cache information, displays number of available and verified plugins, and is useful for troubleshooting registry issues.
+
+#### Clear Registry Cache
+
+```bash
+ezpz registry delete
 ```
 
 Removes the local registry cache (`~/.ezpz`), useful for troubleshooting registry corruption or clearing cache, and registry can be automatically recreated using refresh.
 
+#### Delete a Plugin
+
+```bash
+ezpz registry delete-plugin <plugin_id>
+```
+
+Mark a plugin as deleted in the remote registry. Requires `AUTH_SECRET` environment variable. Removes the plugin from the local cache after successful remote deletion.
+
 ### Getting Help
 
 ```bash
-ezplugins help [command]
+ezpz --help
+ezpz registry --help
 ```
 
-Shows general help or detailed help for a specific command.
+Shows general help or help for registry commands.
 
 ## Plugin Registry System
 
@@ -224,6 +259,8 @@ EZPZ-Pluginz includes a comprehensive plugin registry system that enables:
 - **Plugin Discovery**: Browse and search through available plugins from the community
 - **Easy Installation**: One-command installation of plugins with automatic dependency management
 - **Automatic Updates**: Stay up-to-date with the latest plugin releases
+- **Health Monitoring**: Check registry connectivity and status
+- **Plugin Management**: Register, update, and delete plugins with proper authentication
 
 The registry system maintains a local cache for fast access and can synchronize with remote repositories to discover new plugins and updates.
 
@@ -233,6 +270,7 @@ The registry system maintains a local cache for fast access and can synchronize 
 - **Safe Backups**: Original files are always backed up before modification
 - **Type Checking Only**: Imports are added within `TYPE_CHECKING` blocks to avoid runtime overhead
 - **Reversible**: All changes can be completely undone using the unmount command
+- **Authentication Required**: Registry operations that modify plugins require the `AUTH_SECRET` environment variable
 
 ## Development Status
 
@@ -245,6 +283,8 @@ The registry system maintains a local cache for fast access and can synchronize 
 - Robust string value extraction
 - Improved error handling and validation
 - Plugin registry system with discovery and installation
+- Registry health monitoring
+- Plugin update and deletion capabilities
 
 ### Current Development Focus
 
@@ -268,6 +308,8 @@ The registry system maintains a local cache for fast access and can synchronize 
 - **Robust Error Handling**: Graceful handling of malformed plugin definitions
 - **Registry Integration**: Seamless plugin discovery, installation, and management through centralized registry
 - **Advanced Search**: Powerful search capabilities with field-specific filtering and remote/local search options
+- **Registry Health Monitoring**: Built-in health checks for registry connectivity
+- **Authenticated Operations**: Secure plugin registration and management with authentication
 
 ## Contributing
 

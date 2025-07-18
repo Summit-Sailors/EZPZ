@@ -32,10 +32,17 @@ class PolarsPluginLockfilePD(BaseModel):
   @classmethod
   def generate(cls) -> "PolarsPluginLockfilePD":
     logger.debug(f"cwd: {Path.cwd()}")
+
     project_ezpz_toml_path = Path.cwd().joinpath(EZPZ_TOML_FILENAME)
-    if not project_ezpz_toml_path.exists():
-      return cls(project_plugins=dict[str, set[PolarsPluginMacroMetadataPD]](), site_plugins=dict[str, set[PolarsPluginMacroMetadataPD]]())
-    project_entry = cls(project_plugins=EzpzPluginConfig.get_plugins(project_ezpz_toml_path), site_plugins={})
+    if project_ezpz_toml_path.exists():
+      project_entry = cls(project_plugins=EzpzPluginConfig.get_plugins(project_ezpz_toml_path), site_plugins={})
+    else:
+      pyproject_toml_path = Path.cwd().joinpath("pyproject.toml")
+      if pyproject_toml_path.exists():
+        project_entry = cls(project_plugins=EzpzPluginConfig.get_plugins(pyproject_toml_path), site_plugins={})
+      else:
+        return cls(project_plugins=dict[str, set[PolarsPluginMacroMetadataPD]](), site_plugins=dict[str, set[PolarsPluginMacroMetadataPD]]())
+
     for dist in importlib.metadata.distributions():
       if "ezpz-pluginz" in (dist.requires or []):
         spec = importlib.util.find_spec(dist.metadata["Name"])

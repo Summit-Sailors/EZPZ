@@ -24,7 +24,7 @@ pip install ezpz_pluginz
 pip install ezpz-rust-ti
 
 # Mount the plugin
-ezplugins mount
+ezpz mount
 ```
 
 ## Quick Start

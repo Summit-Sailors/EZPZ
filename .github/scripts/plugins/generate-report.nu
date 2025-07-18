@@ -30,7 +30,6 @@ def main [
         append_to_report "✅ **Plugin Discovery**: Success\n"
         append_to_report $"- **Has Changes**: ($has_changes | default 'unknown')\n"
         
-        # Count plugins
         let reg_count = if ($plugins_to_register | default "[]") != "[]" {
             ($plugins_to_register | from json | length)
         } else { 0 }
@@ -44,15 +43,13 @@ def main [
     } else {
         append_to_report "❌ **Plugin Discovery**: Failed\n"
     }
-    append_to_report "\n"
     
     append_to_report "## Test Results\n"
     match ($test_result | default "unknown") {
         "success" => { append_to_report "✅ **Plugin Tests**: All tests passed\n" },
-        "skipped" => { append_to_report "⏭️ **Plugin Tests**: Skipped (no changes detected)\n" },
-        _ => { append_to_report "❌ **Plugin Tests**: Some tests failed\n" }
+        "skipped" => { append_to_report "⏭️ **Plugin Tests**: Skipped\n" },
+        _ => { append_to_report "❌ **Plugin Tests**: Failed\n" }
     }
-    append_to_report "\n"
     
     append_to_report "## Registration and Updates\n"
     match ($register_result | default "unknown") {
@@ -60,7 +57,6 @@ def main [
         "skipped" => { append_to_report "⏭️ **Registry Operations**: Skipped\n" },
         _ => { append_to_report "❌ **Registry Operations**: Failed\n" }
     }
-    append_to_report "\n"
     
     append_to_report "## Publishing Results\n"
     match ($publish_result | default "unknown") {
@@ -68,7 +64,6 @@ def main [
         "skipped" => { append_to_report "⏭️ **Publishing**: Skipped\n" },
         _ => { append_to_report "❌ **Publishing**: Failed\n" }
     }
-    append_to_report "\n"
     
     append_to_report "## Overall Status\n"
     let overall_success = (
@@ -81,10 +76,8 @@ def main [
     if $overall_success {
         append_to_report "🎉 **Workflow completed successfully!**\n"
     } else {
-        append_to_report "⚠️ **Workflow completed with issues. Check individual job results.**\n"
+        append_to_report "⚠️ **Workflow completed with issues.**\n"
     }
     
-    append_to_report "\n"
-    append_to_report "---\n"
-    append_to_report $"*Report generated at (date now | format date '%Y-%m-%d %H:%M:%S')*\n"
+    append_to_report $"*Generated at (date now | format date '%Y-%m-%d %H:%M:%S')*\n"
 }

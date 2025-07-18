@@ -1,11 +1,25 @@
-import sys
+from __future__ import annotations
+
+import inspect
 import logging
-from typing import ClassVar, Optional
+from typing import TYPE_CHECKING, Literal, ClassVar
 from pathlib import Path
+from datetime import datetime
+
+import structlog
+
+if TYPE_CHECKING:
+  from structlog.types import EventDict, WrappedLogger, FilteringBoundLogger
+
+LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+ColorKey = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "RESET"]
+
+LogEventDict = dict[str, str | int | datetime | None]
 
 
-class ColoredFormatter(logging.Formatter):
-  COLORS: ClassVar[dict[str, str]] = {
+class ColoredFormatter:
+  COLORS: ClassVar[dict[ColorKey, str]] = {
     "DEBUG": "\033[36m",  # Cyan
     "INFO": "\033[32m",  # Green
     "WARNING": "\033[33m",  # Yellow
@@ -14,61 +28,102 @@ class ColoredFormatter(logging.Formatter):
     "RESET": "\033[0m",  # Reset
   }
 
-  def format(self, record: logging.LogRecord) -> str:
-    filename = Path(record.pathname).stem
+  def __call__(self, logger: WrappedLogger, method_name: str, event_dict: EventDict) -> str:
+    """Format log event with colors and aligned fields."""
+    level: str = event_dict.get("level", method_name).upper()
+    log_color: str = self.COLORS.get(level, "")  # type: ignore[dict-item]
+    reset_color: str = self.COLORS["RESET"]
 
-    log_color = self.COLORS.get(record.levelname, "")
-    reset_color = self.COLORS["RESET"]
+    # caller info with defaults
+    filename: str = Path(event_dict.get("pathname", "unknown")).stem
+    lineno: str = str(event_dict.get("lineno", 0))
 
-    formatted = f"{log_color}[{record.levelname:8}]{reset_color} {filename}:{record.lineno:<4} - {record.getMessage()}"
+    # the main message
+    event: str = str(event_dict.get("event", ""))
 
-    if record.exc_info:
-      formatted += f"\n{self.formatException(record.exc_info)}"
+    # format
+    formatted: str = f"{log_color}[{level:8}]{reset_color} {filename}:{lineno:<4} - {event}"
+
+    # structured data addition, excluding core fields
+    extra_data = {k: v for k, v in event_dict.items() if k not in ("event", "level", "pathname", "lineno", "timestamp", "logger")}
+    if extra_data:
+      formatted += f" {extra_data!r}"
 
     return formatted
 
 
-def setup_logger(name: str = "app", level: int = logging.INFO) -> logging.Logger:
-  logger = logging.getLogger(name)
+def add_caller_info(_: WrappedLogger, __: str, event_dict: EventDict) -> EventDict:
+  frame = inspect.currentframe()
+  try:
+    # Walk up the stack to find the actual caller
+    caller_frame = frame
+    while caller_frame:
+      caller_frame = caller_frame.f_back
+      if caller_frame and not any(path in caller_frame.f_code.co_filename for path in ["structlog", "logging", "_log.py"]):
+        break
 
-  if logger.handlers:
-    return logger
-
-  logger.setLevel(level)
-
-  console_handler = logging.StreamHandler(sys.stdout)
-  console_handler.setLevel(level)
-
-  formatter = ColoredFormatter()
-  console_handler.setFormatter(formatter)
-
-  logger.addHandler(console_handler)
-
-  return logger
-
-
-logger: logging.Logger = setup_logger()
+    if caller_frame:
+      event_dict["pathname"] = caller_frame.f_code.co_filename
+      event_dict["lineno"] = caller_frame.f_lineno
+  finally:
+    del frame
+  return event_dict
 
 
-def get_logger(name: Optional[str] = None) -> logging.Logger:
-  if name is None:
-    return logger
-  return setup_logger(name)
+def setup_logger(
+  name: str = "app",
+  level: int | LogLevel = logging.INFO,
+) -> FilteringBoundLogger:
+  if isinstance(level, str):
+    level = getattr(logging, level.upper())
+
+  if not structlog.is_configured():
+    structlog.configure(
+      processors=[
+        add_caller_info,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.add_log_level,
+        ColoredFormatter(),
+      ],
+      wrapper_class=structlog.make_filtering_bound_logger(level),
+      logger_factory=structlog.PrintLoggerFactory(),
+      cache_logger_on_first_use=True,
+    )
+
+  return structlog.get_logger(name)
+
+
+class LoggerFactory:
+  _default_logger: FilteringBoundLogger | None = None
+
+  @classmethod
+  def get_logger(cls, name: str | None = None) -> FilteringBoundLogger:
+    if name is None:
+      if cls._default_logger is None:
+        cls._default_logger = setup_logger()
+      return cls._default_logger
+    return setup_logger(name)
+
+  @classmethod
+  def reset(cls) -> None:
+    structlog.reset_defaults()
+    cls._default_logger = None
 
 
 if __name__ == "__main__":
-  test_logger = get_logger("test")
+  logger = LoggerFactory.get_logger("test")
 
-  test_logger.debug("This is a debug message")
-  test_logger.info("This is an info message")
-  test_logger.warning("This is a warning message")
-  test_logger.error("This is an error message")
-  test_logger.critical("This is a critical message")
+  logger.debug("Debug message")
+  logger.info("Info message")
+  logger.warning("Warning message")
+  logger.error("Error message")
+  logger.critical("Critical message")
 
-  import logging
+  # Structured logging example
+  logger.info("User action", user_id=12345, action="login")
 
-  other_logger = logging.getLogger("test")
-  other_logger.info("Message from another part of the code")
+  # Different logger instance
+  other_logger = LoggerFactory.get_logger("other")
+  other_logger.info("Message from another module")
 
-
-__all__ = ["setup_logger"]
+__all__ = ["LoggerFactory", "setup_logger"]
