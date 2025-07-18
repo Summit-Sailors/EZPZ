@@ -65,12 +65,13 @@ jobs:
         uses: eifinger/setup-rye@v4
         with:
           version: "latest"
+          enable-cache: true
 
       - name: Pin Python version
         run: rye pin ${{ env.PYTHON_VERSION }}
 
       - name: Cache Rye dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: |
             ~/.cache/uv

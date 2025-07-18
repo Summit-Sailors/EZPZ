@@ -124,9 +124,4 @@ generate-report:
     "$TEST_RESULT" \
     "$REGISTER_RESULT" \
     "$PUBLISH_RESULT"
-
-convert-sarif:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  python3 .github/scripts/security/convert-sarif.py
     

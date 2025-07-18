@@ -14,7 +14,7 @@ on:
         required: true
         default: "test"
         type: choice
-        options: ["test", "register-and-update", "publish", "full-pipeline"]
+        options: ["test", "register-and-update", "publish"]
       dry_run:
         description: "Dry run (no actual registry changes)"
         required: false
@@ -34,14 +34,14 @@ jobs:
       plugins-to-update: ${{ steps.analyze.outputs.plugins-to-update }}
       has-changes: ${{ steps.analyze.outputs.has-changes }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - uses: eifinger/setup-rye@v4
+      - uses: eifinger/setup-rye@v4.2.9
         with:
           enable-cache: true
-      - uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@v3.20
         with:
           version: "0.105.1"
       - uses: extractions/setup-just@v2
@@ -56,24 +56,23 @@ jobs:
     runs-on: ubuntu-latest
     needs: discover-plugins
     if: |
-      (github.event_name == 'push' || github.event_name == 'pull_request') &&  needs.discover-plugins.outputs.has-changes == 'true'
-    permissions:
-      security-events: write
+      (github.event_name == 'push' || github.event_name == 'pull_request' || github.event.inputs.operation == 'test') && 
+      needs.discover-plugins.outputs.has-changes == 'true'
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.discover-plugins.outputs.project-plugins) }}
-      fail-fast: false
+      fail-fast: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1.0.6
         if: hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != ''
         with:
           toolchain: ${{ env.RUST_VERSION }}
           default: true
-      - uses: eifinger/setup-rye@v4
+      - uses: eifinger/setup-rye@v4.2.9
         with:
           enable-cache: true
       - uses: hustcer/setup-nu@v3
@@ -106,37 +105,23 @@ jobs:
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
         run: just actions::test-plugin
-      - id: convert-sarif
-        env:
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::convert-sarif
-      - uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: ${{ matrix.plugin.path }}/security_results.sarif
-        continue-on-error: true
 
   register-update-plugins:
     runs-on: ubuntu-latest
     needs: [discover-plugins, test-plugins]
     if: |
-      github.event_name == 'workflow_dispatch' && needs.discover-plugins.outputs.has-changes == 'true' && needs.test-plugins.result == 'success' &&
-      (
-        github.event.inputs.operation == 'register-and-update' ||
-        github.event.inputs.operation == 'full-pipeline'
-      )
+      github.event_name == 'workflow_dispatch' && 
+      needs.discover-plugins.outputs.has-changes == 'true' && 
+      needs.test-plugins.result == 'success' && 
+      github.event.inputs.operation == 'register-and-update'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - uses: eifinger/setup-rye@v4
+      - uses: eifinger/setup-rye@v4.2.9
         with:
           enable-cache: true
-      - uses: hustcer/setup-nu@v3
-        with:
-          version: "0.105.1"
       - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
@@ -159,28 +144,27 @@ jobs:
 
   publish-plugins:
     runs-on: ubuntu-latest
-    needs: [discover-plugins, test-plugins, register-update-plugins]
-    if: github.event_name == 'workflow_dispatch'
+    needs: [discover-plugins, test-plugins]
+    if: |
+      github.event_name == 'workflow_dispatch' && 
+      github.event.inputs.operation == 'publish'
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.discover-plugins.outputs.project-plugins) }}
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1.0.6
         if: hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != ''
         with:
           toolchain: ${{ env.RUST_VERSION }}
           default: true
-      - uses: eifinger/setup-rye@v4
+      - uses: eifinger/setup-rye@v4.2.9
         with:
           enable-cache: true
-      - uses: hustcer/setup-nu@v3
-        with:
-          version: "0.105.1"
       - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
@@ -220,30 +204,3 @@ jobs:
           PLUGIN_PATH: ${{ matrix.plugin.path }}
           PACKAGE_NAME: ${{ matrix.plugin.package_name }}
         run: just actions::publish-plugin
-
-  generate-report:
-    runs-on: ubuntu-latest
-    needs:
-      [discover-plugins, test-plugins, register-update-plugins, publish-plugins]
-    if: always()
-    steps:
-      - uses: actions/checkout@v4
-      - uses: hustcer/setup-nu@v3
-        with:
-          version: "0.105.1"
-      - uses: extractions/setup-just@v2
-        with:
-          just-version: "1.40.0"
-      - id: report
-        env:
-          OPERATION: ${{ github.event.inputs.operation }}
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
-          EVENT_NAME: ${{ github.event_name }}
-          DISCOVER_RESULT: ${{ needs.discover-plugins.result }}
-          TEST_RESULT: ${{ needs.test-plugins.result }}
-          REGISTER_RESULT: ${{ needs.register-update-plugins.result }}
-          PUBLISH_RESULT: ${{ needs.publish-plugins.result }}
-          HAS_CHANGES: ${{ needs.discover-plugins.outputs.has-changes }}
-          PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
-          PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
-        run: just actions::generate-report
