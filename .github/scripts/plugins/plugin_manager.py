@@ -144,7 +144,7 @@ class PluginManager:
       sys.exit(1)
     return full_path
 
-  def safe_subprocess_run(self, args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[Any]:
+  def safe_subprocess_run(self, args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[Any]:  # noqa: ANN401
     """Run a subprocess with validated executable path."""
     validated_args = [self.resolve_executable(args[0]), *args[1:]]
     return subprocess.run(validated_args, **kwargs, check=True)  # type: ignore # noqa: S603

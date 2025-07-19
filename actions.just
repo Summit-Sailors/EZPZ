@@ -2,21 +2,105 @@ set shell := ["bash", "-uc"]
 set export
 set dotenv-load := true
 
-PACKAGE_NAME := env_var("PACKAGE_NAME")
-PLUGIN_PATH := env_var("PLUGIN_PATH")
+analyze-plugins:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  python3 .github/scripts/plugins/plugin_manager.py analyze
 
-OPERATION := env_var("OPERATION")
-DRY_RUN := env_var("DRY_RUN")
-EVENT_NAME := env_var("EVENT_NAME")
-DISCOVER_RESULT := env_var("DISCOVER_RESULT")
-TEST_RESULT := env_var("TEST_RESULT")
-REGISTER_RESULT := env_var("REGISTER_RESULT")
-PUBLISH_RESULT := env_var("PUBLISH_RESULT")
-HAS_CHANGES := env_var("HAS_CHANGES")
-PLUGINS_TO_REGISTER := env_var("PLUGINS_TO_REGISTER")
-PLUGINS_TO_UPDATE := env_var("PLUGINS_TO_UPDATE")
+test-plugin-pipeline package_name plugin_path:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  echo "🔍 Testing plugin: {{package_name}} at {{plugin_path}}"
+  
+  nu .github/scripts/plugins/plugin_ops.nu test-pipeline "{{package_name}}" "{{plugin_path}}"
 
-# Install security and maintenance tools
+register-update-plugins plugins_to_register plugins_to_update dry_run:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  
+  if [[ "{{plugins_to_register}}" != "[]" ]]; then
+    echo "📝 Registering new plugins..."
+    python3 .github/scripts/plugins/plugin_manager.py register \
+      --plugins='{{plugins_to_register}}' \
+      --dry-run='{{dry_run}}'
+  fi
+  
+  if [[ "{{plugins_to_update}}" != "[]" ]]; then
+    echo "🔄 Updating existing plugins..."
+    python3 .github/scripts/plugins/plugin_manager.py update \
+      --plugins='{{plugins_to_update}}' \
+      --dry-run='{{dry_run}}'
+  fi
+
+publish-plugin package_name plugin_path dry_run plugins_to_register plugins_to_update:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  
+  if ! python3 .github/scripts/plugins/plugin_manager.py check-publish \
+    --package-name="{{package_name}}" \
+    --plugins-to-register='{{plugins_to_register}}' \
+    --plugins-to-update='{{plugins_to_update}}'; then
+    echo "ℹ️  Plugin {{package_name}} does not need publishing"
+    exit 0
+  fi
+  
+  echo "📦 Publishing plugin: {{package_name}}"
+  
+  nu .github/scripts/plugins/plugin_ops.nu publish "{{package_name}}" "{{plugin_path}}" --dry-run='{{dry_run}}'
+
+validate-plugin package_name plugin_path:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/plugin_ops.nu validate "{{package_name}}" "{{plugin_path}}"
+
+build-plugin package_name plugin_path:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/plugin_ops.nu build "{{package_name}}" "{{plugin_path}}"
+
+test-plugin package_name plugin_path:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  nu .github/scripts/plugins/plugin_ops.nu test "{{package_name}}" "{{plugin_path}}"
+
+validate-all:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  
+  for plugin_dir in plugins/*/; do
+    if [[ -d "$plugin_dir" ]]; then
+      plugin_name=$(basename "$plugin_dir")
+      echo "🔍 Validating $plugin_name..."
+      just validate-plugin "$plugin_name" "$plugin_dir"
+    fi
+  done
+
+test-all:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  
+  for plugin_dir in plugins/*/; do
+    if [[ -d "$plugin_dir" ]]; then
+      plugin_name=$(basename "$plugin_dir")
+      echo "🧪 Testing $plugin_name..."
+      just test-plugin-pipeline "$plugin_name" "$plugin_dir"
+    fi
+  done
+
+clean:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  echo "🧹 Cleaning build artifacts..."
+  
+  find . -name "*.pyc" -delete
+  find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+  find . -name "dist" -type d -exec rm -rf {} + 2>/dev/null || true
+  find . -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
+  find . -name "*.egg-info" -type d -exec rm -rf {} + 2>/dev/null || true
+  find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
+  
+  echo "✅ Clean completed"
+
 install-tools:
   #!/usr/bin/env bash
   set -euo pipefail
@@ -34,94 +118,4 @@ uninstall-tools:
   rye uninstall semgrep
   rye uninstall pip-audit
   cargo uninstall cargo-audit cargo-outdated
-
-
-# Clean artifacts
-clean:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  find . -name "*.pyc" -delete
-  find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
-  find . -name "dist" -type d -exec rm -rf {} + 2>/dev/null || true
-  find . -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
-  find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
-  just uninstall-tools
-
-# Plugin operations
-analyze-plugins:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  python3 .github/scripts/plugins/plugin_manager.py analyze
-
-register-plugins:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  python3 .github/scripts/plugins/plugin_manager.py register --dry-run=$DRY_RUN
-
-update-plugins:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  python3 .github/scripts/plugins/plugin_manager.py update --dry-run=$DRY_RUN
-
-check-publish:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  python3 .github/scripts/plugins/plugin_manager.py check-publish --package-name=$PACKAGE_NAME
-
-validate-plugin:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  nu .github/scripts/plugins/plugin_ops.nu validate $PACKAGE_NAME $PLUGIN_PATH
-
-build-plugin:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  nu .github/scripts/plugins/plugin_ops.nu build $PACKAGE_NAME $PLUGIN_PATH
-
-test-plugin:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  nu .github/scripts/plugins/plugin_ops.nu test $PACKAGE_NAME $PLUGIN_PATH
-
-publish-plugin:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  nu .github/scripts/plugins/plugin_ops.nu publish $PACKAGE_NAME $PLUGIN_PATH --dry-run=$DRY_RUN
-
-# Batch operations
-validate-all:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  for plugin in plugins/*/; do
-    if [ -d "$plugin" ]; then
-      plugin_name=$(basename "$plugin")
-      PACKAGE_NAME="$plugin_name" PLUGIN_PATH="$plugin" just validate-plugin
-    fi
-  done
-
-test-all:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  for plugin in plugins/*/; do
-    if [ -d "$plugin" ]; then
-      plugin_name=$(basename "$plugin")
-      PACKAGE_NAME="$plugin_name" PLUGIN_PATH="$plugin" just test-plugin
-    fi
-  done
-
-# Generate report
-generate-report:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  nu .github/scripts/plugins/generate-report.nu \
-    "$OPERATION" \
-    "$DRY_RUN" \
-    "$EVENT_NAME" \
-    "$DISCOVER_RESULT" \
-    "$HAS_CHANGES" \
-    "$PLUGINS_TO_REGISTER" \
-    "$PLUGINS_TO_UPDATE" \
-    "$TEST_RESULT" \
-    "$REGISTER_RESULT" \
-    "$PUBLISH_RESULT"
-    
+  

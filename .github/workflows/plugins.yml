@@ -48,7 +48,7 @@ jobs:
         with:
           just-version: "1.40.0"
       - run: rye sync
-      - run: rye run ezpz refresh
+      - run: rye run ezpz registry refresh
       - id: analyze
         run: just actions::analyze-plugins
 
@@ -61,7 +61,7 @@ jobs:
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.discover-plugins.outputs.project-plugins) }}
-      fail-fast: true
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4.2.2
       - uses: actions/setup-python@v5.6.0
@@ -75,7 +75,7 @@ jobs:
       - uses: eifinger/setup-rye@v4.2.9
         with:
           enable-cache: true
-      - uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@v3.20
         with:
           version: "0.105.1"
       - uses: extractions/setup-just@v2
@@ -90,21 +90,11 @@ jobs:
             target/
           key: ${{ runner.os }}-${{ matrix.plugin.package_name }}-${{ hashFiles(format('{0}/**/pyproject.toml', matrix.plugin.path), format('{0}/**/Cargo.toml', matrix.plugin.path)) }}
       - run: rye sync
-      - id: validate
-        env:
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::validate-plugin
-      - id: build
-        env:
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::build-plugin
-      - id: test
-        env:
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::test-plugin
+      - name: Test Plugin Pipeline
+        run: |
+          just actions::test-plugin-pipeline \
+            "${{ matrix.plugin.package_name }}" \
+            "${{ matrix.plugin.path }}"
 
   register-update-plugins:
     runs-on: ubuntu-latest
@@ -126,21 +116,15 @@ jobs:
         with:
           just-version: "1.40.0"
       - run: rye sync
-      - run: rye run ezpz refresh
-      - id: register
-        if: needs.discover-plugins.outputs.plugins-to-register != '[]'
+      - run: rye run ezpz registry refresh
+      - name: Register and Update Plugins
         env:
           EZPZ_SERVER_SECRET: ${{ secrets.EZPZ_SERVER_SECRET }}
-          PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: just actions::register-plugins
-      - id: update
-        if: needs.discover-plugins.outputs.plugins-to-update != '[]'
-        env:
-          EZPZ_SERVER_SECRET: ${{ secrets.EZPZ_SERVER_SECRET }}
-          PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: just actions::update-plugins
+        run: |
+          just actions::register-update-plugins \
+            '${{ needs.discover-plugins.outputs.plugins-to-register }}' \
+            '${{ needs.discover-plugins.outputs.plugins-to-update }}' \
+            "${{ github.event.inputs.dry_run }}"
 
   publish-plugins:
     runs-on: ubuntu-latest
@@ -165,42 +149,24 @@ jobs:
       - uses: eifinger/setup-rye@v4.2.9
         with:
           enable-cache: true
+      - uses: hustcer/setup-nu@v3.20
+        with:
+          version: "0.105.1"
       - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
       - run: |
           rye sync
           rye add twine
-      - id: check-publish
-        env:
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-          PLUGINS_TO_REGISTER: ${{ needs.discover-plugins.outputs.plugins-to-register }}
-          PLUGINS_TO_UPDATE: ${{ needs.discover-plugins.outputs.plugins-to-update }}
-        run: just actions::check-publish
-      - id: build
-        if: steps.check-publish.outputs.needs-publishing == 'true'
-        env:
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::build-plugin
-      - id: validate-package
-        if: steps.check-publish.outputs.needs-publishing == 'true'
-        env:
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::validate-plugin
-      - id: publish-pypi
-        if: steps.check-publish.outputs.needs-publishing == 'true' && github.event.inputs.dry_run != 'true'
+      - name: Publish Plugin
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::publish-plugin
-      - id: publish-cargo
-        if: steps.check-publish.outputs.needs-publishing == 'true' && hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != '' && github.event.inputs.dry_run != 'true'
-        env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          PLUGIN_PATH: ${{ matrix.plugin.path }}
-          PACKAGE_NAME: ${{ matrix.plugin.package_name }}
-        run: just actions::publish-plugin
+        run: |
+          just actions::publish-plugin \
+            "${{ matrix.plugin.package_name }}" \
+            "${{ matrix.plugin.path }}" \
+            "${{ github.event.inputs.dry_run }}" \
+            '${{ needs.discover-plugins.outputs.plugins-to-register }}' \
+            '${{ needs.discover-plugins.outputs.plugins-to-update }}'
