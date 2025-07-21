@@ -103,18 +103,17 @@ jobs:
         run: |
           cd core/pluginz
           echo "--- Testing 'ezpz help' command ---"
-          rye run ezpz help
+          rye run ezpz --help
 
           echo "--- Testing 'ezpz help <command>' ---"
-          rye run ezpz help list
-          rye run ezpz help add
-          rye run ezpz help find
+          rye run ezpz registry --help
+          rye run ezpz mount --help
 
           echo "--- Testing 'ezpz list' command ---"
           rye run ezpz list
 
           echo "--- Testing 'ezpz status' command ---"
-          rye run ezpz status
+          rye run ezpz regisry status
 
           echo "--- Testing 'ezpz mount'  ---"
           rye run ezpz mount || true

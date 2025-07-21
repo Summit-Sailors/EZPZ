@@ -140,7 +140,7 @@ json5==0.12.0
     # via jupyterlab-server
 jsonpointer==3.0.0
     # via jsonschema
-jsonschema==4.24.1
+jsonschema==4.25.0
     # via jupyter-events
     # via jupyterlab-server
     # via nbformat
@@ -161,7 +161,7 @@ jupyter-core==5.8.1
     # via nbformat
 jupyter-events==0.12.0
     # via jupyter-server
-jupyter-lsp==2.2.5
+jupyter-lsp==2.2.6
     # via jupyterlab
 jupyter-server==2.16.0
     # via jupyter-lsp
@@ -182,6 +182,8 @@ jupyterlab-server==2.27.3
 jupyterthemes==0.20.0
 kiwisolver==1.4.8
     # via matplotlib
+lark==1.2.2
+    # via rfc3987-syntax
 lesscpy==0.15.1
     # via jupyterthemes
 libcst==1.8.0
@@ -340,6 +342,8 @@ rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
     # via jsonschema
     # via jupyter-events
+rfc3987-syntax==1.1.0
+    # via jsonschema
 rich==14.0.0
     # via pip-audit
     # via typer
