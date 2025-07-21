@@ -65,7 +65,7 @@ ezpz add rust-ti
 
 ## 📦 Supporting Libraries
 
-### 🔧 [Painlezz Macroz](./macroz/)
+### 🔧 [Macroz](./macroz/)
 
 _Lightweight Python macro system powering plugin discovery_
 
@@ -185,7 +185,7 @@ lf = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}).lazy()
 result = lf.my_operations.custom_transform(2.0)  # Full IDE support!
 ```
 
-### 5. Discover and Install Ecosystem Plugins
+### 5. Discover and Install Ecosystem Plugins(TBA)
 
 ```bash
 # List all available plugins in the EZPZ ecosystem
@@ -195,7 +195,7 @@ ezpz list
 ezpz find technical
 ```
 
-## 🔍 Plugin Discovery
+## 🔍 Plugin Discovery(TBA)
 
 The EZPZ ecosystem includes a plugin registry that makes it easy to discover and install plugins.
 
