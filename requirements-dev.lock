@@ -67,7 +67,7 @@ classify-imports==4.2.0
     # via flake8-type-checking
 click==8.2.1
     # via typer
-comm==0.2.2
+comm==0.2.3
     # via ipykernel
 contourpy==1.3.2
     # via matplotlib
@@ -189,7 +189,7 @@ lesscpy==0.15.1
 libcst==1.8.0
     # via ezpz-pluginz
     # via macroz
-license-expression==30.4.3
+license-expression==30.4.4
     # via cyclonedx-python-lib
 markdown-it-py==3.0.0
     # via rich
@@ -226,7 +226,7 @@ notebook==7.4.4
 notebook-shim==0.2.4
     # via jupyterlab
     # via notebook
-numpy==2.3.1
+numpy==2.3.2
     # via contourpy
     # via matplotlib
 overrides==7.7.0
@@ -283,7 +283,7 @@ ptyprocess==0.7.0
     # via terminado
 pure-eval==0.2.3
     # via stack-data
-py-serializable==2.0.0
+py-serializable==2.1.0
     # via cyclonedx-python-lib
 pyarrow==20.0.0
     # via ezpz-rust-ti
@@ -344,7 +344,7 @@ rfc3986-validator==0.1.1
     # via jupyter-events
 rfc3987-syntax==1.1.0
     # via jsonschema
-rich==14.0.0
+rich==14.1.0
     # via pip-audit
     # via typer
 rpds-py==0.26.0
@@ -370,6 +370,7 @@ soupsieve==2.7
 stack-data==0.6.3
     # via ipython
 structlog==25.4.0
+    # via ezpz-pluginz
 terminado==0.18.1
     # via jupyter-server
     # via jupyter-server-terminals
@@ -388,7 +389,6 @@ tornado==6.5.1
     # via notebook
     # via terminado
 traitlets==5.14.3
-    # via comm
     # via ipykernel
     # via ipython
     # via jupyter-client

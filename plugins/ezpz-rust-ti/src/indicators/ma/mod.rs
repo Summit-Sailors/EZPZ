@@ -15,6 +15,8 @@ fn parse_moving_average_type(ma_type: &str) -> PyResult<rust_ti::MovingAverageTy
 	}
 }
 
+/// Moving Average Technical Indicators - A collection of moving average analysis functions for financial data
+
 #[gen_stub_pyclass]
 #[pyclass]
 #[derive(Clone)]

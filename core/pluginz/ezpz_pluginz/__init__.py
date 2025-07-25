@@ -8,7 +8,7 @@ from itertools import chain
 import libcst as cst
 
 from ezpz_pluginz.logger import setup_logger
-from ezpz_pluginz.lockfile import EZPZ_TOML_FILENAME, EZPZ_LOCKFILE_FILENAME, PolarsPluginLockfilePD
+from ezpz_pluginz.lockfile import EZPZ_TOML_FILENAME, EZPZ_PROJECT_LOCKFILE_FILENAME, PolarsPluginLockfilePD
 from ezpz_pluginz.toml_schema import EzpzPluginConfig
 from ezpz_pluginz.e_polars_namespace import EPolarsNS
 from ezpz_pluginz.register_plugin_macro import PluginPatcher
@@ -17,9 +17,27 @@ logger = setup_logger("ENTRY")
 
 
 def mount_plugins() -> None:
-  ezpz_pluginz_config = EzpzPluginConfig.from_toml_path(Path.cwd().joinpath(EZPZ_TOML_FILENAME))
+  ezpz_pluginz_config = None
+  ezpz_toml_path = Path.cwd().joinpath(EZPZ_TOML_FILENAME)
+
+  if ezpz_toml_path.exists():
+    try:
+      ezpz_pluginz_config = EzpzPluginConfig.from_toml_path(ezpz_toml_path)
+    except Exception as e:
+      logger.warning(f"Failed to load ezpz.toml: {e}")
+  else:
+    pyproject_toml_path = Path.cwd().joinpath("pyproject.toml")
+    if pyproject_toml_path.exists():
+      try:
+        ezpz_pluginz_config = EzpzPluginConfig.from_toml_path(pyproject_toml_path)
+      except Exception as e:
+        logger.warning(f"Failed to load pyproject.toml: {e}")
+
   lockfile = PolarsPluginLockfilePD.generate()
-  lockfile.to_yaml_file(Path(EZPZ_LOCKFILE_FILENAME))
+  lockfile.to_yaml_file(Path(EZPZ_PROJECT_LOCKFILE_FILENAME))
+
+  # plugin-level lock files using the same lockfile data
+  lockfile.generate_and_save_plugin_lockfiles()
 
   polars_ns_to_plugins = dict(chain(lockfile.project_plugins.items(), lockfile.site_plugins.items()))
   pp = PluginPatcher(polars_ns_to_plugins)

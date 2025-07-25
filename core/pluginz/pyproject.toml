@@ -7,7 +7,9 @@ dependencies = [
   "libcst==1.8.0",
   "macroz",
   "pydantic==2.11.7",
+  "pydantic[email]>=2.11.7",
   "pywatchman==3.0.0",
+  "structlog>=25.4.0",
   "toml==0.10.2",
   "typer==0.16.0",
 ]

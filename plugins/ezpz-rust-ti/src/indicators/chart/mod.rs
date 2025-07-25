@@ -6,6 +6,8 @@ use {
 	pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods},
 };
 
+/// Chart Trends Technical Indicators - A collection of chart trend analysis functions for financial data
+
 #[gen_stub_pyclass]
 #[pyclass]
 #[derive(Clone)]

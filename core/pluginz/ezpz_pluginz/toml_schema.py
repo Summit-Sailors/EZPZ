@@ -18,7 +18,7 @@ __all__ = ["EzpzPluginConfig"]
 logger = logging.getLogger(__name__)
 
 EZPZ_TOML_FILENAME = "ezpz.toml"
-EZPZ_LOCKFILE_FILENAME = "ezpz-lock.yaml"
+EZPZ_PROJECT_LOCKFILE_FILENAME = "ezpz-lock.yaml"
 
 
 def group_models_by_key[T: BaseModel](data: Iterable[T], key: str) -> dict[str, set[T]]:

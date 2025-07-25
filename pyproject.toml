@@ -1,7 +1,6 @@
 [tool.ezpz_pluginz]
 include = ["plugins/ezpz-rust-ti"]
 name = "ezpz"
-package_manger = "rye"
 site_customize = true
 
 [build-system]
@@ -10,14 +9,7 @@ requires = ["hatchling"]
 
 [project]
 authors = []
-dependencies = [
-    "maturin>=1.8.7",
-    "numpy>=2.3.1",
-    "psycopg-binary>=3.2.9",
-    "psycopg2-binary>=2.9.10",
-    "structlog>=25.4.0",
-    "pydantic[email]>=2.11.7",
-]
+dependencies = ["maturin>=1.8.7", "numpy>=2.3.1", "psycopg-binary>=3.2.9", "psycopg2-binary>=2.9.10"]
 description = ''
 name = "ezpz"
 readme = "README.md"

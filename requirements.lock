@@ -42,7 +42,7 @@ markupsafe==3.0.2
 maturin==1.9.1
 mdurl==0.1.2
     # via markdown-it-py
-numpy==2.3.1
+numpy==2.3.2
 polars==1.31.0
     # via ezpz-rust-ti
     # via ezpz-ta
@@ -62,11 +62,12 @@ pywatchman==3.0.0
     # via ezpz-pluginz
 pyyaml-ft==8.0.0
     # via libcst
-rich==14.0.0
+rich==14.1.0
     # via typer
 shellingham==1.5.4
     # via typer
 structlog==25.4.0
+    # via ezpz-pluginz
 toml==0.10.2
     # via ezpz-pluginz
 typer==0.16.0

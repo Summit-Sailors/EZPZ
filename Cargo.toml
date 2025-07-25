@@ -48,7 +48,7 @@ polars = { version = "0.49.1", features = [
 
 pyo3 = { version = "*" }
 pyo3-polars = { version = "0.22.0", features = ["derive", "dtype-full", "lazy"] }
-pyo3-stub-gen = { version = "0.10.0", default-features = false }
+pyo3-stub-gen = { version = "0.11.1", default-features = false }
 
 chrono = { version = "0.4.41", features = ["serde"] }
 serde = { version = "1.0.219", features = ["derive"] }

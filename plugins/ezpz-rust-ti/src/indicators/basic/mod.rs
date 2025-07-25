@@ -6,6 +6,8 @@ use {
 	pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods},
 };
 
+/// Basic Technical Indicators - A collection of basic analysis functions for financial data
+
 #[gen_stub_pyclass]
 #[pyclass]
 #[derive(Clone)]
