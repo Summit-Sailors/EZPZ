@@ -67,7 +67,7 @@ jobs:
       - uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - uses: actions-rs/toolchain@v1.0.6
+      - uses: actions-rs/toolchain@v1.0.7
         if: hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != ''
         with:
           toolchain: ${{ env.RUST_VERSION }}
@@ -141,7 +141,7 @@ jobs:
       - uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - uses: actions-rs/toolchain@v1.0.6
+      - uses: actions-rs/toolchain@v1.0.7
         if: hashFiles(format('{0}/Cargo.toml', matrix.plugin.path)) != ''
         with:
           toolchain: ${{ env.RUST_VERSION }}
