@@ -1,0 +1,33 @@
+[package]
+authors = ["Stephen Oketch"]
+build = "build.rs"
+description = "Rust technical indicators for polars (Wraps rust_ti crate)"
+edition = { workspace = true }
+name = "ezpz-rust-ti"
+repository = { workspace = true }
+version = "0.1.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "ezpz_rust_ti"
+
+[dependencies]
+anyhow = { version = "1.0.98", default-features = false }
+approx = "0.5.1"
+ezpz-stubz = { workspace = true }
+polars = { workspace = true }
+pyo3 = { workspace = true }
+pyo3-polars = { workspace = true }
+pyo3-stub-gen = { workspace = true }
+rust_ti = "2.1.1"
+
+[build-dependencies]
+pyo3-build-config = "0.25.1"
+
+
+[features]
+default = ["pyo3/auto-initialize", "pyo3/extension-module"]
+
+[[bin]]
+doc = false
+name = "stub_gen"

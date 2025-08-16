@@ -1,0 +1,240 @@
+name: Core Components CI/CD
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "core/pluginz/**"
+      - "core/macroz/**"
+      - "pyproject.toml"
+      - "requirements*.lock"
+      - ".github/workflows/core.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "core/pluginz/**"
+      - "core/macroz/**"
+      - "pyproject.toml"
+      - "requirements*.lock"
+      - ".github/workflows/core.yml"
+  workflow_dispatch:
+    inputs:
+      deploy_env:
+        description: "Deployment environment"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+      publish_pypi:
+        description: "Publish to PyPI"
+        required: true
+        default: false
+        type: boolean
+      run_build:
+        description: "Run Build Packages job"
+        required: false
+        default: false
+        type: boolean
+      run_publish:
+        description: "Run Publish to PyPI job"
+        required: false
+        default: false
+        type: boolean
+      run_deploy:
+        description: "Run Deploy Registry job"
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: "3.13"
+
+jobs:
+  test-core:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rye
+        uses: eifinger/setup-rye@v4
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Pin Python version
+        run: rye pin ${{ env.PYTHON_VERSION }}
+
+      - name: Cache Rye dependencies
+        uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/.cache/uv
+            .venv
+          key: ${{ runner.os }}-rye-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/requirements*.lock', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-rye-${{ env.PYTHON_VERSION }}-
+
+      - name: Install workspace dependencies
+        run: |
+          rye sync
+
+      - name: Run linting and formatting checks
+        run: |
+          rye run ruff check .
+          rye run ruff format --check .
+
+      - name: Test pluginz
+        run: |
+          cd core/pluginz
+          rye test
+
+      - name: Test macroz
+        run: |
+          cd core/macroz
+          rye test
+
+      - name: Test CLI functionality
+        run: |
+          cd core/pluginz
+          echo "--- Testing 'ezpz help' command ---"
+          rye run ezpz --help
+
+          echo "--- Testing 'ezpz help <command>' ---"
+          rye run ezpz registry --help
+          rye run ezpz mount --help
+
+          echo "--- Testing 'ezpz list' command ---"
+          rye run ezpz list
+
+          echo "--- Testing 'ezpz status' command ---"
+          rye run ezpz regisry status
+
+          echo "--- Testing 'ezpz mount'  ---"
+          rye run ezpz mount || true
+
+          echo "--- Testing 'ezpz unmount' ---"
+          rye run ezpz unmount || true
+
+          rye run ezpz find database --field category
+          rye run ezpz find "my-test-plugin" --exact
+          rye run ezpz find rust
+
+  build-packages:
+    needs: test-core
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.run_build == 'true'
+    outputs:
+      pluginz-version: ${{ steps.build-info.outputs.pluginz-version }}
+      macroz-version: ${{ steps.build-info.outputs.macroz-version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rye
+        uses: eifinger/setup-rye@v4
+        with:
+          version: "latest"
+
+      - name: Pin Python version
+        run: rye pin ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: rye sync --no-dev
+
+      - name: Build pluginz package
+        run: |
+          cd core/pluginz
+          rye build
+          echo "Built pluginz package"
+
+      - name: Build macroz package
+        run: |
+          cd core/macroz
+          rye build
+          echo "Built macroz package"
+
+      - name: Extract version information
+        id: build-info
+        run: |
+          PLUGINZ_VERSION=$(cd core/pluginz && rye run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          MACROZ_VERSION=$(cd core/macroz && rye run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          echo "pluginz-version=$PLUGINZ_VERSION" >> $GITHUB_OUTPUT
+          echo "macroz-version=$MACROZ_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check package integrity
+        run: |
+          rye add twine
+          rye run twine check core/pluginz/dist/*
+          rye run twine check core/macroz/dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-packages
+          path: |
+            core/pluginz/dist/*
+            core/macroz/dist/*
+          retention-days: 30
+
+  publish-pypi:
+    needs: build-packages
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.run_publish == 'true'
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-packages
+          path: dist/
+
+      - name: Install Rye
+        uses: eifinger/setup-rye@v4
+        with:
+          version: "latest"
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          rye add twine
+          rye run twine upload dist/core/pluginz/dist/*
+          rye run twine upload dist/core/macroz/dist/*
+          echo "Successfully published packages to PyPI"
+
+  notify-completion:
+    needs:
+      - test-core
+      - build-packages
+      - publish-pypi
+    if: |
+      always() &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarize results
+        run: |
+          echo "### ✅ Summary of Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Core | ${{ needs.test-core.result }} |" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "| Build Packages | ${{ needs.build-packages.result }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Publish PyPI | ${{ needs.publish-pypi.result }} |" >> $GITHUB_STEP_SUMMARY
+          fi

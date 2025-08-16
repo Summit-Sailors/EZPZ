@@ -1,0 +1,26 @@
+[project]
+authors = [{ "name" = "Stephen Oketch" }]
+dependencies = ["ezpz-pluginz", "polars==1.31.0", "pyarrow==20.0.0"]
+description = "Technical Indicators for Polars using RustTI"
+name = "ezpz-rust-ti"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+version = "0.0.1"
+
+[build-system]
+build-backend = "maturin"
+requires = ["maturin>=1.0,<2.0"]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+manifest-path = "Cargo.toml"
+module-name = "ezpz_rust_ti._ezpz_rust_ti"
+python-packages = ["ezpz_rust_ti._ezpz_rust_ti"]
+python-source = "python"
+
+[tool.rye]
+dev-dependencies = ["pip-audit>=2.9.0"]
+
+
+[project.entry-points."ezpz.plugins"]
+ezpz-rust-ti = "ezpz_rust_ti:register_plugin"

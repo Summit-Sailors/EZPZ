@@ -1,33 +1,25 @@
 set shell := ["bash", "-uc"]
 set export
-set dotenv-load
+set dotenv-load := true
+
+mod actions
 
 default:
   @just --choose --justfile {{justfile()}}
 
-web:
+stub-gen:
   #!/usr/bin/env bash
   set -euo pipefail
-  dx serve --platform web -p app
+  cargo run -p ezpz-rust-ti stub_gen
 
-desktop:
+examples:
   #!/usr/bin/env bash
   set -euo pipefail
-  dx serve --platform desktop -p app
-
-mobile:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  dx serve --platform mobile -p app
+  rye run python3 examples/ezpz_ta/volatility.py
 
 clear:
   #!/usr/bin/env bash
   set -euo pipefail
   cargo clean
-  rm *.lock
+  rm -f *.lock
   rm -rf .venv
-
-stub-gen:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  cargo run -p ezpz-guiz stub_gen

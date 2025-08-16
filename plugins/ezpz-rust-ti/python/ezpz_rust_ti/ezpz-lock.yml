@@ -1,0 +1,47 @@
+project_plugins:
+  LazyFrame:
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import CandleTI
+    attr_name: candle_ti
+    type_hint: CandleTI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import BasicTI
+    attr_name: basic_ti
+    type_hint: BasicTI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import StrengthTI
+    attr_name: strength_ti
+    type_hint: StrengthTI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import ChartTrendsTI
+    attr_name: chart_trends_ti
+    type_hint: ChartTrendsTI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import CorrelationTI
+    attr_name: correlation_ti
+    type_hint: CorrelationTI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import OtherTI
+    attr_name: other_ti
+    type_hint: OtherTI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import StandardTI
+    attr_name: standard_ti
+    type_hint: StandardTI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import MATI
+    attr_name: ma_ti
+    type_hint: MATI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import VolatilityTI
+    attr_name: volatility_ti
+    type_hint: VolatilityTI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import MomentumTI
+    attr_name: momentum_ti
+    type_hint: MomentumTI
+  - polars_ns: LazyFrame
+    import_: from ezpz_rust_ti._ezpz_rust_ti import TrendTI
+    attr_name: trend_ti
+    type_hint: TrendTI
+site_plugins: {}

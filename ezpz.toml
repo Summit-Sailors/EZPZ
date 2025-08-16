@@ -1,4 +1,4 @@
 [ezpz_pluginz]
-include = ["ezpz-guiz", "ezpz-pluginz"]
+include = ["plugins/ezpz-rust-ti"]
 name = "ezpz"
 site_customize = true

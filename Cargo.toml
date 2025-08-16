@@ -7,7 +7,7 @@ repository = ""
 
 
 [workspace]
-members = ["api", "app", "guiz", "stubz"]
+members = ["plugins/*", "stubz"]
 resolver = "2"
 
 [profile.dev.package."*"]
@@ -27,38 +27,11 @@ opt-level = "z"
 panic = "abort"
 strip = true
 
-[profile.wasm-dev]
-inherits = "dev"
-opt-level = 1
-
-[profile.server-dev]
-inherits = "dev"
-
-[profile.android-dev]
-inherits = "dev"
-
 [workspace.dependencies]
 ezpz-stubz = { path = "stubz", package = "ezpz-stubz" }
 
-
-pyproject-toml = { version = "0.13.4" }
-serde-toml-merge = "0.3.9"
-serde_merge = "0.1.3"
-serde_yml = "0.0.12"
-toml = { version = "0.8.23" }
-
-bigdecimal = { version = "0.4.8", features = ["serde"] }
-
-
-clap = { version = "4.5.40", features = ["derive"] }
-
-lru = "0.14.0"
-
-
-# polars
-connectorx = "0.4.3"
 hashbrown = { version = "0.15.4" }
-polars = { version = "0.48.1", features = [
+polars = { version = "0.49.1", features = [
   "dataframe_arithmetic",
   "describe",
   "dtype-full",
@@ -73,112 +46,20 @@ polars = { version = "0.48.1", features = [
   "strings",
 ] } # DataFrame library based on Apache Arrow
 
-# PyO3
 pyo3 = { version = "*" }
-pyo3-polars = { version = "0.21.0", features = ["derive", "dtype-full", "lazy"] }
-pyo3-stub-gen = { version = "0.9.1", default-features = false }
+pyo3-polars = { version = "0.22.0", features = ["derive", "dtype-full", "lazy"] }
+pyo3-stub-gen = { version = "0.11.1", default-features = false }
 
-
-api = { path = "api" }
-
-
-maestro-anthropic = { path = "../dioxus-maestro/clients/maestro-anthropic" }
-maestro-apalis = { path = "../dioxus-maestro/clients/maestro-apalis" }
-maestro-diesel = { path = "../dioxus-maestro/clients/maestro-diesel" }
-
-maestro-forms = { path = "../dioxus-maestro/frontend/maestro-forms" }
-maestro-hooks = { path = "../dioxus-maestro/frontend/maestro-hooks", features = ["web"] }
-maestro-toast = { path = "../dioxus-maestro/frontend/maestro-toast", features = ["web"] }
-maestro-ui = { path = "../dioxus-maestro/frontend/maestro-ui" }
-
-anyhow = "1.0.98"
 chrono = { version = "0.4.41", features = ["serde"] }
-dashmap = { version = "6.1.0", features = ["rayon", "serde"] }
-derive-new = { version = "0.7.0" }
-derive_more = { version = "2.0.1" }
-enum-map = { version = "2.7.3" }
-futures = "0.3.31"
-futures-util = "0.3.31"
-itertools = "0.14.0"
-num-traits = { version = "0.2.19" }
-parking_lot = { version = "0.12.4" }
-rand = { version = "0.9.1", features = ["small_rng"] }
 serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
-shrinkwraprs = { version = "0.3.0" }
-strum = { version = "0.27.1", features = ["derive"] }
-tap = { version = "1.0.1" }
-uuid = { version = "1.17.0", features = ["serde", "v4"] }
+serde_json = "1.0.141"
 
-leafwing-input-manager = "0.17.0"
-leafwing_abilities = "0.11.0"
-
-bon = { version = "3.6.4" }
-lowdash = "0.5.3"
-schemars = { git = "https://github.com/GREsau/schemars.git" }
-stilts = { version = "0.3.3" }
-url = { version = "2.5.4", features = ["serde"] }
-validator = { version = "0.20.0", features = ["derive"] }
-
-markdown-to-html = "0.1.3"
-plotters = { version = "0.3.7", default-features = false, features = [
-  "bitmap_backend",
-  "bitmap_encoder",
-  "bitmap_gif",
-  "chrono",
-  "svg_backend",
-  # "ttf",
-  "all_elements",
-  "all_series",
-  "colormaps",
-  "deprecated_items",
-  "full_palette",
-  "image",
-] }
-plotters-canvas = { version = "0.3.1" }
-tailwind_fuse = "0.3.2"
-
-dioxus = { version = "0.7.0-alpha.1", default-features = false }
-dioxus-free-icons = { git = "https://github.com/dioxus-community/dioxus-free-icons.git", features = [
-  "bootstrap",
-  "feather",
-  "font-awesome-brands",
-  "font-awesome-regular",
-  "font-awesome-solid",
-  "hero-icons-outline",
-  "hero-icons-solid",
-  "ionicons",
-  "lucide",
-  "material-design-icons-action",
-  "material-design-icons-alert",
-  "material-design-icons-av",
-  "material-design-icons-communication",
-  "material-design-icons-content",
-  "material-design-icons-device",
-  "material-design-icons-editor",
-  "material-design-icons-file",
-  "material-design-icons-hardware",
-  "material-design-icons-home",
-  "material-design-icons-image",
-  "material-design-icons-maps",
-  "material-design-icons-navigation",
-  "material-design-icons-notification",
-  "material-design-icons-places",
-  "material-design-icons-social",
-  "material-design-icons-toggle",
-  "octicons",
-] }
-dioxus-sdk = { git = "https://github.com/DioxusLabs/sdk.git", features = ["time"] }
-
-tokio = { version = "1.45.1", default-features = false }
-tokio-tungstenite = { version = "0.26.2", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
 
 elided_lifetimes_in_paths = "warn"
-rust_2021_idioms = "warn"
-rust_2021_prelude_collisions = "warn"
+rust_2024_prelude_collisions = "warn"
 semicolon_in_expressions_from_macros = "warn"
 trivial_numeric_casts = "warn"
 unsafe_op_in_unsafe_fn = "warn"               # `unsafe_op_in_unsafe_fn` may become the default in future Rust versions: https://github.com/rust-lang/rust/issues/71668

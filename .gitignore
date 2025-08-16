@@ -1,5 +1,10 @@
-*.lock
+.patched
+.hypothesis
+.pytest_cache
+Cargo.lock
 *-lock.yaml
+**/*.egg-info
+**/*.lock
 
 # Mac stuff:
 .DS_Store
