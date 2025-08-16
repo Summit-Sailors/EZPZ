@@ -81,7 +81,7 @@ jobs:
       - uses: extractions/setup-just@v2
         with:
           just-version: "1.40.0"
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/uv
