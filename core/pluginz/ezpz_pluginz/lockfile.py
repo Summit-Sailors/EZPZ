@@ -101,7 +101,7 @@ class PolarsPluginLockfilePD(BaseModel):
     for plugin in chain(chain.from_iterable(self.project_plugins.values()), chain.from_iterable(self.site_plugins.values())):
       imports.append(plugin.import_)
       registry.append(plugin.registery_entry())
-    return Template(Path(__file__).parent.parent.joinpath("templates", "sitecustomize.py.j2").read_text()).render(imports=imports, registry=registry)
+    return Template(Path(__file__).parent.joinpath("templates", "sitecustomize.py.j2").read_text()).render(imports=imports, registry=registry)
 
   def to_yaml(self) -> str:
     return yaml.safe_dump(self.model_dump(mode="json"), sort_keys=False)
