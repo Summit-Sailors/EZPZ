@@ -73,11 +73,16 @@ def mount_plugins() -> None:
 
     logger.info(f"Patched copy saved to {local_copy_path}")
 
-  if ezpz_pluginz_config and ezpz_pluginz_config.site_customize:
+  should_generate_sitecustomize = (
+    (ezpz_pluginz_config and ezpz_pluginz_config.site_customize)
+    or (ezpz_pluginz_config is None and (lockfile.project_plugins or lockfile.site_plugins))  # Remote-only plugins
+  )
+
+  if should_generate_sitecustomize:
     if hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix):
       venv_site_path = Path(sys.prefix) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
     else:
-      logger.warning("WARNING: The system python is executing, running ezpz plugins sitecustomize registry mouting is not advised.")
+      logger.warning("WARNING: The system python is executing, running ezpz plugins sitecustomize registry mounting is not advised.")
       return
 
     if venv_site_path.exists():
@@ -87,6 +92,8 @@ def mount_plugins() -> None:
 
       (patched_dir / "sitecustomize.py").write_text(sitecustomize_code)
       logger.info(f"sitecustomize.py saved to {patched_dir / 'sitecustomize.py'}")
+  else:
+    logger.info("Sitecustomize generation skipped - no plugins found or not explicitly enabled")
 
 
 def unmount_plugins() -> None:

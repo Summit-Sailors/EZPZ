@@ -13,8 +13,8 @@
     # via ezpz-pluginz
 -e file:core/pluginz
     # via ezpz-rust-ti
-    # via ezpz-ta
--e file:examples
+    # via ezpz-tiz
+-e file:examples/ezpz_tiz
 -e file:plugins/ezpz-rust-ti
 aiofiles==24.1.0
     # via ezpz-pluginz
@@ -35,22 +35,22 @@ jinja2==3.1.6
 libcst==1.8.0
     # via ezpz-pluginz
     # via macroz
-markdown-it-py==3.0.0
+markdown-it-py==4.0.0
     # via rich
 markupsafe==3.0.2
     # via jinja2
-maturin==1.9.1
+maturin==1.9.3
 mdurl==0.1.2
     # via markdown-it-py
 numpy==2.3.2
 polars==1.31.0
     # via ezpz-rust-ti
-    # via ezpz-ta
+    # via ezpz-tiz
 psycopg-binary==3.2.9
 psycopg2-binary==2.9.10
 pyarrow==20.0.0
     # via ezpz-rust-ti
-    # via ezpz-ta
+    # via ezpz-tiz
 pydantic==2.11.7
     # via ezpz-pluginz
     # via macroz

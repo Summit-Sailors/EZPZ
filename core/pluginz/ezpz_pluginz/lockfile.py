@@ -52,30 +52,46 @@ class PolarsPluginLockfilePD(BaseModel):
         project_entry.project_plugins = EzpzPluginConfig.get_plugins(pyproject_toml_path)
         logger.debug("Loaded plugins from pyproject.toml")
       else:
-        logger.warning(f"Neither {EZPZ_TOML_FILENAME} nor pyproject.toml found in {Path.cwd()}")
+        logger.info("No local config found. Checking for remote plugins only.")
     except ValueError as e:
       logger.warning(f"Failed to load plugins: {e}. Continuing with empty project plugins.")
 
-    logger.info("Proceeding to check from sitepackages")
-    # Check for site plugins from distributions
+    logger.info("Proceeding to check for site packages")
+
+    # track processed plugin lockfiles to avoid duplicates
+    processed_lockfiles: set[Path] = set()
     has_ezpz_pluginz_dep = False
+
     for dist in importlib.metadata.distributions():
       if "ezpz-pluginz" in (dist.requires or []):
         has_ezpz_pluginz_dep = True
         spec = importlib.util.find_spec(dist.metadata["Name"].replace("-", "_"))
         if spec and spec.origin:
-          patch_file = Path(spec.origin).with_name(EZPZ_PLUGIN_LOCKFILE_FILENAME)  # Look for .yml file
-          if patch_file.exists():
+          patch_file = Path(spec.origin).with_name(EZPZ_PLUGIN_LOCKFILE_FILENAME)
+
+          if patch_file.exists() and patch_file not in processed_lockfiles:
             try:
-              project_entry.site_plugins.update(cls.from_yaml_file(patch_file).project_plugins)
+              site_plugin_data = cls.from_yaml_file(patch_file)
+
+              for ns, plugins in site_plugin_data.project_plugins.items():
+                if ns not in project_entry.project_plugins:
+                  if ns not in project_entry.site_plugins:
+                    project_entry.site_plugins[ns] = set()
+                  project_entry.site_plugins[ns].update(plugins)
+                else:
+                  logger.debug(f"Skipping site plugins for {ns} - already loaded as project plugins")
+
+              processed_lockfiles.add(patch_file)
               logger.debug(f"Loaded site plugins from {patch_file}")
             except Exception as e:
               logger.warning(f"Failed to load site plugins from {patch_file}: {e}")
 
-    if not project_entry.project_plugins and not has_ezpz_pluginz_dep:
-      logger.error("No project plugins found and no distributions depend on ezpz-pluginz.")
-      msg = "No project plugins or ezpz-pluginz dependencies found."
-      raise ValueError(msg)
+    if not project_entry.project_plugins and not project_entry.site_plugins:
+      if not has_ezpz_pluginz_dep:
+        logger.error("No plugins found and no distributions depend on ezpz-pluginz.")
+        msg = "No plugins or ezpz-pluginz dependencies found."
+        raise ValueError(msg)
+      logger.warning("Found ezpz-pluginz dependencies but no plugin lockfiles were loaded.")
 
     return project_entry
 

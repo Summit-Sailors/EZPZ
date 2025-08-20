@@ -15,7 +15,7 @@ stub-gen:
 examples:
   #!/usr/bin/env bash
   set -euo pipefail
-  rye run python3 examples/ezpz_ta/volatility.py
+  rye run python3 examples/ezpz_tiz/src/volatility.py
 
 clear:
   #!/usr/bin/env bash

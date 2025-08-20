@@ -13,21 +13,21 @@
     # via ezpz-pluginz
 -e file:core/pluginz
     # via ezpz-rust-ti
-    # via ezpz-ta
--e file:examples
+    # via ezpz-tiz
+-e file:examples/ezpz_tiz
 -e file:plugins/ezpz-rust-ti
 aiofiles==24.1.0
     # via ezpz-pluginz
 annotated-types==0.7.0
     # via pydantic
-anyio==4.9.0
+anyio==4.10.0
     # via httpx
     # via jupyter-server
 appnope==0.1.4
     # via ipykernel
 argon2-cffi==25.1.0
     # via jupyter-server
-argon2-cffi-bindings==21.2.0
+argon2-cffi-bindings==25.1.0
     # via argon2-cffi
 arrow==1.3.0
     # via isoduration
@@ -55,13 +55,13 @@ cachecontrol==0.14.3
     # via pip-audit
 cached-property==2.0.1
     # via ezpz-pluginz
-certifi==2025.7.14
+certifi==2025.8.3
     # via httpcore
     # via httpx
     # via requests
 cffi==1.17.1
     # via argon2-cffi-bindings
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via requests
 classify-imports==4.2.0
     # via flake8-type-checking
@@ -69,13 +69,13 @@ click==8.2.1
     # via typer
 comm==0.2.3
     # via ipykernel
-contourpy==1.3.2
+contourpy==1.3.3
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
 cyclonedx-python-lib==9.1.0
     # via pip-audit
-debugpy==1.8.15
+debugpy==1.8.16
     # via ipykernel
 decorator==5.2.1
     # via ipython
@@ -90,15 +90,15 @@ email-validator==2.2.0
     # via pydantic
 executing==2.2.0
     # via stack-data
-fastjsonschema==2.21.1
+fastjsonschema==2.21.2
     # via nbformat
-filelock==3.18.0
+filelock==3.19.1
     # via cachecontrol
 flake8==7.3.0
     # via flake8-type-checking
 flake8-plugin-utils==1.3.3
 flake8-type-checking==3.0.0
-fonttools==4.59.0
+fonttools==4.59.1
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
@@ -136,11 +136,11 @@ jinja2==3.1.6
     # via jupyterlab
     # via jupyterlab-server
     # via nbconvert
-json5==0.12.0
+json5==0.12.1
     # via jupyterlab-server
 jsonpointer==3.0.0
     # via jsonschema
-jsonschema==4.25.0
+jsonschema==4.25.1
     # via jupyter-events
     # via jupyterlab-server
     # via nbformat
@@ -180,7 +180,7 @@ jupyterlab-server==2.27.3
     # via jupyterlab
     # via notebook
 jupyterthemes==0.20.0
-kiwisolver==1.4.8
+kiwisolver==1.4.9
     # via matplotlib
 lark==1.2.2
     # via rfc3987-syntax
@@ -191,17 +191,17 @@ libcst==1.8.0
     # via macroz
 license-expression==30.4.4
     # via cyclonedx-python-lib
-markdown-it-py==3.0.0
+markdown-it-py==4.0.0
     # via rich
 markupsafe==3.0.2
     # via jinja2
     # via nbconvert
-matplotlib==3.10.3
+matplotlib==3.10.5
     # via jupyterthemes
 matplotlib-inline==0.1.7
     # via ipykernel
     # via ipython
-maturin==1.9.1
+maturin==1.9.3
 mccabe==0.7.0
     # via flake8
     # via pylint
@@ -231,7 +231,7 @@ numpy==2.3.2
     # via matplotlib
 overrides==7.7.0
     # via jupyter-server
-packageurl-python==0.17.1
+packageurl-python==0.17.5
     # via cyclonedx-python-lib
 packaging==25.0
     # via ipykernel
@@ -252,7 +252,7 @@ pexpect==4.9.0
     # via ipython
 pillow==11.3.0
     # via matplotlib
-pip==25.1.1
+pip==25.2
     # via pip-api
 pip-api==0.0.34
     # via pip-audit
@@ -269,7 +269,7 @@ ply==3.11
     # via lesscpy
 polars==1.31.0
     # via ezpz-rust-ti
-    # via ezpz-ta
+    # via ezpz-tiz
 prometheus-client==0.22.1
     # via jupyter-server
 prompt-toolkit==3.0.51
@@ -287,7 +287,7 @@ py-serializable==2.1.0
     # via cyclonedx-python-lib
 pyarrow==20.0.0
     # via ezpz-rust-ti
-    # via ezpz-ta
+    # via ezpz-tiz
 pycodestyle==2.14.0
     # via autopep8
     # via flake8
@@ -324,7 +324,7 @@ pyyaml==6.0.2
     # via jupyter-events
 pyyaml-ft==8.0.0
     # via libcst
-pyzmq==27.0.0
+pyzmq==27.0.1
     # via ipykernel
     # via jupyter-client
     # via jupyter-server
@@ -332,7 +332,7 @@ referencing==0.36.2
     # via jsonschema
     # via jsonschema-specifications
     # via jupyter-events
-requests==2.32.4
+requests==2.32.5
     # via cachecontrol
     # via jupyterlab-server
     # via pip-audit
@@ -347,7 +347,7 @@ rfc3987-syntax==1.1.0
 rich==14.1.0
     # via pip-audit
     # via typer
-rpds-py==0.26.0
+rpds-py==0.27.0
     # via jsonschema
     # via referencing
 ruff==0.12.3
@@ -381,7 +381,7 @@ toml==0.10.2
     # via pip-audit
 tomlkit==0.13.3
     # via pylint
-tornado==6.5.1
+tornado==6.5.2
     # via ipykernel
     # via jupyter-client
     # via jupyter-server
@@ -402,7 +402,7 @@ traitlets==5.14.3
     # via nbformat
 typer==0.16.0
     # via ezpz-pluginz
-types-python-dateutil==2.9.0.20250708
+types-python-dateutil==2.9.0.20250809
     # via arrow
 typing-extensions==4.14.1
     # via beautifulsoup4
