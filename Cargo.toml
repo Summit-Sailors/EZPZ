@@ -27,6 +27,10 @@ opt-level = "z"
 panic = "abort"
 strip = true
 
+[patch.crates-io.planus]
+git = "https://github.com/planus-org/planus"
+tag = "v1.1.1"
+
 [workspace.dependencies]
 ezpz-stubz = { path = "stubz", package = "ezpz-stubz" }
 
