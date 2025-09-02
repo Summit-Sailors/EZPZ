@@ -34,7 +34,7 @@ tag = "v1.1.1"
 [workspace.dependencies]
 ezpz-stubz = { path = "stubz", package = "ezpz-stubz" }
 
-hashbrown = { version = "0.15.4" }
+hashbrown = { version = "0.16.0" }
 polars = { version = "0.49.1", features = [
   "dataframe_arithmetic",
   "describe",
