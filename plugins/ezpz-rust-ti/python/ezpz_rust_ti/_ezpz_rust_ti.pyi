@@ -6,6 +6,9 @@ import builtins
 import polars
 
 class BasicTI:
+  r"""
+  Basic Technical Indicators - A collection of basic analysis functions for financial data
+  """
   def __new__(cls, lf: polars.LazyFrame) -> BasicTI: ...
   def mean_single(self, column: builtins.str) -> builtins.float:
     r"""
@@ -188,6 +191,9 @@ class BasicTI:
     """
 
 class CandleTI:
+  r"""
+  Candle Technical Indicators - A collection of candle analysis functions for financial data
+  """
   def __new__(cls, lf: polars.LazyFrame) -> CandleTI: ...
   def moving_constant_envelopes_single(self, price_column: builtins.str, constant_model_type: builtins.str, difference: builtins.float) -> polars.DataFrame:
     r"""
@@ -521,6 +527,9 @@ class CandleTI:
     """
 
 class ChartTrendsTI:
+  r"""
+  Chart Trends Technical Indicators - A collection of chart trend analysis functions for financial data
+  """
   def __new__(cls, lf: polars.LazyFrame) -> ChartTrendsTI: ...
   def peaks(self, price_column: builtins.str, period: builtins.int, closest_neighbor: builtins.int) -> builtins.list[tuple[builtins.float, builtins.int]]:
     r"""
@@ -592,14 +601,14 @@ class ChartTrendsTI:
     self,
     price_column: builtins.str,
     max_outliers: builtins.int,
-    soft_r_squared_minimum: builtins.float,
-    soft_r_squared_maximum: builtins.float,
-    hard_r_squared_minimum: builtins.float,
-    hard_r_squared_maximum: builtins.float,
-    soft_standard_error_multiplier: builtins.float,
-    hard_standard_error_multiplier: builtins.float,
-    soft_reduced_chi_squared_multiplier: builtins.float,
-    hard_reduced_chi_squared_multiplier: builtins.float,
+    soft_adj_r_squared_minimum: builtins.float,
+    hard_adj_r_squared_minimum: builtins.float,
+    soft_rmse_multiplier: builtins.float,
+    hard_rmse_multiplier: builtins.float,
+    soft_durbin_watson_min: builtins.float,
+    soft_durbin_watson_max: builtins.float,
+    hard_durbin_watson_min: builtins.float,
+    hard_durbin_watson_max: builtins.float,
   ) -> builtins.list[tuple[builtins.int, builtins.int, builtins.float, builtins.float]]:
     r"""
     Break down trends in a price series
@@ -625,6 +634,9 @@ class ChartTrendsTI:
     """
 
 class CorrelationTI:
+  r"""
+  Correlation Technical Indicators - A collection of correlation analysis functions for financial data
+  """
   def __new__(cls, lf: polars.LazyFrame) -> CorrelationTI: ...
   def correlate_asset_prices_single(
     self, price_column_a: builtins.str, price_column_b: builtins.str, constant_model_type: builtins.str, deviation_model: builtins.str
@@ -663,6 +675,9 @@ class CorrelationTI:
     """
 
 class MATI:
+  r"""
+  Moving Average Technical Indicators - A collection of moving average analysis functions for financial data
+  """
   def __new__(cls, lf: polars.LazyFrame) -> MATI: ...
   def moving_average_single(self, price_column: builtins.str, moving_average_type: builtins.str) -> builtins.float:
     r"""
@@ -742,6 +757,9 @@ class MATI:
     """
 
 class MomentumTI:
+  r"""
+  Momentum Technical Indicators - A collection of momentum analysis functions for financial data
+  """
   def __new__(cls, lf: polars.LazyFrame) -> MomentumTI: ...
   def aroon_up_single(self, high_column: builtins.str) -> builtins.float:
     r"""
@@ -1256,6 +1274,9 @@ class OtherTI:
     """
 
 class StandardTI:
+  r"""
+  Standard Technical Indicators - A collection of standard analysis functions for financial data
+  """
   def __new__(cls, lf: polars.LazyFrame) -> StandardTI: ...
   def sma_single(self, price_column: builtins.str) -> builtins.float:
     r"""
@@ -1398,6 +1419,9 @@ class StandardTI:
     """
 
 class StrengthTI:
+  r"""
+  Strength Technical Indicators - A collection of strength analysis functions for financial data
+  """
   def __new__(cls, lf: polars.LazyFrame) -> StrengthTI: ...
   def accumulation_distribution_single(
     self,
@@ -1738,6 +1762,9 @@ class TrendTI:
     """
 
 class VolatilityTI:
+  r"""
+  Volatility Technical Indicators - A collection of volatility analysis functions for financial data
+  """
   def __new__(cls, lf: polars.LazyFrame) -> VolatilityTI: ...
   def ulcer_index_single(self, price_column: builtins.str) -> builtins.float:
     r"""

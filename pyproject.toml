@@ -1,44 +1,28 @@
 [tool.ezpz_pluginz]
 include = ["plugins/ezpz-rust-ti"]
-name = "ezpz"
 site_customize = true
 
-[build-system]
-build-backend = "hatchling.build"
-requires = ["hatchling"]
-
-[project]
-authors = []
-dependencies = ["maturin>=1.8.7", "numpy>=2.3.1", "psycopg-binary>=3.2.9", "psycopg2-binary>=2.9.10"]
-description = ''
-name = "ezpz"
-readme = "README.md"
-requires-python = ">=3.13,<3.14"
-version = "0.0.1"
-
-[tool.rye.workspace]
+[tool.uv.workspace]
 members = ["core/*", "examples/*", "plugins/*"]
 
-[tool.rye]
-dev-dependencies = [
+[dependency-groups]
+dev = [
   "autoflake==2.3.1",
   "autopep8==2.3.2",
   "flake8-plugin-utils==1.3.3",
   "flake8-type-checking==3.0.0",
   "flake8==7.3.0",
   "hypothesis==6.135.27",
-  "ipykernel==6.29.5",
+  "ipykernel==7.0.1",
   "ipython==9.4.0",
-  "isort==6.0.1",
+  "isort==7.0.0",
   "jupyterlab-quarto==0.3.5",
   "jupyterlab==4.4.4",
   "jupyterthemes==0.20.0",
-  "pylint==3.3.7",
+  "pylint==4.0.1",
   "pytest>=8.4.1",
-  "ruff==0.12.3",
+  "ruff==0.14.0",
 ]
-virtual = true
-
 
 [tool.ruff]
 extend-include = ["*.ipynb"]
@@ -108,7 +92,6 @@ fixable = ["ALL"]
 ignore = ["ISC001", "PLR0912", "PLR0913", "W191"]
 unfixable = ["B"]
 
-
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
@@ -118,7 +101,6 @@ quote-annotations = true
 runtime-evaluated-base-classes = ["pydantic.BaseModel"]
 runtime-evaluated-decorators = ["pydantic.BaseModel", "pydantic.validate_call"]
 strict = true
-
 
 [tool.ruff.lint.per-file-ignores]
 "**/{tests,docs,tools}/*" = ["E402"]

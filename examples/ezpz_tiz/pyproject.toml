@@ -1,11 +1,14 @@
 [project]
 authors = [{ "name" = "Stephen Oketch" }]
-dependencies = ["ezpz-pluginz", "polars==1.31.0", "pyarrow==20.0.0"]
+dependencies = ["ezpz_pluginz", "numpy>=2.3.4", "polars==1.31.0", "pyarrow==20.0.0"]
 description = "Examples showcasing use of the ezpz-rust-tiz plugin"
 name = "ezpz_tiz"
 readme = "README.md"
 requires-python = ">=3.13,<=3.15"
 version = "0.0.1"
 
-[tool.rye]
-dev-dependencies = ["pip-audit>=2.9.0"]
+[tool.uv.sources]
+ezpz_pluginz = { workspace = true }
+
+[dependency-groups]
+dev = ["pip-audit>=2.9.0"]

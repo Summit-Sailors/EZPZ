@@ -1,12 +1,11 @@
 [project]
 authors = [{ "name" = "Jeremy Meek" }]
-dependencies = ["libcst==1.8.0", "pydantic==2.11.7"]
+dependencies = ["libcst==1.8.0", "pydantic==2.12.2"]
 description = "A tool that brings type safety and type checking enhancements to the Polars library."
 name = "macroz"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 version = "0.0.1"
-
 
 [build-system]
 build-backend = "hatchling.build"
@@ -16,5 +15,5 @@ requires = ["hatchling"]
 exclude = ["macroz/**/test_*.py"]
 include = ["macroz/**/*.j2", "macroz/**/*.py"]
 
-[tool.rye]
-dev-dependencies = ["pip-audit>=2.9.0"]
+[dependency-groups]
+dev = ["pip-audit>=2.9.0"]

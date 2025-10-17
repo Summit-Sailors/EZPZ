@@ -34,7 +34,7 @@ tag = "v1.1.1"
 [workspace.dependencies]
 ezpz-stubz = { path = "stubz", package = "ezpz-stubz" }
 
-hashbrown = { version = "0.15.4" }
+hashbrown = { version = "0.16.0" }
 polars = { version = "0.49.1", features = [
   "dataframe_arithmetic",
   "describe",
@@ -54,9 +54,9 @@ pyo3 = { version = "*" }
 pyo3-polars = { version = "0.22.0", features = ["derive", "dtype-full", "lazy"] }
 pyo3-stub-gen = { version = "0.11.1", default-features = false }
 
-chrono = { version = "0.4.41", features = ["serde"] }
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.141"
+chrono = { version = "0.4.42", features = ["serde"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
 
 
 [workspace.lints.rust]
