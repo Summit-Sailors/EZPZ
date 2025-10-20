@@ -17,7 +17,7 @@ dev = [
   "ipython==9.4.0",
   "isort==7.0.0",
   "jupyterlab-quarto==0.3.5",
-  "jupyterlab==4.4.4",
+  "jupyterlab==4.4.9",
   "jupyterthemes==0.20.0",
   "pylint==4.0.1",
   "pytest>=8.4.1",
