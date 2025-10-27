@@ -12,14 +12,14 @@ crate-type = ["cdylib", "rlib"]
 name = "ezpz_rust_ti"
 
 [dependencies]
-anyhow = { version = "1.0.98", default-features = false }
+anyhow = { version = "1.0.100", default-features = false }
 approx = "0.5.1"
 ezpz-stubz = { workspace = true }
 polars = { workspace = true }
 pyo3 = { workspace = true }
 pyo3-polars = { workspace = true }
 pyo3-stub-gen = { workspace = true }
-rust_ti = "2.1.1"
+rust_ti = "2.2.0"
 
 [build-dependencies]
 pyo3-build-config = "0.25.1"

@@ -26,6 +26,15 @@ pub(crate) fn parse_deviation_model(model_type: &str) -> PyResult<rust_ti::Devia
 	}
 }
 
+pub fn parse_deviation_aggregate(s: &str) -> PyResult<rust_ti::DeviationAggregate> {
+	match s.to_lowercase().as_str() {
+		"mean" => Ok(rust_ti::DeviationAggregate::Mean),
+		"median" => Ok(rust_ti::DeviationAggregate::Median),
+		"mode" => Ok(rust_ti::DeviationAggregate::Mode),
+		_ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid deviation aggregate: '{}'. Must be 'mean', 'median', or 'mode'", s))),
+	}
+}
+
 // extract f64 values from PySeriesStubbed
 pub(crate) fn extract_f64_values(series: PySeriesStubbed) -> PyResult<Vec<f64>> {
 	let polars_series: Series = series.0.into();

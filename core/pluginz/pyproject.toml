@@ -4,14 +4,14 @@ dependencies = [
   "aiofiles==25.1.0",
   "cached-property==2.0.1",
   "jinja2==3.1.6",
-  "libcst==1.8.0",
+  "libcst==1.8.5",
   "macroz",
-  "pydantic==2.12.2",
-  "pydantic[email]>=2.12.2",
+  "pydantic==2.12.3",
+  "pydantic[email]>=2.12.3",
   "pywatchman==3.0.0",
-  "structlog>=25.4.0",
+  "structlog>=25.5.0",
   "toml==0.10.2",
-  "typer==0.19.2",
+  "typer==0.20.0",
 ]
 description = "A tool that brings type safety and type checking enhancements to the Polars library."
 name = "ezpz_pluginz"

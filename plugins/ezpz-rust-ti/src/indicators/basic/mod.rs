@@ -1,5 +1,5 @@
 use {
-	crate::utils::{extract_f64_values, parse_central_point},
+	crate::utils::{extract_f64_values, parse_central_point, parse_deviation_aggregate},
 	ezpz_stubz::{lazy::PyLfStubbed, series::PySeriesStubbed},
 	polars::prelude::*,
 	pyo3::prelude::*,
@@ -197,11 +197,12 @@ impl BasicTI {
 	///
 	/// # Parameters
 	/// - `column`: &str - Name of the column to analyze
-	/// - `central_point`: &str - Central point type ("mean", "median", etc.)
+	/// - `central_point`: &str - Central point type ("mean", "median", "mode")
+	/// - `aggregate`: &str - Aggregation method ("mean", "median", "mode")
 	///
 	/// # Returns
 	/// f64 - The absolute deviation
-	fn absolute_deviation_single(&self, column: &str, central_point: &str) -> PyResult<f64> {
+	fn absolute_deviation_single(&self, column: &str, central_point: &str, aggregate: &str) -> PyResult<f64> {
 		let series = self
 			.lf
 			.clone()
@@ -215,8 +216,13 @@ impl BasicTI {
 			.clone();
 
 		let values = extract_f64_values(PySeriesStubbed(pyo3_polars::PySeries(series)))?;
-		let cp = parse_central_point(central_point)?;
-		Ok(rust_ti::basic_indicators::single::absolute_deviation(&values, cp))
+
+		let center = parse_central_point(central_point)?;
+		let agg = parse_deviation_aggregate(aggregate)?;
+
+		let config = rust_ti::AbsDevConfig { center, aggregate: agg };
+
+		Ok(rust_ti::basic_indicators::single::absolute_deviation(&values, config))
 	}
 
 	/// Calculate the logarithmic difference between two price points.
@@ -373,11 +379,12 @@ impl BasicTI {
 	/// # Parameters
 	/// - `column`: &str - Name of the column to analyze
 	/// - `period`: usize - Rolling window size
-	/// - `central_point`: &str - Central point type ("mean", "median", etc.)
+	/// - `central_point`: &str - Central point type ("mean", "median", "mode")
+	/// - `aggregate`: &str - Aggregation method ("mean", "median", "mode")
 	///
 	/// # Returns
 	/// PySeriesStubbed - Series containing rolling absolute deviation values
-	fn absolute_deviation_bulk(&self, column: &str, period: usize, central_point: &str) -> PyResult<PySeriesStubbed> {
+	fn absolute_deviation_bulk(&self, column: &str, period: usize, central_point: &str, aggregate: &str) -> PyResult<PySeriesStubbed> {
 		let series = self
 			.lf
 			.clone()
@@ -391,8 +398,13 @@ impl BasicTI {
 			.clone();
 
 		let values = extract_f64_values(PySeriesStubbed(pyo3_polars::PySeries(series)))?;
-		let cp = parse_central_point(central_point)?;
-		let result = rust_ti::basic_indicators::bulk::absolute_deviation(&values, period, cp);
+
+		let center = parse_central_point(central_point)?;
+		let agg = parse_deviation_aggregate(aggregate)?;
+
+		let config = rust_ti::AbsDevConfig { center, aggregate: agg };
+
+		let result = rust_ti::basic_indicators::bulk::absolute_deviation(&values, period, config);
 		let result_series = Series::new("absolute_deviation".into(), result);
 		Ok(PySeriesStubbed(pyo3_polars::PySeries(result_series)))
 	}
@@ -523,14 +535,14 @@ mod tests {
 	#[test]
 	fn test_absolute_deviation_single_mean() {
 		let ti = create_basic_ti();
-		let result = ti.absolute_deviation_single("price", "mean").unwrap();
+		let result = ti.absolute_deviation_single("price", "mean", "mean").unwrap();
 		assert_abs_diff_eq!(result, 2.5, epsilon = 1e-10);
 	}
 
 	#[test]
 	fn test_absolute_deviation_single_median() {
 		let ti = create_basic_ti();
-		let result = ti.absolute_deviation_single("price", "median").unwrap();
+		let result = ti.absolute_deviation_single("price", "median", "median").unwrap();
 		assert_abs_diff_eq!(result, 2.5, epsilon = 1e-10);
 	}
 
@@ -604,7 +616,7 @@ mod tests {
 	#[test]
 	fn test_absolute_deviation_bulk() {
 		let ti = create_basic_ti();
-		let result = ti.absolute_deviation_bulk("price", 3, "mean").unwrap();
+		let result = ti.absolute_deviation_bulk("price", 3, "mean", "mean").unwrap();
 		let values: Vec<f64> = result.0.0.f64().unwrap().into_no_null_iter().collect();
 
 		assert_eq!(values.len(), 10);
@@ -647,7 +659,7 @@ mod tests {
 	#[test]
 	fn test_invalid_central_point_error() {
 		let ti = create_basic_ti();
-		let result = ti.absolute_deviation_single("price", "invalid_central_point");
+		let result = ti.absolute_deviation_single("price", "invalid_central_point", "invalid_abs_deviation");
 		assert!(result.is_err());
 	}
 
