@@ -52,7 +52,7 @@ polars = { version = "0.50.0", features = [
 ] } # DataFrame library based on Apache Arrow
 
 pyo3 = { version = "*" }
-pyo3-polars = { version = "0.23.1", features = ["derive", "dtype-full", "lazy"] }
+pyo3-polars = { version = "0.25.0", features = ["derive", "dtype-full", "lazy"] }
 pyo3-stub-gen = { version = "0.11.1", default-features = false }
 
 chrono = { version = "0.4.42", features = ["serde"] }
