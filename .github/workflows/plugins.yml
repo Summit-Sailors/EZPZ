@@ -44,7 +44,7 @@ jobs:
       - uses: hustcer/setup-nu@v3.20
         with:
           version: "0.105.1"
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v3
         with:
           just-version: "1.40.0"
       - run: rye sync
@@ -78,7 +78,7 @@ jobs:
       - uses: hustcer/setup-nu@v3.20
         with:
           version: "0.105.1"
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v3
         with:
           just-version: "1.40.0"
       - uses: actions/cache@v3
@@ -112,7 +112,7 @@ jobs:
       - uses: eifinger/setup-rye@v4.2.9
         with:
           enable-cache: true
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v3
         with:
           just-version: "1.40.0"
       - run: rye sync
@@ -152,7 +152,7 @@ jobs:
       - uses: hustcer/setup-nu@v3.20
         with:
           version: "0.105.1"
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v3
         with:
           just-version: "1.40.0"
       - run: |
