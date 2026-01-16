@@ -71,7 +71,7 @@ jobs:
         run: rye pin ${{ env.PYTHON_VERSION }}
 
       - name: Cache Rye dependencies
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/uv
