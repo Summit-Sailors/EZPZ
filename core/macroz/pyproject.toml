@@ -4,7 +4,7 @@ dependencies = ["libcst==1.8.6", "pydantic==2.12.5"]
 description = "A tool that brings type safety and type checking enhancements to the Polars library."
 name = "macroz"
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14,<3.15"
 version = "0.0.1"
 
 [build-system]

@@ -19,7 +19,7 @@ def register_plugin() -> PluginMetadata:
     metadata_=PluginMetadataInner(
       tags=["polars", "indicators", "plugins"],
       license="MIT",
-      python_version=">=3.13",
+      python_version=">=3.14",
       dependencies=["ezpz-pluginz", "polars==1.31.0", "pyarrow==20.0.0"],
       documentation=cast("HttpUrl", "https://github.com/Summit-Sailors/EZPZ/blob/main/ezpz-rust-ti/README.md"),
       support_email="oketchs702@gmail.com",

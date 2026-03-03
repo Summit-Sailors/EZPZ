@@ -11,12 +11,12 @@ dependencies = [
   "pywatchman==3.0.0",
   "structlog>=25.5.0",
   "toml==0.10.2",
-  "typer==0.21.0",
+  "typer==0.24.1",
 ]
 description = "A tool that brings type safety and type checking enhancements to the Polars library."
 name = "ezpz_pluginz"
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14,<3.15"
 version = "0.0.1"
 
 [tool.uv.sources]

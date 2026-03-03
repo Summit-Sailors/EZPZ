@@ -237,7 +237,7 @@ def register_plugin() -> PluginMetadata:
     metadata_=PluginMetadataInner(
       tags=["tag1", "tag2", "tag3"],
       license="MIT",
-      python_version=">=3.13",
+      python_version=">=3.14",
       dependencies=["ezpz-pluginz", "polars==1.31.0", "pyarrow==20.0.0"],
       documentation=cast("HttpUrl", "https://doc-url"),
       support_email="your email",

@@ -11,11 +11,11 @@ PACKAGE_NAME_REGEX = re.compile(r"^ezpz[_-][a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9
 
 
 class PluginMetadataInner(BaseModel):
-  PY_VERSION_ERROR: ClassVar[str] = "python_version must be in the format '>=3.X' (e.g., '>=3.13')"
+  PY_VERSION_ERROR: ClassVar[str] = "python_version must be in the format '>=3.X' (e.g., '>=3.14')"
 
   tags: list[str] = Field(default_factory=list, description="Tags describing the plugin")
   license: str = Field(..., description="License type (e.g., MIT, Apache-2.0)")
-  python_version: str = Field(..., description="Minimum Python version (e.g., >=3.13)")
+  python_version: str = Field(..., description="Minimum Python version (e.g., >=3.14)")
   dependencies: list[str] = Field(default_factory=list, description="List of required packages")
   documentation: HttpUrl = Field(..., description="URL to plugin documentation")
   support_email: EmailStr = Field(..., description="Contact email for support")

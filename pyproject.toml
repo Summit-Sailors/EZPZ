@@ -29,7 +29,7 @@ extend-include = ["*.ipynb"]
 include = ["*.ipynb", "*.py", "*.pyi"]
 indent-width = 2
 line-length = 160
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 dummy-variable-rgx = "(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
